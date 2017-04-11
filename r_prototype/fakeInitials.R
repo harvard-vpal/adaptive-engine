@@ -1,3 +1,6 @@
+##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
+
+
 # m.p.i=matrix(runif(n.los*n.users),ncol=n.los, nrow=n.users)
 m.p.i=matrix(0,ncol=n.los, nrow=n.users)
 rownames(m.p.i)=users$id
@@ -49,9 +52,11 @@ names(difficulty)=probs$id
 ##
 
 ##Define the matrix of transit probabilities ####
-m.transit<<-matrix(0.1,nrow=n.probs, ncol = n.los);
-rownames(m.transit)=probs$id
-colnames(m.transit)=los$id
+# m.transit<<-matrix(0.1,nrow=n.probs, ncol = n.los);
+# rownames(m.transit)=probs$id
+# colnames(m.transit)=los$id
+
+m.transit<<-0.1*m.k
 ##
 
 ##Define the matrix of guess probabilities ####
@@ -65,6 +70,16 @@ m.slip<<-matrix(0.1,nrow=n.probs, ncol = n.los);
 rownames(m.slip)=probs$id
 colnames(m.slip)=los$id
 ##
+
+##Define the matrix of odd increments:
+
+m.odds.incr.zero<<- log(pmax(m.slip,epsilon)) - log(1-pmax(m.guess,epsilon))
+m.odds.incr.slope<<- log((1-pmax(m.slip,epsilon))/pmax(m.slip,epsilon)) + log((1-pmax(m.guess,epsilon))/pmax(m.guess,epsilon))
+# rownames(m.odds.incr.zero)=probs$id
+# colnames(m.odds.incr.zero)=los$id
+# rownames(m.odds.incr.slope)=probs$id
+# colnames(m.odds.incr.slope)=los$id
+
 
 ##Define the matrix of "user has seen a problem or not": rownames are problems. ####
 m.unseen<<-matrix(T,nrow=n.users, ncol=n.probs);

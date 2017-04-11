@@ -1,4 +1,6 @@
-bayesUpdate=function(p,k, score=1, p.slip=0.1, p.guess=0.1, p.transit=0.1){
+##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
+
+bayesUpdate=function(log.odds,k, score=1, odds.incr.zero=0.1, odds.incr.slope=0.1, p.transit=0.1){
   
   
   #This function takes the row of student mastery probabilities (a row of the matrix p.matrix) and returns it updated after one student/LO interaction.
@@ -9,24 +11,17 @@ bayesUpdate=function(p,k, score=1, p.slip=0.1, p.guess=0.1, p.transit=0.1){
   #p.guess is probability of answering correct despite not knowing the skill
   #p.transit is probability of learning the skill because of the interaction, even if the answer was wrong.
   
-  x.one=p*(1-p.slip)/(p*(1-p.slip)+(1-p)*p.guess)
-  x.zero=p*p.slip/(p*p.slip+(1-p)*(1-p.guess))
+
+  odds.incr=k*(odds.incr.zero + score*odds.incr.slope)
   
-  x=x.zero + (x.one-x.zero)*score
+  log.odds=log.odds+odds.incr
   
+  log.odds=log((p.transit+exp(log.odds))/(1-p.transit))
   
-  # if(ans){
-  #   x=p*(1-p.slip)/(p*(1-p.slip)+(1-p)*p.guess)
-  # }else{
-  #   x=p*p.slip/(p*p.slip+(1-p)*(1-p.guess))
-  # }
+  p=exp(log.odds);
+  p=p/(1+p)
   
-  incr=k*(x+(1-x)*p.transit-p)
-  p=p+incr
-  
-  p=pmax(p,epsilon)
-  
-  return(list(p=p,incr=incr))
+  return(list(p=p, log.odds=log.odds,odds.incr=odds.incr))
 
 }
 

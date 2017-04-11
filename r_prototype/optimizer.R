@@ -1,3 +1,5 @@
+##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
+
 knowledge=function(prob_id,correctness){
 ##This function finds the empirical knowledge of a single user given a chronologically ordered sequence of items submitted.
   

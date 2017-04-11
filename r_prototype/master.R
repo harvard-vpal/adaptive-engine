@@ -1,3 +1,6 @@
+##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
+
+
 library(plotly)
 source("propagator.R")
 source("optimizer.R")
@@ -28,6 +31,8 @@ source("fakeInitials.R")
 
 m.p=pmax(m.p.i,epsilon)
 
+m.log.odds=log(m.p)-log(1-m.p)
+
 curve=as.data.frame(t(m.p["u1",]))
 
 
@@ -42,9 +47,13 @@ for (t in 1:2000){
         m.correctness[u,problem]=score ##Record the user's answer to the problem.
         m.timestamp[u,problem]=t ##Record the time.
         
-        b=bayesUpdate(p=m.p[u,], k=m.k[problem,], score=score, p.slip=m.slip[problem,],p.guess=m.guess[problem,],p.transit=m.transit[problem,]) ##Update the user's mastery matrix
+        b=bayesUpdate(log.odds=m.log.odds[u,], k=m.k[problem,], score=score, odds.incr.zero=m.odds.incr.zero[problem,],odds.incr.slope=m.odds.incr.slope[problem,],p.transit=m.transit[problem,]) ##Update the user's mastery matrix
+        # b=bayesUpdate(p=m.p[u,], k=m.k[problem,], score=score, p.slip=m.slip[problem,],p.guess=m.guess[problem,],p.transit=m.transit[problem,]) ##Update the user's mastery matrix
+        m.log.odds[u,]=b$log.odds
         m.p[u,]=b$p
-        m.p.pristine[u,]=m.p.pristine[u,]&(b$incr==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
+        m.p.pristine[u,]=m.p.pristine[u,]&(b$odds.incr==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
+        # m.p[u,]=b$p
+        # m.p.pristine[u,]=m.p.pristine[u,]&(b$incr==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
         
     }
   curve=rbind(curve,t(m.p["u1",])) ##Track the learning curves of user 1.
@@ -76,3 +85,5 @@ m.transit=est$transit
 m.guess=est$guess
 m.slip=est$slip
 
+m.odds.incr.zero<<- log(pmax(m.slip,epsilon)) - log(1-pmax(m.guess,epsilon))
+m.odds.incr.slope<<- log((1-pmax(m.slip,epsilon))/pmax(m.slip,epsilon)) + log((1-pmax(m.guess,epsilon))/pmax(m.guess,epsilon))
