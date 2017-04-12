@@ -8,18 +8,18 @@ source("optimizer.R")
 ####Global variables####
 epsilon<<-1e-10 # a regularization cutoff, the smallest value of a mastery probability
 eta=3 ##Information threshold used in the BKT optimization procedure
-p.star<<-0.95 #Threshold probability. If mastery probability is >= than p.star, the LO is considered mastered
-r.star<<-1 #Threshold for forgiving lower probability of mastering pre-requisite LOs.
-V.r<<-3 ##Importance of readiness in recommending the next item
-V.d<<-1 ##Importance of demand in recommending the next item
-V.a<<-3 ##Importance of appropriatness in recommending the next item
+L.star<<- 3 #Threshold odds. If mastery odds are >= than L.star, the LO is considered mastered
+r.star<<- 0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
+V.r<<-5 ##Importance of readiness in recommending the next item
+V.d<<-3 ##Importance of demand in recommending the next item
+V.a<<-1 ##Importance of appropriate difficulty in recommending the next item
 
 #####
 
 ####Initialize with fake data####
 n.users<<-20
 n.los<<-10
-n.probs<<-100
+n.probs<<-200
 users=data.frame("id"=paste0("u",1:n.users),"name"=paste0("user ",1:n.users))
 users$id=as.character(users$id)
 los=data.frame("id"=paste0("l",1:n.los),"name"=paste0("LO ",1:n.los))
@@ -29,37 +29,36 @@ probs$id=as.character(probs$id)
 source("fakeInitials.R")
 #####
 
-m.p=pmax(m.p.i,epsilon)
+m.L<<- m.L.i
 
-m.log.odds=log(m.p)-log(1-m.p)
+source("derivedData.R")
 
-curve=as.data.frame(t(m.p["u1",]))
+
+curve=as.data.frame(t(m.L["u1",]))
 
 
 ##Simulate user interactions: at each moment of time, a randomly picked user submits a problem
-for (t in 1:2000){
+for (t in 1:1000){
     u=sample(users$id,1)
     problem=recommend(u=u) ## Get the recommendation for the next question to serve to the user u. If there is no problem (list exhausted), will be NULL.
     if(!is.null(problem)){
       
-      score=0.01*qbinom(runif(1),100,0.5) #User's score.
+      p.predict=predictCorrectness(u=u,problem=problem) ##Predict probability of success
+      score=as.numeric(runif(1)<p.predict) ##Assume that the user succeeds with the predicted probability
+      # score=as.numeric(runif(1)<0.7)
         m.unseen[u,problem]=F  ##Record that the user has seen this problem.
         m.correctness[u,problem]=score ##Record the user's answer to the problem.
         m.timestamp[u,problem]=t ##Record the time.
         
-        b=bayesUpdate(log.odds=m.log.odds[u,], k=m.k[problem,], score=score, odds.incr.zero=m.odds.incr.zero[problem,],odds.incr.slope=m.odds.incr.slope[problem,],p.transit=m.transit[problem,]) ##Update the user's mastery matrix
-        # b=bayesUpdate(p=m.p[u,], k=m.k[problem,], score=score, p.slip=m.slip[problem,],p.guess=m.guess[problem,],p.transit=m.transit[problem,]) ##Update the user's mastery matrix
-        m.log.odds[u,]=b$log.odds
-        m.p[u,]=b$p
-        m.p.pristine[u,]=m.p.pristine[u,]&(b$odds.incr==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
-        # m.p[u,]=b$p
-        # m.p.pristine[u,]=m.p.pristine[u,]&(b$incr==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
-        
+        b=bayesUpdate(u=u,problem=problem,score=score) ##Update the user's mastery matrix
+        m.L[u,]=b$L
+        m.pristine[u,]=m.pristine[u,]&(b$x==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
     }
-  curve=rbind(curve,t(m.p["u1",])) ##Track the learning curves of user 1.
+  curve=rbind(curve,t(m.L["u1",])) ##Track the learning curves of user 1.
 }
 
-
+curve=exp(curve)
+curve=curve/(curve+1)
 
 ##Some plots
 # p0=plot_ly(z=m.p.i,type="heatmap")
@@ -75,15 +74,13 @@ print(p)
 
 ##Optimize the BKT parameters
 est=estimate(eta)
-m.p.i=est$p.i  ##Update the prior-knowledge matrix
+m.L.i=est$L.i  ##Update the prior-knowledge matrix
 
-ind.pristine=which(m.p.pristine); ##Update the pristine elements of the current mastery probability matrix
-m.p=replace(m.p,ind.pristine,m.p.i[ind.pristine]) ##Apply the optimized priors to the pristine mastery probabilities
+ind.pristine=which(m.pristine); ##Update the pristine elements of the current mastery probability matrix
 
-#Update the transit, guess, slip matrices
+m.L=replace(m.L,ind.pristine,m.L.i[ind.pristine])
+#Update the transit, guess, slip odds
 m.transit=est$transit
 m.guess=est$guess
 m.slip=est$slip
-
-m.odds.incr.zero<<- log(pmax(m.slip,epsilon)) - log(1-pmax(m.guess,epsilon))
-m.odds.incr.slope<<- log((1-pmax(m.slip,epsilon))/pmax(m.slip,epsilon)) + log((1-pmax(m.guess,epsilon))/pmax(m.guess,epsilon))
+source("derivedData.R")

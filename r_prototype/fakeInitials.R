@@ -1,16 +1,17 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
 
-# m.p.i=matrix(runif(n.los*n.users),ncol=n.los, nrow=n.users)
-m.p.i=matrix(0,ncol=n.los, nrow=n.users)
-rownames(m.p.i)=users$id
-colnames(m.p.i)=los$id
+#Initialize the matrix of mastery odds
+m.L.i=matrix(0,ncol=n.los, nrow=n.users)
+rownames(m.L.i)=users$id
+colnames(m.L.i)=los$id
+
 
 
 ##Define the matrix which keeps track whether a LO for a user has ever been updated
-m.p.pristine=matrix(T,ncol=n.los, nrow=n.users)
-rownames(m.p.pristine)=users$id
-colnames(m.p.pristine)=los$id
+m.pristine=matrix(T,ncol=n.los, nrow=n.users)
+rownames(m.pristine)=users$id
+colnames(m.pristine)=los$id
 
 
 ##Define pre-requisite matrix. rownames are pre-reqs. Assumed that the entries are in [0,1] interval ####
@@ -32,53 +33,50 @@ for(i in 1:nrow(m.w)){
 ##
 
 
-
-
-
-##Define the relevance matrix: problems tagged with LOs. rownames are problems. Assumed that the entries are in [0,1] interval ####
-
-fraction.zeros=0.8;
-temp=runif(n.probs*n.los);
-temp[temp<fraction.zeros]=1;
-temp=(1-temp)/(1-fraction.zeros)
-m.k<<-matrix(temp,nrow=n.probs);
-rownames(m.k)=probs$id
-colnames(m.k)=los$id
-##
-
 ##Define the vector of difficulties ####
 difficulty<<-rep(1,n.probs);
 names(difficulty)=probs$id
+
+difficulty=pmin(difficulty, 1-epsilon);
+difficulty=pmax(difficulty,epsilon)
+difficulty=log(difficulty/(1-difficulty))
+
 ##
 
-##Define the matrix of transit probabilities ####
-# m.transit<<-matrix(0.1,nrow=n.probs, ncol = n.los);
-# rownames(m.transit)=probs$id
-# colnames(m.transit)=los$id
 
-m.transit<<-0.1*m.k
+##Define the preliminary relevance matrix: problems tagged with LOs. rownames are problems. Assumed that the entries are in [0,1] interval ####
+
+los.per.problem=2
+
+temp=c(0.5+0.5*runif(los.per.problem),rep(0,n.los-los.per.problem))
+m.k.prelim=NULL
+for(q in 1:n.probs){
+  m.k.prelim=c(m.k.prelim,sample(temp))
+}
+m.k.prelim=matrix(m.k.prelim, nrow=n.probs,byrow=T)
+
+rownames(m.k.prelim)=probs$id
+colnames(m.k.prelim)=los$id
 ##
 
-##Define the matrix of guess probabilities ####
+##Define the matrix of transit odds ####
+
+m.trans<<-0.18*m.k.prelim
+##
+
+##Define the matrix of guess odds (and probabilities) ####
 m.guess<<-matrix(0.1,nrow=n.probs, ncol = n.los);
+m.guess[which(m.k.prelim==0)]=1
 rownames(m.guess)=probs$id
 colnames(m.guess)=los$id
 ##
 
-##Define the matrix of slip probabilities ####
+##Define the matrix of slip odds ####
 m.slip<<-matrix(0.1,nrow=n.probs, ncol = n.los);
+m.slip[which(m.k.prelim==0)]=1
 rownames(m.slip)=probs$id
 colnames(m.slip)=los$id
 ##
-
-##Define the matrix of odd increments:
-
-m.odds.incr.zero<<- log(pmax(m.slip,epsilon)) - log(1-pmax(m.guess,epsilon))
-m.odds.incr.slope<<- log((1-pmax(m.slip,epsilon))/pmax(m.slip,epsilon)) + log((1-pmax(m.guess,epsilon))/pmax(m.guess,epsilon))
-# rownames(m.odds.incr.zero)=probs$id
-# colnames(m.odds.incr.zero)=los$id
-# rownames(m.odds.incr.slope)=probs$id
-# colnames(m.odds.incr.slope)=los$id
 
 
 ##Define the matrix of "user has seen a problem or not": rownames are problems. ####

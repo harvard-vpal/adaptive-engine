@@ -1,55 +1,73 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
-bayesUpdate=function(log.odds,k, score=1, odds.incr.zero=0.1, odds.incr.slope=0.1, p.transit=0.1){
+bayesUpdate=function(u, problem, score=1){
   
   
-  #This function takes the row of student mastery probabilities (a row of the matrix p.matrix) and returns it updated after one student/LO interaction.
+  #This function takes the row of student mastery probabilities (log-odds of them) and returns it updated after one student/LO interaction.
   #The problem is tagged by the learning objectives with relevance values k (k is a row of the matrix m.k)
+  
+  ##The increment of log-odds due to evidence of the problem, but before the transfer
+  x=m.x0[problem,]+score*m.k[problem,]
+  L=m.L[u,]+x
+  
+  ##Add the transferred knowledge
+  trans=m.trans[problem,]
+  L=log(trans+(trans+1)*exp(L))
+  
+  return(list(L=L,x=x))
 
-  
-  #p.slip is probability of answering wrong despite knowing the skill
-  #p.guess is probability of answering correct despite not knowing the skill
-  #p.transit is probability of learning the skill because of the interaction, even if the answer was wrong.
-  
+}
 
-  odds.incr=k*(odds.incr.zero + score*odds.incr.slope)
+predictCorrectness=function(u, problem){
   
-  log.odds=log.odds+odds.incr
   
-  log.odds=log((p.transit+exp(log.odds))/(1-p.transit))
+  #This function calculates the probability of correctness on a problem, as a prediction based on student's current mastery.
   
-  p=exp(log.odds);
-  p=p/(1+p)
-  
-  return(list(p=p, log.odds=log.odds,odds.incr=odds.incr))
+  L=m.L[u,]
+  p.slip=m.p.slip[problem,];
+  p.guess=m.p.guess[problem,];
 
+  odds=exp(L);
+  
+  x=(odds*(1-p.slip)+p.guess)/(odds*p.slip+1-p.guess); ##Odds by LO
+  x=prod(x) ##Total odds
+  
+  p=x/(1+x) ##Convert odds to probability
+  return(p)
+  
 }
 
 
 recommend=function(u){
   
   ##This function returns the id of the next recommended problem. If none is recommended (list of problems exhausted or the user has reached mastery) it returns NULL.
-  p=m.p[u,]
-  temp=pmin(t(as.matrix(p)/p.star),1)
-  
+  L=m.L[u,]
+  p=L/(L+1)
   #Calculate the user readiness for LOs
-  m.log=log(temp);
-  m.r=exp(m.log %*% m.w);
-  m.r[which(is.na(m.r))]=1 ##We agree that  0^0=1
-  
+
+  m.r=(pmin(L-L.star,0) %*% m.w);
+
   #Subset to the unseen problems and calculate problem readiness and demand
   ind.unseen=which(m.unseen[u,])
   if(length(ind.unseen)==0){##This means we ran out of problems, so we stop
     next.prob.id=NULL
   }else{
       m.k.unseen=m.k[ind.unseen,]
-      R=m.k.unseen %*% pmax(t(m.r-r.star),0)
-      D=m.k.unseen %*% pmax(t(1-temp),0)
+      
+      ##Calculate the common normalization factor (R requires doing the case of 1 row separately.)
+      if(length(ind.unseen)>1){
+      normalization=1/rowSums(m.k.unseen);
+      }else{
+        normalization=sum(m.k.unseen)
+      }
+      
+      R=(m.k.unseen %*% pmin(t(m.r+r.star),0))*normalization
+      D=(m.k.unseen %*% pmax((L.star-L),0))*normalization
       A=0
       
       d.temp=matrix(rep(difficulty[ind.unseen],n.los),ncol=n.los)
-      p.temp=matrix(rep(p,length(ind.unseen)),ncol=n.los, byrow=T)
-      A=diag(m.k.unseen %*% t(1-abs(d.temp-p.temp)))
+      L.temp=matrix(rep(L,length(ind.unseen)),ncol=n.los, byrow=T)
+      A=-diag(m.k.unseen %*% t(abs(L.temp-L.temp)))*normalization
 
       if(sum(D)==0){##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
         next.prob.id=NULL

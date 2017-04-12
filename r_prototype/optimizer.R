@@ -3,20 +3,27 @@
 knowledge=function(prob_id,correctness){
 ##This function finds the empirical knowledge of a single user given a chronologically ordered sequence of items submitted.
   
-m.ku=m.k[prob_id,]
+m.k.u=m.k[prob_id,]
+m.slip.u=m.slip.neg.log[prob_id,]
+m.guess.u=m.guess.neg.log[prob_id,]
 N=length(prob_id)
   
 z=matrix(0,nrow=N+1,ncol=ncol(m.k));
 x=rep(0,N)
-z[1,]=(1-correctness) %*% m.ku;
-z[N+1,]=correctness %*% m.ku;
-
-for(n in 1:(N-1)){
-  x[1:n]=correctness[1:n];
-  x[(n+1):N]=1-correctness[(n+1):N]
-  z[n+1,]=x %*% m.ku
+z[1,]=(1-correctness) %*% m.slip.u;
+z[N+1,]=correctness %*% m.guess.u;
+if(N>1){
+  for(n in 1:(N-1)){
+    # x[1:n]=correctness[1:n];
+    # x[(n+1):N]=1-correctness[(n+1):N]
+    # z[n+1,]=x %*% m.k.u
+    
+    x[1:n]=correctness[1:n]
+    x[(n+1):N]=1-correctness[(n+1):N]
+    temp=rbind(m.guess.u[1:n,],m.slip.u[(n+1):N,])
+    z[n+1,]=x %*% temp
+  }
 }
-
 knowledge=matrix(0,ncol=ncol(m.k),nrow=N);
 rownames(knowledge)=prob_id;
 colnames(knowledge)=colnames(m.k)
@@ -32,10 +39,11 @@ for (i in ind){
   }
   
   knowledge[,j]=knowledge[,j]+temp
+  # knowledge[which(knowledge[,j]!=temp),j]=0.5
   
 }
 
-knowledge[,j]=knowledge[,j]/length(ind)
+knowledge[,j]=knowledge[,j]/length(ind) ##We average the knowledge when there are multiple candidates (length(ind)>1)
 
 }
 
@@ -52,8 +60,8 @@ estimate=function(info.threshold=0){
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
 ##Thus, the outputs of this function do not contain any non-numeric values and should be used to simply replace the current BKT parameter matrices.
 
-transit=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
-transit.denom=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
+trans=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
+trans.denom=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 guess=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 guess.denom=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 slip=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
@@ -71,11 +79,13 @@ for (u in rownames(m.timestamp)){
   J=length(prob_id)
   if(J>0){
     
-  m.ku=m.k[prob_id,]
+  m.k.u=m.k[prob_id,]
+  
+  ##Calculate the sum of relevances of user's experience for a each learning objective
   if(J==1){
-    u.R=m.ku
+    u.R=m.k.u
   }else{
-  u.R=colSums(m.ku)
+  u.R=colSums(m.k.u)
   }
   u.knowledge=knowledge(prob_id, m.correctness[u,prob_id]);
   u.correctness=m.correctness[u,prob_id]
@@ -86,18 +96,18 @@ for (u in rownames(m.timestamp)){
   
   # m.u.R=matrix(rep(u.R,J),nrow=J,byrow=T)
   
-  ##Contribute to the transit, guess and slip probabilities (numerators and denominators separately).
+  ##Contribute to the trans, guess and slip probabilities (numerators and denominators separately).
   if(J>1){
   
-  u.transit.denom=(1-u.knowledge[-J,])
-  transit[prob_id[-J],]=transit[prob_id[-J],]+(m.ku[-J,]*u.transit.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
-  transit.denom[prob_id[-J],]=transit.denom[prob_id[-J],]+m.ku[-J,]*u.transit.denom
+  u.trans.denom=(1-u.knowledge[-J,])
+  trans[prob_id[-J],]=trans[prob_id[-J],]+(m.k.u[-J,]*u.trans.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
+  trans.denom[prob_id[-J],]=trans.denom[prob_id[-J],]+m.k.u[-J,]*u.trans.denom
   }
-  guess[prob_id,]=guess[prob_id,]+(m.ku*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  guess.denom[prob_id,]=guess.denom[prob_id,]+m.ku*(1-u.knowledge)
+  guess[prob_id,]=guess[prob_id,]+(m.k.u*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  guess.denom[prob_id,]=guess.denom[prob_id,]+m.k.u*(1-u.knowledge)
   
-  slip[prob_id,]=slip[prob_id,]+(m.ku*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  slip.denom[prob_id,]=slip.denom[prob_id,]+(m.ku*u.knowledge)
+  slip[prob_id,]=slip[prob_id,]+(m.k.u*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  slip.denom[prob_id,]=slip.denom[prob_id,]+(m.k.u*u.knowledge)
   
   }
 
@@ -105,33 +115,53 @@ for (u in rownames(m.timestamp)){
 
 ##Impose the information threshold:
 p.i.denom[which(p.i.denom<info.threshold)]=0
-transit.denom[which(transit.denom<info.threshold)]=0
+trans.denom[which(trans.denom<info.threshold)]=0
 guess.denom[which(guess.denom<info.threshold)]=0
 slip.denom[which(slip.denom<info.threshold)]=0
 
 ##Normalize the results over users.
 p.i=p.i/p.i.denom
-transit=transit/transit.denom
+trans=trans/trans.denom
 guess=guess/guess.denom
 slip=slip/slip.denom
 
-
 #Replicate the initial knowledge to all users:
 p.i=matrix(rep(p.i,n.users),nrow=n.users, byrow=T)
-dimnames(p.i)=dimnames(m.p.i)
+dimnames(p.i)=dimnames(m.L.i)
 
 ## Matrices contain NaNs or Infs in those elements that we do not want to update (it means we don't have sufficient data). Therefore, replace them by the previously stored values.
 
-ind=which((is.na(p.i))|(is.infinite(p.i)))
-p.i=pmax(replace(p.i,ind,m.p.i[ind]),epsilon)
-ind=which((is.na(transit))|(is.infinite(transit)))
-transit=replace(transit,ind,m.transit[ind])
+# ind=which((is.na(p.i))|(is.infinite(p.i)))
+# p.i=pmax(replace(p.i,ind,m.p.i[ind]),epsilon)
+# ind=which((is.na(trans))|(is.infinite(trans)))
+# trans=replace(trans,ind,m.trans[ind])
+# ind=which((is.na(guess))|(is.infinite(guess)))
+# guess=replace(guess,ind,m.guess[ind])
+# ind=which((is.na(slip))|(is.infinite(slip)))
+# slip=replace(slip,ind,m.slip[ind])
+
+#Convert to odds (logarithmic in case of p.i):
+p.i=pmin(pmax(p.i,epsilon),epsilon)
+trans=pmin(pmax(trans,epsilon),epsilon)
+guess=pmin(pmax(guess,epsilon),epsilon)
+slip=pmin(pmax(slip,epsilon),epsilon)
+
+L.i=log(p.i/(1-p.i))
+trans=trans/(1-trans)
+guess=guess/(1-guess)
+slip=slip/(1-slip)
+
+ind=which((is.na(L.i))|(is.infinite(L.i)))
+L.i=replace(L.i,ind,m.L.i[ind])
+ind=which((is.na(trans))|(is.infinite(trans)))
+trans=replace(trans,ind,m.trans[ind])
 ind=which((is.na(guess))|(is.infinite(guess)))
 guess=replace(guess,ind,m.guess[ind])
 ind=which((is.na(slip))|(is.infinite(slip)))
 slip=replace(slip,ind,m.slip[ind])
 
 
-return(list(p.i=p.i,transit=transit,guess=guess,slip=slip))
+
+return(list(L.i=L.i,trans=trans,guess=guess,slip=slip))
 
 }
