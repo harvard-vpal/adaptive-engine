@@ -1,5 +1,14 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
+n.users<<-20
+n.los<<-10
+n.probs<<-200
+users=data.frame("id"=paste0("u",1:n.users),"name"=paste0("user ",1:n.users))
+users$id=as.character(users$id)
+los=data.frame("id"=paste0("l",1:n.los),"name"=paste0("LO ",1:n.los))
+los$id=as.character(los$id)
+probs=data.frame("id"=paste0("p",1:n.probs),"name"=paste0("problem ",1:n.probs))
+probs$id=as.character(probs$id)
 
 #Initialize the matrix of mastery odds
 m.L.i=matrix(0,ncol=n.los, nrow=n.users)
@@ -49,31 +58,31 @@ difficulty=log(difficulty/(1-difficulty))
 los.per.problem=2
 
 temp=c(0.5+0.5*runif(los.per.problem),rep(0,n.los-los.per.problem))
-m.k.prelim=NULL
+m.tagging=NULL
 for(q in 1:n.probs){
-  m.k.prelim=c(m.k.prelim,sample(temp))
+  m.tagging=c(m.tagging,sample(temp))
 }
-m.k.prelim=matrix(m.k.prelim, nrow=n.probs,byrow=T)
+m.tagging=matrix(m.tagging, nrow=n.probs,byrow=T)
 
-rownames(m.k.prelim)=probs$id
-colnames(m.k.prelim)=los$id
+rownames(m.tagging)=probs$id
+colnames(m.tagging)=los$id
 ##
 
 ##Define the matrix of transit odds ####
 
-m.trans<<-0.18*m.k.prelim
+m.trans<<-0.18*m.tagging
 ##
 
 ##Define the matrix of guess odds (and probabilities) ####
 m.guess<<-matrix(0.1,nrow=n.probs, ncol = n.los);
-m.guess[which(m.k.prelim==0)]=1
+m.guess[which(m.tagging==0)]=1
 rownames(m.guess)=probs$id
 colnames(m.guess)=los$id
 ##
 
 ##Define the matrix of slip odds ####
 m.slip<<-matrix(0.1,nrow=n.probs, ncol = n.los);
-m.slip[which(m.k.prelim==0)]=1
+m.slip[which(m.tagging==0)]=1
 rownames(m.slip)=probs$id
 colnames(m.slip)=los$id
 ##

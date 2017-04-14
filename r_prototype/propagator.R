@@ -54,27 +54,32 @@ recommend=function(u){
   }else{
       m.k.unseen=m.k[ind.unseen,]
       
-      ##Calculate the common normalization factor (R requires doing the case of 1 row separately.)
-      if(length(ind.unseen)>1){
-      normalization=1/rowSums(m.k.unseen);
-      }else{
-        normalization=sum(m.k.unseen)
-      }
       
-      R=(m.k.unseen %*% pmin(t(m.r+r.star),0))*normalization
-      D=(m.k.unseen %*% pmax((L.star-L),0))*normalization
+      R=(m.k.unseen %*% pmin(t(m.r+r.star),0))
+      D=(m.k.unseen %*% pmax((L.star-L),0))
       A=0
       
       d.temp=matrix(rep(difficulty[ind.unseen],n.los),ncol=n.los)
       L.temp=matrix(rep(L,length(ind.unseen)),ncol=n.los, byrow=T)
-      A=-diag(m.k.unseen %*% t(abs(L.temp-L.temp)))*normalization
+      A=-diag(m.k.unseen %*% t(abs(L.temp-d.temp)))
 
       if(sum(D)==0){##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
         next.prob.id=NULL
       }else{
+        
+        temp=1/diff(range(A));
+        if(!is.infinite(temp)){A=A*temp}
+        temp=1/diff(range(D));
+        if(!is.infinite(temp)){D=D*temp}
+        temp=1/diff(range(R));
+        if(!is.infinite(temp)){R=R*temp}
+        
+        
       next.prob.id=rownames(R)[which.max(V.r*R+V.d*D+V.a*A)]
       
       }
+      
+     
   }
   return(next.prob.id)
   

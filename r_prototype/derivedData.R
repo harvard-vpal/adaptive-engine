@@ -1,4 +1,6 @@
-## Calculate the useful matrices of gues and slip probabilities and of negative logs of the odds.
+##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
+
+## Calculate the useful matrices of guess and slip probabilities and of negative logs of the odds.
 m.guess.neg.log<<- -log(m.guess)
 m.p.guess<<- m.guess/(m.guess+1)
 

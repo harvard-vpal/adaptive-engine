@@ -7,7 +7,8 @@ source("optimizer.R")
 
 ####Global variables####
 epsilon<<-1e-10 # a regularization cutoff, the smallest value of a mastery probability
-eta=3 ##Information threshold used in the BKT optimization procedure
+eta=0 ##Relevance threshold used in the BKT optimization procedure
+M=20 ##Information threshold user in the BKT optimization procedure
 L.star<<- 3 #Threshold odds. If mastery odds are >= than L.star, the LO is considered mastered
 r.star<<- 0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
 V.r<<-5 ##Importance of readiness in recommending the next item
@@ -17,19 +18,14 @@ V.a<<-1 ##Importance of appropriate difficulty in recommending the next item
 #####
 
 ####Initialize with fake data####
-n.users<<-20
-n.los<<-10
-n.probs<<-200
-users=data.frame("id"=paste0("u",1:n.users),"name"=paste0("user ",1:n.users))
-users$id=as.character(users$id)
-los=data.frame("id"=paste0("l",1:n.los),"name"=paste0("LO ",1:n.los))
-los$id=as.character(los$id)
-probs=data.frame("id"=paste0("p",1:n.probs),"name"=paste0("problem ",1:n.probs))
-probs$id=as.character(probs$id)
 source("fakeInitials.R")
 #####
 
 m.L<<- m.L.i
+
+R.hist<<-NULL
+D.hist<<-NULL
+A.hist<<-NULL
 
 source("derivedData.R")
 
@@ -38,14 +34,14 @@ curve=as.data.frame(t(m.L["u1",]))
 
 
 ##Simulate user interactions: at each moment of time, a randomly picked user submits a problem
-for (t in 1:1000){
+for (t in 1:4000){
     u=sample(users$id,1)
     problem=recommend(u=u) ## Get the recommendation for the next question to serve to the user u. If there is no problem (list exhausted), will be NULL.
     if(!is.null(problem)){
       
       p.predict=predictCorrectness(u=u,problem=problem) ##Predict probability of success
       score=as.numeric(runif(1)<p.predict) ##Assume that the user succeeds with the predicted probability
-      # score=as.numeric(runif(1)<0.7)
+      score=as.numeric(runif(1)<0.7)
         m.unseen[u,problem]=F  ##Record that the user has seen this problem.
         m.correctness[u,problem]=score ##Record the user's answer to the problem.
         m.timestamp[u,problem]=t ##Record the time.
@@ -73,7 +69,7 @@ p=p%>%layout(title="Learning curves of user 1", xaxis=list(title="Time"),yaxis=l
 print(p)
 
 ##Optimize the BKT parameters
-est=estimate(eta)
+est=estimate(relevance.threshold=eta, information.threshold=M,remove.degeneracy=T)
 m.L.i=est$L.i  ##Update the prior-knowledge matrix
 
 ind.pristine=which(m.pristine); ##Update the pristine elements of the current mastery probability matrix

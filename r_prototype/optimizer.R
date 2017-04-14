@@ -54,7 +54,7 @@ return(knowledge)
 
 
 
-estimate=function(info.threshold=0){
+estimate=function(relevance.threshold=0, information.threshold=20,remove.degeneracy=T){
   
 ##This function estimates the matrices of the BKT parameters from the user interaction data.
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
@@ -87,6 +87,10 @@ for (u in rownames(m.timestamp)){
   }else{
   u.R=colSums(m.k.u)
   }
+  
+  ##Implement the relevance threshold:
+  u.R[u.R<=relevance.threshold]=0
+  
   u.knowledge=knowledge(prob_id, m.correctness[u,prob_id]);
   u.correctness=m.correctness[u,prob_id]
   
@@ -94,30 +98,43 @@ for (u in rownames(m.timestamp)){
   p.i=p.i+u.knowledge[1,]*u.R
   p.i.denom=p.i.denom+u.R
   
-  # m.u.R=matrix(rep(u.R,J),nrow=J,byrow=T)
+  m.R.u=matrix(rep(u.R,J),nrow=J,byrow=T)
   
   ##Contribute to the trans, guess and slip probabilities (numerators and denominators separately).
   if(J>1){
   
   u.trans.denom=(1-u.knowledge[-J,])
-  trans[prob_id[-J],]=trans[prob_id[-J],]+(m.k.u[-J,]*u.trans.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
-  trans.denom[prob_id[-J],]=trans.denom[prob_id[-J],]+m.k.u[-J,]*u.trans.denom
+  trans[prob_id[-J],]=trans[prob_id[-J],]+(m.R.u[-J,]*u.trans.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
+  trans.denom[prob_id[-J],]=trans.denom[prob_id[-J],]+m.R.u[-J,]*u.trans.denom
   }
-  guess[prob_id,]=guess[prob_id,]+(m.k.u*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  guess.denom[prob_id,]=guess.denom[prob_id,]+m.k.u*(1-u.knowledge)
+  guess[prob_id,]=guess[prob_id,]+(m.R.u*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  guess.denom[prob_id,]=guess.denom[prob_id,]+m.R.u*(1-u.knowledge)
   
-  slip[prob_id,]=slip[prob_id,]+(m.k.u*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  slip.denom[prob_id,]=slip.denom[prob_id,]+(m.k.u*u.knowledge)
+  slip[prob_id,]=slip[prob_id,]+(m.R.u*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  slip.denom[prob_id,]=slip.denom[prob_id,]+(m.R.u*u.knowledge)
   
   }
 
 }
 
 ##Impose the information threshold:
-p.i.denom[which(p.i.denom<info.threshold)]=0
-trans.denom[which(trans.denom<info.threshold)]=0
-guess.denom[which(guess.denom<info.threshold)]=0
-slip.denom[which(slip.denom<info.threshold)]=0
+
+# info.threshold.vector=info.threshold*u.R/J
+# 
+# temp=t(t(p.i.denom)/info.threshold.vector)
+# p.i.denom[which(abs(temp)<1)]=0
+# temp=t(t(trans.denom)/info.threshold.vector)
+# trans.denom[which(abs(temp)<1)]=0
+# temp=t(t(guess.denom)/info.threshold.vector)
+# guess.denom[which(abs(temp)<1)]=0
+# temp=t(t(slip.denom)/info.threshold.vector)
+# slip.denom[which(abs(temp)<1)]=0
+
+
+p.i.denom[which(p.i.denom<information.threshold)]=0
+trans.denom[which(trans.denom<information.threshold)]=0
+guess.denom[which(guess.denom<information.threshold)]=0
+slip.denom[which(slip.denom<information.threshold)]=0
 
 ##Normalize the results over users.
 p.i=p.i/p.i.denom
@@ -125,6 +142,12 @@ trans=trans/trans.denom
 guess=guess/guess.denom
 slip=slip/slip.denom
 
+##Remove guess and slip probabilities of 0.5 and above (degeneracy):
+
+if(remove.degeneracy){
+guess[which(guess>=0.5)]=NA
+slip[which(slip>=0.5)]=NA
+}
 #Replicate the initial knowledge to all users:
 p.i=matrix(rep(p.i,n.users),nrow=n.users, byrow=T)
 dimnames(p.i)=dimnames(m.L.i)
@@ -151,6 +174,12 @@ trans=trans/(1-trans)
 guess=guess/(1-guess)
 slip=slip/(1-slip)
 
+##Keep the versions with NAs in them:
+L.i.na=L.i
+trans.na=trans
+guess.na=guess
+slip.na=slip
+
 ind=which((is.na(L.i))|(is.infinite(L.i)))
 L.i=replace(L.i,ind,m.L.i[ind])
 ind=which((is.na(trans))|(is.infinite(trans)))
@@ -162,6 +191,6 @@ slip=replace(slip,ind,m.slip[ind])
 
 
 
-return(list(L.i=L.i,trans=trans,guess=guess,slip=slip))
+return(list(L.i=L.i,trans=trans,guess=guess,slip=slip, L.i.na=L.i.na,trans.na=trans.na,guess.na=guess.na,slip.na=slip.na))
 
 }
