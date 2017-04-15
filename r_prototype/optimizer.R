@@ -90,6 +90,11 @@ for (u in rownames(m.timestamp)){
   
   ##Implement the relevance threshold:
   u.R[u.R<=relevance.threshold]=0
+  u.R[u.R>0]=1
+  
+  m.k.u[m.k.u<=relevance.threshold]=0
+  m.k.u[m.k.u>0]=1
+  # m.k.u=m.tagging[prob_id,]
   
   u.knowledge=knowledge(prob_id, m.correctness[u,prob_id]);
   u.correctness=m.correctness[u,prob_id]
@@ -98,20 +103,23 @@ for (u in rownames(m.timestamp)){
   p.i=p.i+u.knowledge[1,]*u.R
   p.i.denom=p.i.denom+u.R
   
-  m.R.u=matrix(rep(u.R,J),nrow=J,byrow=T)
+  # m.R.u=matrix(rep(u.R,J),nrow=J,byrow=T)
+
+  
+
   
   ##Contribute to the trans, guess and slip probabilities (numerators and denominators separately).
   if(J>1){
-  
   u.trans.denom=(1-u.knowledge[-J,])
-  trans[prob_id[-J],]=trans[prob_id[-J],]+(m.R.u[-J,]*u.trans.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
-  trans.denom[prob_id[-J],]=trans.denom[prob_id[-J],]+m.R.u[-J,]*u.trans.denom
+  trans[prob_id[-J],]=trans[prob_id[-J],]+(m.k.u[-J,]*u.trans.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
+  trans.denom[prob_id[-J],]=trans.denom[prob_id[-J],]+m.k.u[-J,]*u.trans.denom
   }
-  guess[prob_id,]=guess[prob_id,]+(m.R.u*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  guess.denom[prob_id,]=guess.denom[prob_id,]+m.R.u*(1-u.knowledge)
   
-  slip[prob_id,]=slip[prob_id,]+(m.R.u*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  slip.denom[prob_id,]=slip.denom[prob_id,]+(m.R.u*u.knowledge)
+  guess[prob_id,]=guess[prob_id,]+(m.k.u*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  guess.denom[prob_id,]=guess.denom[prob_id,]+m.k.u*(1-u.knowledge)
+  
+  slip[prob_id,]=slip[prob_id,]+(m.k.u*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  slip.denom[prob_id,]=slip.denom[prob_id,]+(m.k.u*u.knowledge)
   
   }
 
@@ -164,10 +172,10 @@ dimnames(p.i)=dimnames(m.L.i)
 # slip=replace(slip,ind,m.slip[ind])
 
 #Convert to odds (logarithmic in case of p.i):
-p.i=pmin(pmax(p.i,epsilon),epsilon)
-trans=pmin(pmax(trans,epsilon),epsilon)
-guess=pmin(pmax(guess,epsilon),epsilon)
-slip=pmin(pmax(slip,epsilon),epsilon)
+p.i=pmin(pmax(p.i,epsilon),1-epsilon)
+trans=pmin(pmax(trans,epsilon),1-epsilon)
+guess=pmin(pmax(guess,epsilon),1-epsilon)
+slip=pmin(pmax(slip,epsilon),1-epsilon)
 
 L.i=log(p.i/(1-p.i))
 trans=trans/(1-trans)

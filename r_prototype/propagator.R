@@ -33,6 +33,9 @@ predictCorrectness=function(u, problem){
   x=prod(x) ##Total odds
   
   p=x/(1+x) ##Convert odds to probability
+  # if(is.na(p)){
+  #   p=1
+  # }
   return(p)
   
 }
