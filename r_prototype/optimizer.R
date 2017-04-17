@@ -1,11 +1,12 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
+
 knowledge=function(prob_id,correctness){
 ##This function finds the empirical knowledge of a single user given a chronologically ordered sequence of items submitted.
   
-m.k.u=m.k[prob_id,]
-m.slip.u=m.slip.neg.log[prob_id,]
-m.guess.u=m.guess.neg.log[prob_id,]
+m.k.u=m.k[prob_id,,drop=F]
+m.slip.u=m.slip.neg.log[prob_id,,drop=F]
+m.guess.u=m.guess.neg.log[prob_id,,drop=F]
 N=length(prob_id)
   
 z=matrix(0,nrow=N+1,ncol=ncol(m.k));
@@ -20,7 +21,7 @@ if(N>1){
     
     x[1:n]=correctness[1:n]
     x[(n+1):N]=1-correctness[(n+1):N]
-    temp=rbind(m.guess.u[1:n,],m.slip.u[(n+1):N,])
+    temp=rbind(m.guess.u[1:n,,drop=F],m.slip.u[(n+1):N,,drop=F])
     z[n+1,]=x %*% temp
   }
 }
@@ -79,13 +80,13 @@ for (u in rownames(m.timestamp)){
   J=length(prob_id)
   if(J>0){
     
-  m.k.u=m.k[prob_id,]
+  m.k.u=m.k[prob_id,,drop=F]
   
   ##Calculate the sum of relevances of user's experience for a each learning objective
   if(J==1){
     u.R=m.k.u
   }else{
-  u.R=colSums(m.k.u)
+      u.R=colSums(as.matrix(m.k.u)) 
   }
   
   ##Implement the relevance threshold:
