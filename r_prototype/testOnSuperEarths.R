@@ -3,7 +3,7 @@
 
 rm(eval.results)
 
-for(eta in c(0,5,10)){
+for(eta in c(0,5)){
 for(M in seq(0,60,30)){
   cat("eta=",eta,"M=",M,"\n")
   before.optimizing=T
@@ -12,3 +12,7 @@ for(M in seq(0,60,30)){
 source("masterSuperEarths.R")
 }
 }
+
+# eval.results[2]=NULL
+
+save(eval.results,file="eval_results.RData")

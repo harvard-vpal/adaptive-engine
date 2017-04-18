@@ -25,7 +25,10 @@ df.probs.lo=subset(df.probs.lo,problem_id %in% int)
 df=merge(df.probs.lo,df.probs,by="problem_id")
 
 ###Course grain to the state of a single LO
-df$LO="the whole thing"
+# df$LO="the whole thing"
+
+###Course grain to one LO per module
+# df$LO=paste0("module ",df$module_id)
 
 ##Define the lists of LOs and problems
 los=data.frame("id"=unique(df$LO));

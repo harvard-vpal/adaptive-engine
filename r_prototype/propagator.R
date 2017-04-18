@@ -1,6 +1,6 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
-bayesUpdate=function(u, problem, score=1){
+bayesUpdate=function(u, problem, score=1, simplified.transit=F){
   
   
   #This function takes the row of student mastery probabilities (log-odds of them) and returns it updated after one student/LO interaction.
@@ -12,7 +12,14 @@ bayesUpdate=function(u, problem, score=1){
   
   ##Add the transferred knowledge
   trans=m.trans[problem,]
+  
+  if(simplified.transit){
+    temp=L+trans
+    temp[L<m.g.trans[problem,]]=m.trans.log[problem,]
+    L=temp
+  }else{
   L=log(trans+(trans+1)*exp(L))
+  }
   
   return(list(L=L,x=x))
 
@@ -33,9 +40,9 @@ predictCorrectness=function(u, problem){
   x=prod(x) ##Total odds
   
   p=x/(1+x) ##Convert odds to probability
-  # if(is.na(p)){
-  #   p=1
-  # }
+  if(is.na(p)){
+    p=1
+  }
   return(p)
   
 }

@@ -54,14 +54,24 @@ for(u in users$id){
         m.timestamp[u,problem]=t ##Record the time.
         b=bayesUpdate(u=u,problem=problem,score=score) ##Update the user's mastery matrix
         m.L[u,]=b$L
+
+        ##This matrix tracks whether this is the situation when the user had no prior interaction with the learning objectives
+        temp=(!m.pristine[u,,drop=F]) %*% t(m.tagging[problem,,drop=F])
+        m.include[u,problem]=(temp>0)
+        
         m.pristine[u,]=m.pristine[u,]&(b$x==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
         
         #############################################################################
         ##The first several scores from a user are not included into the evaluation##
         #############################################################################
-        if(i>4){
-          m.include[u,problem]=T
-        }
+        # if(i>4){
+        #   m.include[u,problem]=T
+        # }
+        
+
+        
+        
+        
         
   # curve=rbind(curve,t(m.L["u1",])) ##Track the learning curves of user 1.
   }
