@@ -7,14 +7,9 @@ source("optimizer.R")
 
 
 
-####Initialize data####
-# source("fakeInitials.R")
 
 
-# if(before.optimizing){
 source("initialsSuperEarths.R")
-# }
-  #####
 
 m.L<<- m.L.i
 
@@ -47,45 +42,16 @@ for(u in users$id){
 
         ##This matrix tracks whether this is the situation when the user had no prior interaction with the learning objectives
         temp=(m.exposure[u,,drop=F]) %*% t(m.tagging[problem,,drop=F])
-        # m.include[u,problem]=(temp>1)
         m.exposure.before.problem[u,problem]=temp
         
         m.exposure[u,]=m.exposure[u,]+m.tagging[problem,]
-        # m.pristine[u,]=m.pristine[u,]&(b$x==1) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
-        
-        #############################################################################
-        ##The first several scores from a user are not included into the evaluation##
-        #############################################################################
-        # if(i>4){
-        #   m.include[u,problem]=T
-        # }
-        
 
-        
-        
-        
-        
-  # curve=rbind(curve,t(m.L["u1",])) ##Track the learning curves of user 1.
   }
 }
 cat("Elapsed seconds in knowledge tracing: ",round(proc.time()[3]-time.start,3),"\n")
 
 source("evaluate.R")
 
-# curve=exp(curve)
-# curve=curve/(curve+1)
-
-##Some plots
-# p0=plot_ly(z=m.p.i,type="heatmap")
-# p1=plot_ly(z=m.p,type="heatmap")
-# print(subplot(p0,p1,nrows=1))
-# 
-# p=plot_ly()
-# for ( i in 1:ncol(curve)){
-#   p=p%>%add_trace(y=curve[,i],type="scatter",mode="points+lines", name=los$name[i])
-# }
-# p=p%>%layout(title="Learning curves of user 1", xaxis=list(title="Time"),yaxis=list(title="probability of mastery"))
-# print(p)
 
 if(before.optimizing){
 #Optimize the BKT parameters
