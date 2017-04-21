@@ -35,6 +35,34 @@ los.select=c("Density1","Distance2","Exo-Transit2","Exo-Wobble2","Gravity1","Lif
 df=subset(df,df$LO %in% los.select)
 df.probs.lo=subset(df.probs.lo,df.probs.lo$LO %in% los.select)
 
+Pcheck=read.csv(file.path(datadir_charlesRiverX,"problem_check.csv.gz"),header=T, stringsAsFactors = F)
+options(digits.secs=8)
+Pcheck$time=as.POSIXct(Pcheck$time,tz="UTC")
+Pcheck$problem_id=gsub(moduleIDPrefix,"",Pcheck$module_id)
+
+Pcheck=subset(Pcheck,problem_id %in% df$edx.id)
+Pcheck$correctness=0
+Pcheck$correctness[which(Pcheck$success=="correct")]=1
+
+source("staffUserNames.R")
+Pcheck=subset(Pcheck,!(username %in% staff$username))
+
+# source("buttefly.R")
+
+##Leave the first attempts only:
+Pcheck$userproblem_id=paste(Pcheck$username,Pcheck$problem_id)
+temp=aggregate(Pcheck$time, by=list("userproblem_id"=Pcheck$userproblem_id), FUN=min)
+temp=merge(Pcheck,temp, by="userproblem_id")
+Pcheck=subset(temp,time==x);
+Pcheck$userproblem_id=NULL
+Pcheck$x=NULL
+Pcheck$time=as.numeric(Pcheck$time)
+
+
+###########################
+### DEFINE DATA MATRICES###
+###########################
+
 ##Define the lists of LOs and problems
 los=data.frame("id"=unique(df$LO));
 los$name=los$id
@@ -71,7 +99,7 @@ for (i in 1:nrow(df.probs.lo)){
 
 ind=which(rowSums(m.tagging)==0)
 if(length(ind)>0){
-cat("Problem without an LO: ",paste0(rownames(m.tagging)[ind],collapse=", "),"\n")
+  cat("Problem without an LO: ",paste0(rownames(m.tagging)[ind],collapse=", "),"\n")
 }else{
   cat("Problems without an LO: none\n")
 }
@@ -94,57 +122,29 @@ difficulty=log(difficulty/(1-difficulty))
 ##
 
 if(before.optimizing){
-##Define the matrix of transit odds ####
-
-m.trans<<- (trans.probability/(1-trans.probability))*m.tagging
-##
-
-##Define the matrix of guess odds ####
-m.guess<<-matrix(guess.probability/(1-guess.probability),nrow=n.probs, ncol = n.los);
-m.guess[which(m.tagging==0)]=1
-rownames(m.guess)=probs$id
-colnames(m.guess)=los$id
-##
-
-##Define the matrix of slip odds ####
-m.slip<<-matrix(slip.probability/(1-slip.probability),nrow=n.probs, ncol = n.los);
-m.slip[which(m.tagging==0)]=1
-rownames(m.slip)=probs$id
-colnames(m.slip)=los$id
-##
+  ##Define the matrix of transit odds ####
+  
+  m.trans<<- (trans.probability/(1-trans.probability))*m.tagging
+  ##
+  
+  ##Define the matrix of guess odds ####
+  m.guess<<-matrix(guess.probability/(1-guess.probability),nrow=n.probs, ncol = n.los);
+  m.guess[which(m.tagging==0)]=1
+  rownames(m.guess)=probs$id
+  colnames(m.guess)=los$id
+  ##
+  
+  ##Define the matrix of slip odds ####
+  m.slip<<-matrix(slip.probability/(1-slip.probability),nrow=n.probs, ncol = n.los);
+  m.slip[which(m.tagging==0)]=1
+  rownames(m.slip)=probs$id
+  colnames(m.slip)=los$id
+  ##
 }
 
 
-####################
-##STUFF WITH USERS##
-####################
-
-Pcheck=read.csv(file.path(datadir_charlesRiverX,"problem_check.csv.gz"),header=T, stringsAsFactors = F)
-options(digits.secs=8)
-Pcheck$time=as.POSIXct(Pcheck$time,tz="UTC")
-Pcheck$problem_id=gsub(moduleIDPrefix,"",Pcheck$module_id)
-
-Pcheck=subset(Pcheck,problem_id %in% probs$id)
-Pcheck$correctness=0
-Pcheck$correctness[which(Pcheck$success=="correct")]=1
-
-source("staffUserNames.R")
-Pcheck=subset(Pcheck,!(username %in% staff$username))
-
-# source("buttefly.R")
-
-##Leave the first attempts only:
-Pcheck$userproblem_id=paste(Pcheck$username,Pcheck$problem_id)
-temp=aggregate(Pcheck$time, by=list("userproblem_id"=Pcheck$userproblem_id), FUN=min)
-temp=merge(Pcheck,temp, by="userproblem_id")
-Pcheck=subset(temp,time==x);
-Pcheck$userproblem_id=NULL
-Pcheck$x=NULL
-Pcheck$time=as.numeric(Pcheck$time)
 
 
-
-##Remove those who did not do a lot
 
 #Define the list of users
 users=data.frame("id"=unique(Pcheck$username))
