@@ -6,6 +6,20 @@ guess.probability=0.1
 trans.probability=0.1
 prior.knowledge=0.2
 
+####Global variables####
+epsilon<<-1e-10 # a regularization cutoff, the smallest value of a mastery probability
+eta=0 ##Relevance threshold used in the BKT optimization procedure
+M=20 ##Information threshold user in the BKT optimization procedure
+L.star<<- 3 #Threshold odds. If mastery odds are >= than L.star, the LO is considered mastered
+r.star<<- 0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
+V.r<<-5 ##Importance of readiness in recommending the next item
+V.d<<-3 ##Importance of demand in recommending the next item
+V.a<<-1 ##Importance of appropriate difficulty in recommending the next item
+
+#####
+
+if(!exists("before.optimizing")){before.optimizing=T}
+
 library(plyr)
 
 datadir="Super-Earths data"
