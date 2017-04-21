@@ -56,10 +56,12 @@ for(u in users$id){
         m.L[u,]=b$L
 
         ##This matrix tracks whether this is the situation when the user had no prior interaction with the learning objectives
-        temp=(!m.pristine[u,,drop=F]) %*% t(m.tagging[problem,,drop=F])
-        m.include[u,problem]=(temp>0)
+        temp=(m.exposure[u,,drop=F]) %*% t(m.tagging[problem,,drop=F])
+        # m.include[u,problem]=(temp>1)
+        m.exposure.before.problem[u,problem]=temp
         
-        m.pristine[u,]=m.pristine[u,]&(b$x==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
+        m.exposure[u,]=m.exposure[u,]+m.tagging[problem,]
+        # m.pristine[u,]=m.pristine[u,]&(b$x==1) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
         
         #############################################################################
         ##The first several scores from a user are not included into the evaluation##
@@ -102,7 +104,7 @@ est=estimate(relevance.threshold=eta, information.threshold=M,remove.degeneracy=
 cat("Elapsed seconds in estimating: ",round(proc.time()[3]-time.start,3),"\n")
 m.L.i=est$L.i  ##Update the prior-knowledge matrix
 
-ind.pristine=which(m.pristine); ##Update the pristine elements of the current mastery probability matrix
+ind.pristine=which(m.exposure==0); ##Update the pristine elements of the current mastery probability matrix
 
 m.L=replace(m.L,ind.pristine,m.L.i[ind.pristine])
 #Update the transit, guess, slip odds

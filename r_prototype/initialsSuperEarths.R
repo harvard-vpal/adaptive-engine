@@ -30,6 +30,11 @@ df=merge(df.probs.lo,df.probs,by="problem_id")
 ###Course grain to one LO per module
 # df$LO=paste0("module ",df$module_id)
 
+###Reduce to only the LOs with more than 3 problems to them:
+los.select=c("Density1","Distance2","Exo-Transit2","Exo-Wobble2","Gravity1","Life-Needs1","Life-Planet1","Planets1","Planets2","Science2","Spectro1","Spectro3","Spectro4")
+df=subset(df,df$LO %in% los.select)
+df.probs.lo=subset(df.probs.lo,df.probs.lo$LO %in% los.select)
+
 ##Define the lists of LOs and problems
 los=data.frame("id"=unique(df$LO));
 los$name=los$id
@@ -123,6 +128,11 @@ Pcheck=subset(Pcheck,problem_id %in% probs$id)
 Pcheck$correctness=0
 Pcheck$correctness[which(Pcheck$success=="correct")]=1
 
+source("staffUserNames.R")
+Pcheck=subset(Pcheck,!(username %in% staff$username))
+
+# source("buttefly.R")
+
 ##Leave the first attempts only:
 Pcheck$userproblem_id=paste(Pcheck$username,Pcheck$problem_id)
 temp=aggregate(Pcheck$time, by=list("userproblem_id"=Pcheck$userproblem_id), FUN=min)
@@ -132,8 +142,6 @@ Pcheck$userproblem_id=NULL
 Pcheck$x=NULL
 Pcheck$time=as.numeric(Pcheck$time)
 
-source("staffUserNames.R")
-Pcheck=subset(Pcheck,!(username %in% staff$username))
 
 
 ##Remove those who did not do a lot
@@ -151,9 +159,14 @@ colnames(m.L.i)=los$id
 }
 
 ##Define the matrix which keeps track whether a LO for a user has ever been updated
-m.pristine=matrix(T,ncol=n.los, nrow=n.users)
-rownames(m.pristine)=users$id
-colnames(m.pristine)=los$id
+m.exposure=matrix(0,ncol=n.los, nrow=n.users)
+rownames(m.exposure)=users$id
+colnames(m.exposure)=los$id
+
+##Define the matrix which keeps track whether a LO for a user has ever been updated
+m.exposure.before.problem=matrix(0,ncol=n.probs, nrow=n.users)
+rownames(m.exposure.before.problem)=users$id
+colnames(m.exposure.before.problem)=probs$id
 
 ##Define the matrix of "user has seen a problem or not": rownames are problems. ####
 m.unseen<<-matrix(T,nrow=n.users, ncol=n.probs);
@@ -173,6 +186,10 @@ m.predicted<<-m.correctness
 m.timestamp<<-matrix(NA,nrow=n.users, ncol=n.probs);
 rownames(m.timestamp)=users$id
 colnames(m.timestamp)=probs$id
+
+
+
+
 
 cat("Initialization complete\n")
 

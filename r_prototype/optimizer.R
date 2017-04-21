@@ -70,7 +70,8 @@ slip.denom=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 p.i=rep(0,n.los);
 p.i.denom=rep(0,n.los)
 
-for (u in rownames(m.timestamp)){
+# for (u in rownames(m.timestamp)){
+for (u in training.set){
   
   ##List problems that the user tried, in chronological order
   
