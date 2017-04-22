@@ -37,6 +37,7 @@ for(u in users$id){
         m.correctness[u,problem]=score ##Record the user's answer to the problem.
         m.unseen[u,problem]=F  ##Record that the user has seen this problem.
         m.timestamp[u,problem]=t ##Record the time.
+        last.seen[u]=problem ##Record this problem as the last seen by the user
         b=bayesUpdate(u=u,problem=problem,score=score) ##Update the user's mastery matrix
         m.L[u,]=b$L
 

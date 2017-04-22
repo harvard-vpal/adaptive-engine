@@ -14,7 +14,7 @@ r.star<<- 0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
 V.r<<-5 ##Importance of readiness in recommending the next item
 V.d<<-3 ##Importance of demand in recommending the next item
 V.a<<-1 ##Importance of appropriate difficulty in recommending the next item
-
+V.c<<-1 ##Importance of continuity in recommending the next item
 #####
 
 ####Initialize with fake data####
@@ -22,10 +22,6 @@ source("fakeInitials.R")
 #####
 
 m.L<<- m.L.i
-
-R.hist<<-NULL
-D.hist<<-NULL
-A.hist<<-NULL
 
 source("derivedData.R")
 
@@ -45,6 +41,7 @@ for (t in 1:4000){
         m.unseen[u,problem]=F  ##Record that the user has seen this problem.
         m.correctness[u,problem]=score ##Record the user's answer to the problem.
         m.timestamp[u,problem]=t ##Record the time.
+        last.seen[u]=problem ##Record this problem as the last seen by the user
         
         b=bayesUpdate(u=u,problem=problem,score=score) ##Update the user's mastery matrix
         m.L[u,]=b$L
@@ -69,14 +66,14 @@ p=p%>%layout(title="Learning curves of user 1", xaxis=list(title="Time"),yaxis=l
 print(p)
 
 ##Optimize the BKT parameters
-est=estimate(relevance.threshold=eta, information.threshold=M,remove.degeneracy=T)
-m.L.i=est$L.i  ##Update the prior-knowledge matrix
-
-ind.pristine=which(m.pristine); ##Update the pristine elements of the current mastery probability matrix
-
-m.L=replace(m.L,ind.pristine,m.L.i[ind.pristine])
-#Update the transit, guess, slip odds
-m.transit=est$transit
-m.guess=est$guess
-m.slip=est$slip
+# est=estimate(relevance.threshold=eta, information.threshold=M,remove.degeneracy=T)
+# m.L.i=est$L.i  ##Update the prior-knowledge matrix
+# 
+# ind.pristine=which(m.pristine); ##Update the pristine elements of the current mastery probability matrix
+# 
+# m.L=replace(m.L,ind.pristine,m.L.i[ind.pristine])
+# #Update the transit, guess, slip odds
+# m.transit=est$transit
+# m.guess=est$guess
+# m.slip=est$slip
 source("derivedData.R")

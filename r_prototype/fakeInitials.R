@@ -103,3 +103,8 @@ colnames(m.correctness)=probs$id
 m.timestamp<<-matrix(NA,nrow=n.users, ncol=n.probs);
 rownames(m.timestamp)=users$id
 colnames(m.timestamp)=probs$id
+
+##Define vector that will store the latest item seen by a user
+
+last.seen<<- rep(NA,n.users);
+names(last.seen)=users$id

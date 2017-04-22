@@ -53,6 +53,7 @@ recommend=function(u){
   ##This function returns the id of the next recommended problem. If none is recommended (list of problems exhausted or the user has reached mastery) it returns NULL.
   L=m.L[u,]
   p=L/(L+1)
+  
   #Calculate the user readiness for LOs
 
   m.r=(pmin(L-L.star,0) %*% m.w);
@@ -67,6 +68,13 @@ recommend=function(u){
       
       R=(m.k.unseen %*% pmin(t(m.r+r.star),0))
       D=(m.k.unseen %*% pmax((L.star-L),0))
+      
+      if(is.na(last.seen[u])){
+        C=0
+      }else{
+        C=m.k.unseen %*% m.k[last.seen[u],]
+      }
+      
       A=0
       
       d.temp=matrix(rep(difficulty[ind.unseen],n.los),ncol=n.los)
@@ -83,9 +91,12 @@ recommend=function(u){
         if(!is.infinite(temp)){D=D*temp}
         temp=1/diff(range(R));
         if(!is.infinite(temp)){R=R*temp}
+        temp=1/diff(range(C));
+        if(!is.infinite(temp)){C=C*temp}
         
         
-      next.prob.id=rownames(R)[which.max(V.r*R+V.d*D+V.a*A)]
+        
+      next.prob.id=rownames(R)[which.max(V.r*R+V.d*D+V.a*A+V.c*C)]
       
       }
       

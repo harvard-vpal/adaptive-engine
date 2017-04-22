@@ -15,6 +15,7 @@ r.star<<- 0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
 V.r<<-5 ##Importance of readiness in recommending the next item
 V.d<<-3 ##Importance of demand in recommending the next item
 V.a<<-1 ##Importance of appropriate difficulty in recommending the next item
+V.c<<-1 ##Importance of continuity in recommending the next item
 
 #####
 
@@ -202,7 +203,10 @@ rownames(m.timestamp)=users$id
 colnames(m.timestamp)=probs$id
 
 
+##Define vector that will store the latest item seen by a user
 
+last.seen<<- rep(NA,n.users);
+names(last.seen)=users$id
 
 
 cat("Initialization complete\n")
