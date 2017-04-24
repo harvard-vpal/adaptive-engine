@@ -17,10 +17,14 @@ colnames(m.L.i)=los$id
 
 
 
+## Define the matrix which keeps track whether a LO for a user has ever been updated
+# m.pristine=matrix(T,ncol=n.los, nrow=n.users)
+# rownames(m.pristine)=users$id
+# colnames(m.pristine)=los$id
 ##Define the matrix which keeps track whether a LO for a user has ever been updated
-m.pristine=matrix(T,ncol=n.los, nrow=n.users)
-rownames(m.pristine)=users$id
-colnames(m.pristine)=los$id
+m.exposure=matrix(0,ncol=n.los, nrow=n.users)
+rownames(m.exposure)=users$id
+colnames(m.exposure)=los$id
 
 
 ##Define pre-requisite matrix. rownames are pre-reqs. Assumed that the entries are in [0,1] interval ####

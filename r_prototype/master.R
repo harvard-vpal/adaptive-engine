@@ -45,7 +45,8 @@ for (t in 1:4000){
         
         b=bayesUpdate(u=u,problem=problem,score=score) ##Update the user's mastery matrix
         m.L[u,]=b$L
-        m.pristine[u,]=m.pristine[u,]&(b$x==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
+        m.exposure[u,]=m.exposure[u,]+m.tagging[problem,]
+        # m.pristine[u,]=m.pristine[u,]&(b$x==0) ##keep track if some LOs have never been updated from the initial value; These will be affected once we optimize the initial values.
     }
   curve=rbind(curve,t(m.L["u1",])) ##Track the learning curves of user 1.
 }
@@ -69,7 +70,7 @@ print(p)
 # est=estimate(relevance.threshold=eta, information.threshold=M,remove.degeneracy=T)
 # m.L.i=est$L.i  ##Update the prior-knowledge matrix
 # 
-# ind.pristine=which(m.pristine); ##Update the pristine elements of the current mastery probability matrix
+# ind.pristine=which(m.exposure==0); ##Update the pristine elements of the current mastery probability matrix
 # 
 # m.L=replace(m.L,ind.pristine,m.L.i[ind.pristine])
 # #Update the transit, guess, slip odds
