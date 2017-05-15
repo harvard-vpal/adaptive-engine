@@ -17,9 +17,6 @@ V_d=3 ##Importance of demand in recommending the next item
 V_a=1 ##Importance of appropriate difficulty in recommending the next item
 V_c=1 ##Importance of continuity in recommending the next item
 
-#Should L be mastery odds(for multiplicative) or logarithmic odds (for additive formulation)?
-multiplicative=True
-
 ##Values prior to estimating model:
 slip_probability=0.15
 guess_probability=0.1

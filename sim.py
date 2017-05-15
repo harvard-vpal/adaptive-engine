@@ -1,8 +1,12 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
+#Should L be mastery odds(for multiplicative) or logarithmic odds (for additive formulation)?
+multiplicative=True
+execfile('multiplicativeFormulation.py')
+
 execfile('fakeInitials.py')
 execfile('derivedData.py')
-execfile('multiplicativeFormulation.py')
+
 
 T=2000
 
