@@ -94,7 +94,7 @@ def predictCorrectness(u, item):
 ##This function returns the id of the next recommended problem in an adaptive module. If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
 def recommend(u, module=1, stopOnMastery=True):
     
-    global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c
+    global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c, scope
     
     #Subset to the unseen problems from the relevant scope
     ind_unseen=np.where(m_unseen[u,] & (scope==module)|(scope==0))[0]
