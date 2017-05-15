@@ -29,6 +29,14 @@ users='u'+np.char.array(range(n_users))
 los='l'+np.char.array(range(n_los))
 items='p'+np.char.array(range(n_items))
 
+#Let problems be divided into several modules of adaptivity. In each module, only the items from that scope are used.
+##Proposed code: 
+# -1 - is not among the adaptively served ones
+# 0 - problem can be served in any module
+# n=1,2,3,...  - problem can be served in the module n
+scope=np.repeat(1, n_items)
+
+
 #users=pd.DataFrame({'id' : 'u'+np.char.array(range(n_users)),
 # 'name' : 'user '+np.char.array(range(n_users))
 #  })

@@ -1,6 +1,7 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
 ##This function maps the user_id to the user index used by other functions, and also adds new users
+##SYNCHRONIZATION IS IMPORTANT
 def mapUser(user_id):
     
     global users
@@ -87,12 +88,12 @@ def predictCorrectness(u, item):
 
 
 ##This function returns the id of the next recommended problem. If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
-def recommend(u, stopOnMastery=True):
+def recommend(u, module=1, stopOnMastery=True):
     
     global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c
             
     #Subset to the unseen problems and calculate problem readiness and demand
-    ind_unseen=np.where(m_unseen[u,])[0]
+    ind_unseen=np.where(m_unseen[u,] & (scope==module)|(scope==0))[0]
 
     N=len(ind_unseen)
     
