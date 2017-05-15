@@ -56,7 +56,7 @@ def bayesUpdate(u, item, score=1, time=0):
   L=np.log(trans+(trans+1)*np.exp(L))
   
   L[np.isposinf(L)]=log_epsilon
-  L[np.isgeninf(L)]=-log_epsilon
+  L[np.isneginf(L)]=-log_epsilon
   
   m_L[u,]=L
   #return{'L':L, 'x':x}
