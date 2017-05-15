@@ -31,7 +31,7 @@ def mapItem(item_id):
         
     return(item)
 
-def bayesUpdate(u, item, score=1,time=0):
+def bayesUpdate(u, item, score=1.0,time=0):
   
   
   #This function updates the user mastery and record of interactions that will be needed for recommendation and estimation of the BKT
@@ -53,7 +53,7 @@ def bayesUpdate(u, item, score=1,time=0):
 
   
   ##Add the transferred knowledge
-  L+=trans[item,]*(L+1)
+  L+=m_trans[item,]*(L+1)
   
   L[np.isposinf(L)]=inv_epsilon
   L[L==0.0]=epsilon
