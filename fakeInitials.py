@@ -2,7 +2,7 @@
 import numpy as np
 #import pandas as pd
 
-n_users=1
+n_users=10
 n_los=8
 n_items=40
 

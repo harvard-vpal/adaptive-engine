@@ -87,7 +87,7 @@ def predictCorrectness(u, item):
 
 
 ##This function returns the id of the next recommended problem. If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
-def recommend(u):
+def recommend(u, stopOnMastery=True):
     
     global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c
             
@@ -119,7 +119,7 @@ def recommend(u):
         L_temp=np.tile(L,(N,1)).transpose()
         A=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
         
-        if np.isnan(sum(D)):#(sum(D)==0): ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
+        if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
             next_item=None
         else:
             temp=1.0/(A.max()-A.min());
