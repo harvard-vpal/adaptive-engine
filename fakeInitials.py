@@ -36,6 +36,10 @@ items='p'+np.char.array(range(n_items))
 # n=1,2,3,...  - problem can be served in the module n
 scope=np.repeat(1, n_items)
 
+##List which items should be used for training the BKT
+useForTraining=np.repeat(True, n_items)
+useForTraining=np.where(useForTraining)[0]
+
 
 #users=pd.DataFrame({'id' : 'u'+np.char.array(range(n_users)),
 # 'name' : 'user '+np.char.array(range(n_users))

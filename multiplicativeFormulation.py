@@ -199,7 +199,7 @@ def knowledge(problems,correctness):
 def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=True):
     
     
-    global n_items,n_los, m_k, m_timestamp, m_correctness, L_i, m_trans, m_guess, m_slip, epsilon
+    global n_items,n_los, m_k, m_timestamp, m_correctness, L_i, m_trans, m_guess, m_slip, epsilon, useForTraining
     
     trans=np.zeros((n_items,n_los))
     trans_denom=trans.copy()
@@ -213,6 +213,8 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
     #if ~('training_set' in globals()):
     training_set=range(n_users)
     
+    
+    
     for u in training_set:
         
         ##List problems that the user tried, in chronological order
@@ -221,6 +223,9 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
         problems=m_timestamp[u,].argsort() ##It is important here that argsort() puts NaNs at the end, so we remove them from there
         if n_of_na>0:        
             problems=problems[:-n_of_na] ##These are indices of items submitted by user u, in chronological order.
+            
+        problems=np.intersect1d(problems, useForTraining)
+        
         J=len(problems)
         if(J>0):
             m_k_u=m_k[problems,]
