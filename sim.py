@@ -1,9 +1,8 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
-import numpy as np
-import fakeInitials
-import derivedData
-import additiveFormulation
+execfile('fakeInitials.py')
+execfile('derivedData.py')
+execfile('multiplicativeFormulation.py')
 
 T=2000
 
