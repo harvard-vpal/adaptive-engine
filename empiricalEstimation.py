@@ -123,10 +123,14 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
     
     
     ##Normalize the results over users.
-    p_i/=p_i_denom
-    trans/=trans_denom
-    guess/=guess_denom
-    slip/=slip_denom
+    ind=np.where(p_i_denom!=0)
+    p_i[ind]/=p_i_denom[ind]
+    ind=np.where(trans_denom!=0)
+    trans[ind]/=trans_denom[ind]
+    ind=np.where(guess_denom!=0)
+    guess[ind]/=guess_denom[ind]
+    ind=np.where(slip_denom!=0)
+    slip[ind]/=slip_denom[ind]
     
     
     
