@@ -123,21 +123,22 @@ def recommend(u, module=1, stopOnMastery=True):
         if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
             next_item=None
         else:
-            temp=1.0/(A.max()-A.min());
-            if(~np.isinf(temp)):
-                A=A*temp
             
-            temp=1.0/(D.max()-D.min());
-            if(~np.isinf(temp)):
-                D=D*temp
+            temp=(A.max()-A.min());
+            if(temp!=0.0):
+                A=A/temp
+            
+            temp=(D.max()-D.min());
+            if(temp!=0.0):
+                D=D/temp
                             
-            temp=1.0/(R.max()-R.min());
-            if(~np.isinf(temp)):
-                R=R*temp
+            temp=(R.max()-R.min());
+            if(temp!=0.0):
+                R=R/temp
             
-            temp=1.0/(C.max()-C.min());
-            if(~np.isinf(temp)):
-                C=C*temp     
+            temp=(C.max()-C.min());
+            if(temp!=0.0):
+                C=C/temp     
             
             next_item=ind_unseen[np.argmax(V_r*R+V_d*D+V_a*A+V_c*C)]
             
