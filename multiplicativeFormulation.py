@@ -46,6 +46,7 @@ def bayesUpdate(u, item, score=1.0,time=0):
       m_correctness[u,item]=score
       m_timestamp[u,item]=time
       m_exposure[u,]+=m_tagging[item,]
+      m_confidence[u,]+=m_k[item,]
 
   ##The increment of odds due to evidence of the problem, but before the transfer
   x=m_x0_mult[item,]+score*m_x1_0_mult[item,]
@@ -98,6 +99,12 @@ def recommend(u, module=1, stopOnMastery=True):
     
     #Subset to the unseen problems from the relevant scope
     ind_unseen=np.where(m_unseen[u,] & (scope==module)|(scope==0))[0]
+    L=np.log(m_L[u,])
+    if stopOnMastery:
+        m_k_unseen=m_k[ind_unseen,]
+        D=np.dot(m_k_unseen, np.maximum((L_star-L),0))
+        ind_unseen=ind_unseen[D!=0.0]
+    
 
     N=len(ind_unseen)
     
@@ -105,7 +112,7 @@ def recommend(u, module=1, stopOnMastery=True):
         next_item = None
         
     else:
-        L=np.log(m_L[u,])
+        #L=np.log(m_L[u,])
         
         #Calculate the user readiness for LOs
         
@@ -124,27 +131,27 @@ def recommend(u, module=1, stopOnMastery=True):
         L_temp=np.tile(L,(N,1)).transpose()
         A=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
         
-        if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
-            next_item=None
-        else:
+        #if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
+        next_item=None
+        #else:
             
-            temp=(A.max()-A.min());
-            if(temp!=0.0):
-                A=A/temp
+        temp=(A.max()-A.min());
+        if(temp!=0.0):
+            A=A/temp
             
-            temp=(D.max()-D.min());
-            if(temp!=0.0):
-                D=D/temp
+        temp=(D.max()-D.min());
+        if(temp!=0.0):
+            D=D/temp
                             
-            temp=(R.max()-R.min());
-            if(temp!=0.0):
-                R=R/temp
+        temp=(R.max()-R.min());
+        if(temp!=0.0):
+            R=R/temp
             
-            temp=(C.max()-C.min());
-            if(temp!=0.0):
-                C=C/temp     
+        temp=(C.max()-C.min());
+        if(temp!=0.0):
+            C=C/temp     
             
-            next_item=ind_unseen[np.argmax(V_r*R+V_d*D+V_a*A+V_c*C)]
+        next_item=ind_unseen[np.argmax(V_r*R+V_d*D+V_a*A+V_c*C)]
             
     
     return(next_item)

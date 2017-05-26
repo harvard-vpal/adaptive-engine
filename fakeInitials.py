@@ -137,6 +137,10 @@ m_slip[np.where(m_tagging==0.0)]=1.0
 #For convenience of adding users later, also define a row of each matrix
 m_exposure=np.zeros([n_users,n_los])
 row_exposure=m_exposure[0,]
+
+#Define the matrix of confidence: essentially how much information we had for the mastery estimate
+m_confidence=np.zeros([n_users,n_los])
+row_confidence=m_confidence[0,]
   
 
 ##Define the matrix of "user has seen a problem or not": rownames are problems. ####
