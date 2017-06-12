@@ -22,7 +22,11 @@ m_x0_add= np.log(m_slip*(1.0+m_guess)/(1.0+m_slip)) ##Additive formulation
 
 #Multiplicative formulation
 m_x0_mult= m_slip*(1.0+m_guess)/(1.0+m_slip)
-m_x1_0_mult= (1.0+m_guess)/(m_guess*(1.0+m_slip))-m_x0_mult
+m_x1_mult=(1.0+m_guess)/(m_guess*(1.0+m_slip))
+m_x1_0_mult=m_x1_mult/m_x0_mult
+
+
+#m_x1_0_mult= (1.0+m_guess)/(m_guess*(1.0+m_slip))-m_x0_mult
 
 
 ##Define the matrix of relevance m_k

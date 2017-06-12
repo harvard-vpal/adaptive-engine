@@ -49,7 +49,8 @@ def bayesUpdate(u, item, score=1.0,time=0):
       m_confidence[u,]+=m_k[item,]
 
   ##The increment of odds due to evidence of the problem, but before the transfer
-  x=m_x0_mult[item,]+score*m_x1_0_mult[item,]
+  #x=m_x0_mult[item,]+score*m_x1_0_mult[item,]
+  x=m_x0_mult[item,]*np.power(m_x1_0_mult[item,],score)
   L=m_L[u,]*x
   
 
@@ -98,7 +99,7 @@ def recommend(u, module=1, stopOnMastery=True):
     global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c, scope
     
     #Subset to the unseen problems from the relevant scope
-    ind_unseen=np.where(m_unseen[u,] & (scope==module)|(scope==0))[0]
+    ind_unseen=np.where(m_unseen[u,] & ((scope==module)|(scope==0)))[0]
     L=np.log(m_L[u,])
     if stopOnMastery:
         m_k_unseen=m_k[ind_unseen,]
