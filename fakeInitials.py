@@ -60,6 +60,9 @@ L_i=np.repeat(0.,n_los)
 
 if multiplicative:
     L_i=np.exp(L_i)
+    
+# Define the matrix of initial mastery by replicating the same row for each user
+m_L_i=np.tile(L_i,(n_users,1))
 
 ##Define fake pre-requisite matrix. rownames are pre-reqs. Assumed that the entries are in [0,1] interval ####
 m_w=np.random.rand(n_los,n_los);
