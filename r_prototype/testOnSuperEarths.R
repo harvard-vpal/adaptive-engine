@@ -26,7 +26,7 @@ x.exposure.all=NULL
 
 seeds=sample(1:1000000,100)
 
-for (ct in 1:100){
+for (ct in 1:30){
 set.seed(seeds[ct])
 training.set=sample(users$id,round(0.66*n.users))
 validation.set=users$id[!(users$id %in% training.set)]
@@ -51,4 +51,4 @@ x.p.chance=x.p.chance.all
 chance=chance.all
 x.exposure=x.exposure.all
 eval.results=list(list(M=M,eta=eta,x.c=x.c,x.p=x.p,chance=chance, x.p.chance=x.p.chance,x.exposure=x.exposure, seeds=seeds))
-# save(eval.results,file="eval_results_13_LOs_avg_54.RData")
+save(eval.results,file="eval_results_13_LOs_avg_30_newprod.RData")

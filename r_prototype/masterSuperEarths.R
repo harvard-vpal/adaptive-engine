@@ -18,12 +18,12 @@ source("derivedData.R")
 
 ##
 
-m.include=!m.unseen;
+# m.include=!m.unseen;
 
 time.start=proc.time()[3];
 
 ##df is the course data: Each row is a user submit event. The necessary columns: user_id, problem_id, timestamp,correctness. Only one attempt per problem (in SuperEarths I subsetted the data to 1st attempts only)
-
+curve=as.data.frame(t(m.L["DevonBMason",]))
 for(u in users$id){
   # cat(u,"\n")
   df=subset(Pcheck,username==u)
@@ -46,10 +46,21 @@ for(u in users$id){
         m.exposure.before.problem[u,problem]=temp
         
         m.exposure[u,]=m.exposure[u,]+m.tagging[problem,]
-
+        if(u=="DevonBMason"){
+        curve=rbind(curve,t(m.L["DevonBMason",])) ##Track the learning curves of user 1.
+        }
   }
 }
 cat("Elapsed seconds in knowledge tracing: ",round(proc.time()[3]-time.start,3),"\n")
+
+curve=exp(curve)
+curve=curve/(curve+1)
+p=plot_ly()
+for ( i in 1:ncol(curve)){
+  p=p%>%add_trace(y=curve[,i],type="scatter",mode="points+lines", name=los$name[i])
+}
+p=p%>%layout(title="Learning curves of user 1", xaxis=list(title="Time"),yaxis=list(title="probability of mastery"))
+print(p)
 
 source("evaluate.R")
 
