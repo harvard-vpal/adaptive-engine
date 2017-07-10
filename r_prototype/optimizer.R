@@ -4,9 +4,9 @@
 knowledge=function(prob_id,correctness){
 ##This function finds the empirical knowledge of a single user given a chronologically ordered sequence of items submitted.
   
-m.k.u=m.k[prob_id,,drop=F]
-m.slip.u=m.slip.neg.log[prob_id,,drop=F]
-m.guess.u=m.guess.neg.log[prob_id,,drop=F]
+m.k.u=m.k[prob_id,,drop=FALSE]
+m.slip.u=m.slip.neg.log[prob_id,,drop=FALSE]
+m.guess.u=m.guess.neg.log[prob_id,,drop=FALSE]
 N=length(prob_id)
   
 z=matrix(0,nrow=N+1,ncol=ncol(m.k));
@@ -21,7 +21,7 @@ if(N>1){
     
     x[1:n]=correctness[1:n]
     x[(n+1):N]=1-correctness[(n+1):N]
-    temp=rbind(m.guess.u[1:n,,drop=F],m.slip.u[(n+1):N,,drop=F])
+    temp=rbind(m.guess.u[1:n,,drop=FALSE],m.slip.u[(n+1):N,,drop=FALSE])
     z[n+1,]=x %*% temp
   }
 }
@@ -40,7 +40,6 @@ for (i in ind){
   }
   
   knowledge[,j]=knowledge[,j]+temp
-  # knowledge[which(knowledge[,j]!=temp),j]=0.5
   
 }
 
@@ -55,7 +54,7 @@ return(knowledge)
 
 
 
-estimate=function(relevance.threshold=0, information.threshold=20,remove.degeneracy=T){
+estimate=function(relevance.threshold=0, information.threshold=20,remove.degeneracy=TRUE){
   
 ##This function estimates the matrices of the BKT parameters from the user interaction data.
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
@@ -70,7 +69,7 @@ slip.denom=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 p.i=rep(0,n.los);
 p.i.denom=rep(0,n.los)
 
-if(!exists("training.set")){training.set=users$id}
+training.set=users$id
 for (u in training.set){
   
   ##List problems that the user tried, in chronological order
@@ -78,10 +77,13 @@ for (u in training.set){
   n.of.na=length(which(is.na(m.timestamp[u,])))
   prob_id=colnames(m.timestamp)[order(m.timestamp[u,])] ##It is important here that order() puts NAs at the end, so we remove them from there
   prob_id=prob_id[-((length(prob_id)-n.of.na+1):length(prob_id))] ##These are id_s of items submitted by user u, in chronological order.
+  
+  prob_id=prob_id[prob_id %in% useForTraining]
+  
   J=length(prob_id)
   if(J>0){
     
-  m.k.u=m.k[prob_id,,drop=F]
+  m.k.u=m.k[prob_id,,drop=FALSE]
   
   ##Calculate the sum of relevances of user's experience for a each learning objective
   if(J==1){
@@ -91,12 +93,15 @@ for (u in training.set){
   }
   
   ##Implement the relevance threshold:
-  u.R[u.R<=relevance.threshold]=0
-  u.R[u.R>0]=1
+  # u.R[u.R<=relevance.threshold]=0
+  # u.R[u.R>0]=1
   
-  m.k.u[m.k.u<=relevance.threshold]=0
-  m.k.u[m.k.u>0]=1
-  # m.k.u=m.tagging[prob_id,]
+  u.R=(u.R>relevance.threshold)
+  
+  # m.k.u[m.k.u<=relevance.threshold]=0
+  # m.k.u[m.k.u>0]=1
+  
+  m.k.u=(m.k.u>relevance.threshold)
   
   u.knowledge=knowledge(prob_id, m.correctness[u,prob_id]);
   u.correctness=m.correctness[u,prob_id]
@@ -159,7 +164,7 @@ guess[which(guess>=0.5)]=NA
 slip[which(slip>=0.5)]=NA
 }
 #Replicate the initial knowledge to all users:
-p.i=matrix(rep(p.i,n.users),nrow=n.users, byrow=T)
+p.i=matrix(rep(p.i,n.users),nrow=n.users, byrow=TRUE)
 dimnames(p.i)=dimnames(m.L.i)
 
 ## Matrices contain NaNs or Infs in those elements that we do not want to update (it means we don't have sufficient data). Therefore, replace them by the previously stored values.
@@ -173,13 +178,13 @@ dimnames(p.i)=dimnames(m.L.i)
 # ind=which((is.na(slip))|(is.infinite(slip)))
 # slip=replace(slip,ind,m.slip[ind])
 
-#Convert to odds (logarithmic in case of p.i):
+#Convert to odds
 p.i=pmin(pmax(p.i,epsilon),1-epsilon)
 trans=pmin(pmax(trans,epsilon),1-epsilon)
 guess=pmin(pmax(guess,epsilon),1-epsilon)
 slip=pmin(pmax(slip,epsilon),1-epsilon)
 
-L.i=log(p.i/(1-p.i))
+L.i=(p.i/(1-p.i))
 trans=trans/(1-trans)
 guess=guess/(1-guess)
 slip=slip/(1-slip)
