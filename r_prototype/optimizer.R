@@ -160,8 +160,15 @@ slip=slip/slip.denom
 ##Remove guess and slip probabilities of 0.5 and above (degeneracy):
 
 if(remove.degeneracy){
-guess[which(guess>=0.5)]=NA
-slip[which(slip>=0.5)]=NA
+  
+  ind_g=which((guess>=0.5)|(guess+slip>=1))
+  ind_s=which((slip>=0.5)|(guess+slip>=1))
+  
+  guess[ind_g]=NA
+  slip[ind_s]=NA
+  # guess[which(guess>=0.5)]=NA
+  # slip[which(slip>=0.5)]=NA
+  
 }
 #Replicate the initial knowledge to all users:
 p.i=matrix(rep(p.i,n.users),nrow=n.users, byrow=TRUE)
