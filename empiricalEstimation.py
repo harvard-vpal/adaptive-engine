@@ -142,8 +142,15 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
     
     ##Remove guess and slip probabilities of 0.5 and above (degeneracy):
     if(remove_degeneracy):
-        guess[guess>=0.5]=np.nan
-        slip[slip>=0.5]=np.nan
+	
+	ind_g=np.where((guess>=0.5) | (guess+slip>=1))
+	ind_s=np.where((slip>=0.5) | (guess+slip>=1))
+        
+	guess[ind_g]=np.nan
+	slip[ind_s]=np.nan
+	
+	##guess[guess>=0.5]=np.nan
+        ##slip[slip>=0.5]=np.nan
 
     #Convert to odds (logarithmic in case of p.i):
     p_i=np.minimum(np.maximum(p_i,epsilon),1.0-epsilon)
