@@ -91,6 +91,10 @@ probs=plyr::rename(probs,c("display_name.x"="name"))
 probs=probs[order(probs$id),]
 n.probs=nrow(probs)
 
+##List which items should be used for training the BKT
+useForTraining=probs$id
+
+
 ##Relations among the LOs:
 ##Define pre-requisite matrix. rownames are pre-reqs. Assumed that the entries are in [0,1] interval ####
 m.w<<-matrix(0,nrow=n.los, ncol=n.los);
@@ -112,27 +116,23 @@ for (i in 1:nrow(df.probs.lo)){
 
 ##Check that all problems are tagged and that all LOs are used:
 
-ind=which(rowSums(m.tagging)==0)
-if(length(ind)>0){
-  cat("Problem without an LO: ",paste0(rownames(m.tagging)[ind],collapse=", "),"\n")
-}else{
-  cat("Problems without an LO: none\n")
-}
-ind=which(colSums(m.tagging)==0)
-if(length(ind)>0){
-  cat("LOs without a problem: ",paste0(colnames(m.tagging)[ind],collapse=", "),"\n")
-}else{
-  cat("LOs without a problem: none\n")
-}
+# ind=which(rowSums(m.tagging)==0)
+# if(length(ind)>0){
+#   cat("Problem without an LO: ",paste0(rownames(m.tagging)[ind],collapse=", "),"\n")
+# }else{
+#   cat("Problems without an LO: none\n")
+# }
+# ind=which(colSums(m.tagging)==0)
+# if(length(ind)>0){
+#   cat("LOs without a problem: ",paste0(colnames(m.tagging)[ind],collapse=", "),"\n")
+# }else{
+#   cat("LOs without a problem: none\n")
+# }
 
 
 ##Define the vector of difficulties ####
 difficulty<<-rep(1,n.probs);
 names(difficulty)=probs$id
-
-difficulty=pmin(difficulty, 1-epsilon);
-difficulty=pmax(difficulty,epsilon)
-difficulty=log(difficulty/(1-difficulty))
 
 ##
 
@@ -168,7 +168,7 @@ n.users=nrow(users)
 
 if(before.optimizing){
 #Initialize the matrix of mastery odds
-m.L.i<<-matrix(log(prior.knowledge/(1-prior.knowledge)),ncol=n.los, nrow=n.users)
+m.L.i<<-matrix((prior.knowledge/(1-prior.knowledge)),ncol=n.los, nrow=n.users)
 rownames(m.L.i)=users$id
 colnames(m.L.i)=los$id
 }
@@ -182,6 +182,12 @@ colnames(m.exposure)=los$id
 m.exposure.before.problem<<-matrix(0,ncol=n.probs, nrow=n.users)
 rownames(m.exposure.before.problem)=users$id
 colnames(m.exposure.before.problem)=probs$id
+
+##Define the matrix of confidence: essentially how much information we had for the mastery estimate
+m.confidence<<-matrix(0,ncol=n.los, nrow=n.users)
+rownames(m.confidence)=users$id
+colnames(m.confidence)=los$id
+row.confidence<<- m.confidence[1,]
 
 ##Define the matrix of "user has seen a problem or not": rownames are problems. ####
 m.unseen<<-matrix(T,nrow=n.users, ncol=n.probs);

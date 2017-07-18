@@ -108,7 +108,36 @@ show.eval=function(eval.results,i=1,min.exposure=1, rounding=3){
   
   m=100*m/length(x.c)
   
-  print(signif(m,3))
+  print("Confusion matrix:")
+  print(round(m,1))
+  print(paste("True: ",round(m[1,1]+m[2,2],1)))
   
+  x.p.r=round(chance)
+  m=matrix(0,nrow=2,ncol=2);
+  colnames(m)=c("Incorrect","Correct")
+  rownames(m)=c("Predict Incorrect","Predict Correct")
+  m["Predict Incorrect","Incorrect"]=length(which((x.p.r==0)&(x.c==0)))
+  m["Predict Incorrect","Correct"]=length(which((x.p.r==0)&(x.c==1)))
+  m["Predict Correct","Incorrect"]=length(which((x.p.r==1)&(x.c==0)))
+  m["Predict Correct","Correct"]=length(which((x.p.r==1)&(x.c==1)))
+  
+  m=100*m/length(x.c)
+  print("Confusion matrix of overall chance:")
+  print(round(m,1))
+  print(paste("True: ",round(m[1,1]+m[2,2],1)))
+  
+  x.p.r=round(x.p.chance)
+  m=matrix(0,nrow=2,ncol=2);
+  colnames(m)=c("Incorrect","Correct")
+  rownames(m)=c("Predict Incorrect","Predict Correct")
+  m["Predict Incorrect","Incorrect"]=length(which((x.p.r==0)&(x.c==0)))
+  m["Predict Incorrect","Correct"]=length(which((x.p.r==0)&(x.c==1)))
+  m["Predict Correct","Incorrect"]=length(which((x.p.r==1)&(x.c==0)))
+  m["Predict Correct","Correct"]=length(which((x.p.r==1)&(x.c==1)))
+  
+  m=100*m/length(x.c)
+  print("Confusion matrix of specific chance:")
+  print(round(m,1))
+  print(paste("True: ",round(m[1,1]+m[2,2],1)))
 }
 
