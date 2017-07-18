@@ -1,8 +1,14 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
 
-knowledge=function(prob_id,correctness){
+knowledge=function(prob_id,correctness, method="average"){
 ##This function finds the empirical knowledge of a single user given a chronologically ordered sequence of items submitted.
+  
+method=tolower(method)
+if(!(method %in% c("average","min","max"))){
+  method="average"
+}  
+  
   
 m.k.u=m.k[prob_id,,drop=FALSE]
 m.slip.u=m.slip.neg.log[prob_id,,drop=FALSE]
@@ -28,10 +34,30 @@ if(N>1){
 knowledge=matrix(0,ncol=ncol(m.k),nrow=N);
 rownames(knowledge)=prob_id;
 colnames(knowledge)=colnames(m.k)
+
 for (j in 1:ncol(z)){
 ind=which(z[,j]==min(z[,j]))
-for (i in ind){
+
+if(method=="average"){
+  for (i in ind){
   
+    temp=rep(0,N);
+    if (i==1){
+      temp=rep(1,N)
+    }else if (i<=N){
+      temp[i:N]=1
+    }
+  
+    knowledge[,j]=knowledge[,j]+temp
+  
+  }
+
+  knowledge[,j]=knowledge[,j]/length(ind) ##We average the knowledge when there are multiple candidates (length(ind)>1)
+
+}
+
+if(method=="max"){
+  i=max(ind)
   temp=rep(0,N);
   if (i==1){
     temp=rep(1,N)
@@ -39,11 +65,20 @@ for (i in ind){
     temp[i:N]=1
   }
   
-  knowledge[,j]=knowledge[,j]+temp
-  
+ knowledge[,j]=temp 
 }
 
-knowledge[,j]=knowledge[,j]/length(ind) ##We average the knowledge when there are multiple candidates (length(ind)>1)
+if(method=="min"){
+  i=min(ind)
+  temp=rep(0,N);
+  if (i==1){
+    temp=rep(1,N)
+  }else if (i<=N){
+    temp[i:N]=1
+  }
+  
+  knowledge[,j]=temp 
+}
 
 }
 
@@ -54,7 +89,7 @@ return(knowledge)
 
 
 
-estimate=function(relevance.threshold=0, information.threshold=20,remove.degeneracy=TRUE){
+estimate=function(relevance.threshold=0, information.threshold=20,remove.degeneracy=TRUE, training.set=NULL){
   
 ##This function estimates the matrices of the BKT parameters from the user interaction data.
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
@@ -69,7 +104,9 @@ slip.denom=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 p.i=rep(0,n.los);
 p.i.denom=rep(0,n.los)
 
+if(is.null(training.set)){
 training.set=users$id
+}
 for (u in training.set){
   
   ##List problems that the user tried, in chronological order
@@ -103,7 +140,7 @@ for (u in training.set){
   
   m.k.u=(m.k.u>relevance.threshold)
   
-  u.knowledge=knowledge(prob_id, m.correctness[u,prob_id]);
+  u.knowledge=knowledge(prob_id, m.correctness[u,prob_id], method="average");
   u.correctness=m.correctness[u,prob_id]
   
   ##Contribute to the averaged initial knowledge.
