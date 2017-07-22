@@ -41,10 +41,10 @@ def bayesUpdate(u, item, score=1, time=0):
   
   
   last_seen[u]=item
+  m_correctness[u,item]=score
+  m_timestamp[u,item]=time
   if m_unseen[u,item]:
       m_unseen[u,item]=False
-      m_correctness[u,item]=score
-      m_timestamp[u,item]=time
       m_exposure[u,]+=m_tagging[item,]
   
   ##The increment of log-odds due to evidence of the problem, but before the transfer
