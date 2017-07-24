@@ -168,6 +168,6 @@ def updateModel():
     
     ind_pristine=np.where(m_exposure==0.0)
     m_L[ind_pristine]=m_L_i[ind_pristine]
-    m_trans=1.0*est('trans')
-    m_guess=1.0*est('guess')
-    m_slip=1.0*est('slip')
+    m_trans=1.0*est['trans']
+    m_guess=1.0*est['guess']
+    m_slip=1.0*est['slip']
