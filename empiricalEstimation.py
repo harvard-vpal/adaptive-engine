@@ -50,7 +50,7 @@ def knowledge(problems,correctness):
 def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=True):
     
     
-    global n_items,n_los, m_k, m_timestamp, m_correctness, L_i, m_trans, m_guess, m_slip, epsilon, useForTraining
+    global n_items,n_los, m_k, m_timestamp, m_correctness, L_i, m_trans, m_guess, m_slip, epsilon, useForTraining, n_users
     
     trans=np.zeros((n_items,n_los))
     trans_denom=trans.copy()
