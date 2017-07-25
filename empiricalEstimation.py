@@ -50,7 +50,7 @@ def knowledge(problems,correctness):
 def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=True):
     
     
-    global n_items,n_los, m_k, m_timestamp, m_correctness, L_i, m_trans, m_guess, m_slip, epsilon, useForTraining, n_users
+    global n_items,n_los, m_k, transactions, L_i, m_trans, m_guess, m_slip, epsilon, useForTraining, n_users
     
     trans=np.zeros((n_items,n_los))
     trans_denom=trans.copy()
@@ -63,6 +63,7 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
     
     #if ~('training_set' in globals()):
     training_set=range(n_users)
+
     
     
     
@@ -70,16 +71,22 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
         
         ##List problems that the user tried, in chronological order
         
-        n_of_na=np.count_nonzero(np.isnan(m_timestamp[u,]))
-        problems=m_timestamp[u,].argsort() ##It is important here that argsort() puts NaNs at the end, so we remove them from there
-        if n_of_na>0:        
-            problems=problems[:-n_of_na] ##These are indices of items submitted by user u, in chronological order.
-            
-        problems=np.intersect1d(problems, useForTraining)
+#        n_of_na=np.count_nonzero(np.isnan(m_timestamp[u,]))
+#        problems=m_timestamp[u,].argsort() ##It is important here that argsort() puts NaNs at the end, so we remove them from there
+#        if n_of_na>0:        
+#            problems=problems[:-n_of_na] ##These are indices of items submitted by user u, in chronological order.
+#            
+#        problems=np.intersect1d(problems, useForTraining)
         
-        J=len(problems)
+        
+        temp=transactions.loc[(transactions.user_id==u)&(transactions.problem_id.isin(useForTraining))]
+        temp=temp.sort('time')
+        temp.index=range(np.shape(temp)[0])
+        ## Now temp is the data frame of submits of a particular user u, arranged in chronological order. In particular, temp.problem_id is the list of problems in chronological order.
+        
+        J=np.shape(temp)[0]
         if(J>0):
-            m_k_u=m_k[problems,]
+            m_k_u=m_k[temp.problem_id,]
             
             #Calculate the sum of relevances of user's experience for a each learning objective
             if(J==1):
@@ -95,29 +102,35 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
             #m_k_u[m_k_u>0]=1
             m_k_u=(m_k_u>relevance_threshold)
             
-            u_correctness=m_correctness[u,problems]
-            u_knowledge=knowledge(problems, u_correctness);
+            #u_correctness=m_correctness[u,problems]
+            #u_knowledge=knowledge(problems, u_correctness)
+            u_knowledge=knowledge(temp.problem_id, temp.score)
             #Now prepare the matrix by replicating the correctness column for each LO.
-            u_correctness=np.tile(u_correctness,(n_los,1)).transpose()          
+            #u_correctness=np.tile(u_correctness,(n_los,1)).transpose()          
 
 
             ##Contribute to the averaged initial knowledge.
             p_i+=u_knowledge[0,]*u_R
             p_i_denom+=u_R
                         
-            ##Contribute to the trans, guess and slip probabilities (numerators and denominators separately).
-            temp=m_k_u*(1.0-u_knowledge)
-            guess[problems,]+=temp*u_correctness
-            guess_denom[problems,]+=temp
             
-            temp=m_k_u-temp   ##equals m_k_u*u_knowledge
-            slip[problems,]+=temp*(1.0-u_correctness)
-            slip_denom[problems,]+=temp
-  
-            if(J>1):
-                u_trans_denom=(1-u_knowledge[:-1,])
-                trans[problems[:-1],]+=(m_k_u[:-1,]*u_trans_denom)*u_knowledge[1:,]
-                trans_denom[problems[:-1],]+=m_k_u[:-1,]*u_trans_denom
+            ##Contribute to the trans, guess and slip probabilities (numerators and denominators separately).
+            for pr in range(J):
+                prob_id=temp.problem_id[pr]
+                
+                shorthand=m_k_u[pr,]*(1.0-u_knowledge[pr,])
+                
+                guess[prob_id,]+=shorthand*temp.score[pr]
+                guess_denom[prob_id,]+=shorthand
+                                
+                shorthand=m_k_u[pr,]-shorthand   ##equals m_k_u*u_knowledge
+                slip[prob_id,]+=shorthand*(1.0-temp.score[pr])
+                slip_denom[prob_id,]+=shorthand
+                
+                if(pr<(J-1)):
+                    shorthand=m_k_u[pr,]*(1.0-u_knowledge[pr,])
+                    trans[prob_id,]+=shorthand*u_knowledge[pr+1,]
+                    trans_denom[prob_id,]+=shorthand
         
         
     

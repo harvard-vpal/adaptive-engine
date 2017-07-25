@@ -46,7 +46,3 @@ difficulty_add=np.log(difficulty_mult)
 ##Define a matrix of problem difficulties clones for all LOs (used in recommendation)
 m_difficulty_mult=np.tile(difficulty_mult,(n_los,1))
 m_difficulty_add=np.tile(difficulty_add,(n_los,1))
-
-
-# Define the matrix of initial mastery by replicating the same row for each user
-m_L_i=np.tile(L_i,(n_users,1))

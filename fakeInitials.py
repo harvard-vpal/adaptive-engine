@@ -1,6 +1,6 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 import numpy as np
-#import pandas as pd
+import pandas as pd
 
 n_users=10
 n_los=8
@@ -8,7 +8,7 @@ n_items=40
 
 epsilon=1e-10 # a regularization cutoff, the smallest value of a mastery probability
 eta=0 ##Relevance threshold used in the BKT optimization procedure
-M=20 ##Information threshold user in the BKT optimization procedure
+M=0 ##Information threshold user in the BKT optimization procedure
 L_star=3 #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
 
 r_star=0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
@@ -21,7 +21,7 @@ V_c=1 ##Importance of continuity in recommending the next item
 slip_probability=0.15
 guess_probability=0.1
 trans_probability=0.1
-prior_knowledge=0.2
+prior_knowledge_probability=0.2
 
 
 ##Store mappings of ids and names for users, LOs, items. These will serve as look-up tables for the rows and columns of data matrices
@@ -56,10 +56,8 @@ useForTraining=np.where(useForTraining)[0]
 #Initial mastery of all LOs (a row of the initial mastery matrix)
 #Logarithmic if additive formulation.
 
-L_i=np.repeat(0.,n_los)
+L_i=np.repeat(prior_knowledge_probability/(1.0-prior_knowledge_probability),n_los)
 
-if multiplicative:
-    L_i=np.exp(L_i)
     
 # Define the matrix of initial mastery by replicating the same row for each user
 m_L_i=np.tile(L_i,(n_users,1))
@@ -150,15 +148,20 @@ row_confidence=m_confidence[0,]
 m_unseen=np.ones([n_users,n_items], dtype=bool)
 row_unseen=m_unseen[0,]
 ##
-##Define the matrix of results of user interactions with problems.####
-m_correctness=np.empty([n_users,n_items])
-m_correctness[:]=np.nan
-row_correctness=m_correctness[0,]
+###Define the matrix of results of user interactions with problems.####
+#m_correctness=np.empty([n_users,n_items])
+#m_correctness[:]=np.nan
+#row_correctness=m_correctness[0,]
+#
+###Define the matrix of time stamps of results of user interactions with problems.####
+#m_timestamp=np.empty([n_users,n_items])
+#m_timestamp[:]=np.nan
+#row_timestamp=m_timestamp[0,]
 
-##Define the matrix of time stamps of results of user interactions with problems.####
-m_timestamp=np.empty([n_users,n_items])
-m_timestamp[:]=np.nan
-row_timestamp=m_timestamp[0,]
+#Initialize the data frame which will store the results of users submit-transactions (much like problem_check in Glenn's data)
+transactions=pd.DataFrame()
+
+
 
 ##Define vector that will store the latest item seen by a user
 last_seen=np.repeat(-1,n_users)

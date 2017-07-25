@@ -17,8 +17,8 @@ def mapUser(user_id):
         m_L=np.vstack((m_L,L_i))
         m_exposure=np.vstack((m_exposure,row_exposure))
         m_unseen=np.vstack((m_unseen,row_unseen))
-        m_correctness=np.vstack((m_correctness,row_correctness))
-        m_timestamp=np.vstack((m_timestamp,row_timestamp))
+#        m_correctness=np.vstack((m_correctness,row_correctness))
+#        m_timestamp=np.vstack((m_timestamp,row_timestamp))
         
     
     return(u)
@@ -32,31 +32,40 @@ def mapItem(item_id):
         
     return(item)
 
-def bayesUpdate(u, item, score=1.0,time=0):
+def bayesUpdate(u, item, score=1.0,time=0, attempts='all'):
   
   
   #This function updates the user mastery and record of interactions that will be needed for recommendation and estimation of the BKT
   
-  global m_x0_mult, m_x1_0_mult, m_L, m_trans, last_seen, m_unseen, m_correctness, m_timestamp, m_exposure, m_tagging, epsilon, inv_epsilon
+  global m_x0_mult, m_x1_0_mult, m_L, m_trans, last_seen, m_unseen, transactions, m_exposure, m_tagging, epsilon, inv_epsilon
   
   
   last_seen[u]=item
-  m_correctness[u,item]=score
-  m_timestamp[u,item]=time
+#  m_correctness[u,item]=score
+#  m_timestamp[u,item]=time
   if m_unseen[u,item]:
       m_unseen[u,item]=False
       m_exposure[u,]+=m_tagging[item,]
       m_confidence[u,]+=m_k[item,]
+      
+      if attempts=='first':
+        ##Record the transaction by appending a new row to the data frame "transactions":
+        transactions=transactions.append(pd.DataFrame([[u,item,time,score]], columns=['user_id','problem_id','time','score']),ignore_index=True)
+        ##The increment of odds due to evidence of the problem, but before the transfer
+        x=m_x0_mult[item,]*np.power(m_x1_0_mult[item,],score)
+        L=m_L[u,]*x
+        ##Add the transferred knowledge
+        L+=m_trans[item,]*(L+1)
 
-  ##The increment of odds due to evidence of the problem, but before the transfer
-  #x=m_x0_mult[item,]+score*m_x1_0_mult[item,]
-  x=m_x0_mult[item,]*np.power(m_x1_0_mult[item,],score)
-  L=m_L[u,]*x
-  
 
-  
-  ##Add the transferred knowledge
-  L+=m_trans[item,]*(L+1)
+  if attempts!='first':
+      ##Record the transaction by appending a new row to the data frame "transactions":
+      transactions=transactions.append(pd.DataFrame([[u,item,time,score]], columns=['user_id','problem_id','time','score']),ignore_index=True)
+      ##The increment of odds due to evidence of the problem, but before the transfer
+      x=m_x0_mult[item,]*np.power(m_x1_0_mult[item,],score)
+      L=m_L[u,]*x
+      ##Add the transferred knowledge
+      L+=m_trans[item,]*(L+1)
   
   L[np.isposinf(L)]=inv_epsilon
   L[L==0.0]=epsilon
@@ -94,7 +103,7 @@ def predictCorrectness(u, item):
 
 
 ##This function returns the id of the next recommended problem in an adaptive module. If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
-def recommend(u, module=1, stopOnMastery=True):
+def recommend(u, module=1, stopOnMastery=False):
     
     global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c, scope
     
@@ -171,3 +180,4 @@ def updateModel():
     m_trans=1.0*est['trans']
     m_guess=1.0*est['guess']
     m_slip=1.0*est['slip']
+    execfile('derivedData.py')

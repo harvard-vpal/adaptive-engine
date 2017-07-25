@@ -2,9 +2,9 @@
 
 #Should L be mastery odds(for multiplicative) or logarithmic odds (for additive formulation)?
 multiplicative=True
-execfile('multiplicativeFormulation.py')
-execfile('empiricalEstimation.py')
-execfile('fakeInitials.py')
+execfile('multiplicativeFormulation1.py')
+execfile('empiricalEstimation1.py')
+execfile('fakeInitials1.py')
 execfile('derivedData.py')
 
 
@@ -22,4 +22,7 @@ for t in range(T):
     
     if rec_item!=None:
         bayesUpdate(u,rec_item,score[t],t)
+        
+        
+updateModel()
         
