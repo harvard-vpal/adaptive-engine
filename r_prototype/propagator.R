@@ -1,24 +1,38 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
-bayesUpdate=function(u, problem, score=1, time=1){
+bayesUpdate=function(u, problem, score=1, time=1, attempts="all"){
   
   last.seen[u]<<-problem
   
+
   if(m.unseen[u,problem]){
     m.unseen[u,problem]<<-FALSE
-    m.correctness[u,problem]<<-score
-    m.timestamp[u,problem]<<-time
     m.exposure[u,]<<-m.exposure[u,]+m.tagging[problem,]
     m.confidence[u,]<<-m.confidence[u,]+m.k[problem,]
+    
+    if(attempts=="first"){
+      transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+      x=m.x0[problem,]*((m.x10[problem,])^score)
+      L=m.L[u,]*x
+      
+      ##Add the transferred knowledge
+      
+      L=L+m.trans[problem,]*(L+1)
+    }
+    
   }
   
-  #x=m.x0[problem,]+score*m.x10[problem,]
-  x=m.x0[problem,]*((m.x10[problem,])^score)
-  L=m.L[u,]*x
+  if(attempts!="first"){
+    transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+    x=m.x0[problem,]*((m.x10[problem,])^score)
+   L=m.L[u,]*x
   
-  ##Add the transferred knowledge
+    ##Add the transferred knowledge
 
-  L=L+m.trans[problem,]*(L+1)
+    L=L+m.trans[problem,]*(L+1)
+  }
+  
+  
   
   ##In case of maxing out to infinity or zero, apply cutoff.
   L[which(is.infinite(L))]=inv.epsilon

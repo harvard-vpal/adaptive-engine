@@ -29,7 +29,7 @@ for (t in 1:TotalTime){
       # score=0.1;
       # score=0
       
-      bayesUpdate(u=u,problem=problem,score=score, t) ##Update the user's mastery matrix
+      bayesUpdate(u=u,problem=problem,score=score, time=t) ##Update the user's mastery matrix
 
     }
  # curve=rbind(curve,t(m.L["u1",])) ##Track the learning curves of user 1.

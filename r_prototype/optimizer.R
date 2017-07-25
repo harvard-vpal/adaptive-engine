@@ -21,10 +21,6 @@ z[1,]=(1-correctness) %*% m.slip.u;
 z[N+1,]=correctness %*% m.guess.u;
 if(N>1){
   for(n in 1:(N-1)){
-    # x[1:n]=correctness[1:n];
-    # x[(n+1):N]=1-correctness[(n+1):N]
-    # z[n+1,]=x %*% m.k.u
-    
     x[1:n]=correctness[1:n]
     x[(n+1):N]=1-correctness[(n+1):N]
     temp=rbind(m.guess.u[1:n,,drop=FALSE],m.slip.u[(n+1):N,,drop=FALSE])
@@ -89,7 +85,7 @@ return(knowledge)
 
 
 
-estimate=function(relevance.threshold=0, information.threshold=20,remove.degeneracy=TRUE, training.set=NULL){
+estimate=function(relevance.threshold=0.01, information.threshold=20,remove.degeneracy=TRUE, training.set=NULL){
   
 ##This function estimates the matrices of the BKT parameters from the user interaction data.
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
@@ -107,20 +103,18 @@ p.i.denom=rep(0,n.los)
 if(is.null(training.set)){
 training.set=users$id
 }
+
 for (u in training.set){
   
   ##List problems that the user tried, in chronological order
   
-  n.of.na=length(which(is.na(m.timestamp[u,])))
-  prob_id=colnames(m.timestamp)[order(m.timestamp[u,])] ##It is important here that order() puts NAs at the end, so we remove them from there
-  prob_id=prob_id[-((length(prob_id)-n.of.na+1):length(prob_id))] ##These are id_s of items submitted by user u, in chronological order.
+  temp=subset(transactions,(transactions$user_id==u)&(transactions$problem_id %in% useForTraining))
+  temp=temp[order(temp$time),]
   
-  prob_id=prob_id[prob_id %in% useForTraining]
-  
-  J=length(prob_id)
+  J=length(temp$problem_id)
   if(J>0){
     
-  m.k.u=m.k[prob_id,,drop=FALSE]
+  m.k.u=m.k[temp$problem_id,,drop=FALSE]
   
   ##Calculate the sum of relevances of user's experience for a each learning objective
   if(J==1){
@@ -130,18 +124,18 @@ for (u in training.set){
   }
   
   ##Implement the relevance threshold:
-  # u.R[u.R<=relevance.threshold]=0
-  # u.R[u.R>0]=1
   
   u.R=(u.R>relevance.threshold)
   
-  # m.k.u[m.k.u<=relevance.threshold]=0
-  # m.k.u[m.k.u>0]=1
-  
   m.k.u=(m.k.u>relevance.threshold)
   
-  u.knowledge=knowledge(prob_id, m.correctness[u,prob_id], method="average");
-  u.correctness=m.correctness[u,prob_id]
+  #u.knowledge=knowledge(prob_id, m.correctness[u,prob_id], method="average");
+  #u.correctness=m.correctness[u,prob_id]
+  
+  
+  # u.correctness=temp$score
+  # prob_id=temp$problem_id
+  u.knowledge=knowledge(temp$problem_id, temp$score, method="average");
   
   ##Contribute to the averaged initial knowledge.
   p.i=p.i+u.knowledge[1,]*u.R
@@ -153,34 +147,62 @@ for (u in training.set){
 
   
   ##Contribute to the trans, guess and slip probabilities (numerators and denominators separately).
-  if(J>1){
-  u.trans.denom=(1-u.knowledge[-J,])
-  trans[prob_id[-J],]=trans[prob_id[-J],]+(m.k.u[-J,]*u.trans.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
-  trans.denom[prob_id[-J],]=trans.denom[prob_id[-J],]+m.k.u[-J,]*u.trans.denom
+  # if(J>1){
+  # u.trans.denom=(1-u.knowledge[-J,])
+  # trans[prob_id[-J],]=trans[prob_id[-J],]+(m.k.u[-J,]*u.trans.denom)*u.knowledge[-1,] ##Order of multiplication is important, otherwise the row names get shifted (R takes them from 1st factor)
+  # trans.denom[prob_id[-J],]=trans.denom[prob_id[-J],]+m.k.u[-J,]*u.trans.denom
+  # }
+  # 
+  # guess[prob_id,]=guess[prob_id,]+(m.k.u*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  # guess.denom[prob_id,]=guess.denom[prob_id,]+m.k.u*(1-u.knowledge)
+  # 
+  # slip[prob_id,]=slip[prob_id,]+(m.k.u*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
+  # slip.denom[prob_id,]=slip.denom[prob_id,]+(m.k.u*u.knowledge)
+  
+  for (pr in 1:J){
+
+    prob_id=temp$problem_id[pr]
+
+    if(pr<J){
+      trans[prob_id,]=trans[prob_id,]+(m.k.u[pr,]*(1-u.knowledge[pr,]))*u.knowledge[pr+1,]
+      trans.denom[prob_id,]=trans.denom[prob_id,]+m.k.u[pr,]*(1-u.knowledge[pr,])
+    }
+
+    guess[prob_id,]=guess[prob_id,]+(m.k.u[pr,]*(1-u.knowledge[pr,]))*temp$score[pr]
+    guess.denom[prob_id,]=guess.denom[prob_id,]+(m.k.u[pr,]*(1-u.knowledge[pr,]))
+
+    slip[prob_id,]=slip[prob_id,]+(m.k.u[pr,]*u.knowledge[pr,])*(1-temp$score[pr])
+    slip.denom[prob_id,]=slip.denom[prob_id,]+(m.k.u[pr,]*u.knowledge[pr,])
   }
   
-  guess[prob_id,]=guess[prob_id,]+(m.k.u*(1-u.knowledge))*u.correctness #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  guess.denom[prob_id,]=guess.denom[prob_id,]+m.k.u*(1-u.knowledge)
   
-  slip[prob_id,]=slip[prob_id,]+(m.k.u*u.knowledge)*(1-u.correctness) #This relies on the fact that R regards matrices as filled by column. This is not a matrix multiplication!
-  slip.denom[prob_id,]=slip.denom[prob_id,]+(m.k.u*u.knowledge)
+  
+  
+  
   
   }
 
 }
 
-##Impose the information threshold:
+####PROBLEM GROUPING#######
 
-# info.threshold.vector=info.threshold*u.R/J
+# ind=which(m.tagging!=0)
+# trans=replace(trans,ind,sum(trans))
+# trans.denom=replace(trans.denom,ind,sum(trans.denom))
 # 
-# temp=t(t(p.i.denom)/info.threshold.vector)
-# p.i.denom[which(abs(temp)<1)]=0
-# temp=t(t(trans.denom)/info.threshold.vector)
-# trans.denom[which(abs(temp)<1)]=0
-# temp=t(t(guess.denom)/info.threshold.vector)
-# guess.denom[which(abs(temp)<1)]=0
-# temp=t(t(slip.denom)/info.threshold.vector)
-# slip.denom[which(abs(temp)<1)]=0
+# ind=which(m.tagging!=0)
+# guess=replace(guess,ind,sum(guess))
+# guess.denom=replace(guess.denom,ind,sum(guess.denom))
+# 
+# ind=which(m.tagging!=0)
+# slip=replace(slip,ind,sum(slip))
+# slip.denom=replace(slip.denom,ind,sum(slip.denom))
+
+###########################
+
+
+
+##Impose the information threshold:
 
 
 p.i.denom[which(p.i.denom<information.threshold)]=0
@@ -211,16 +233,6 @@ if(remove.degeneracy){
 p.i=matrix(rep(p.i,n.users),nrow=n.users, byrow=TRUE)
 dimnames(p.i)=dimnames(m.L.i)
 
-## Matrices contain NaNs or Infs in those elements that we do not want to update (it means we don't have sufficient data). Therefore, replace them by the previously stored values.
-
-# ind=which((is.na(p.i))|(is.infinite(p.i)))
-# p.i=pmax(replace(p.i,ind,m.p.i[ind]),epsilon)
-# ind=which((is.na(trans))|(is.infinite(trans)))
-# trans=replace(trans,ind,m.trans[ind])
-# ind=which((is.na(guess))|(is.infinite(guess)))
-# guess=replace(guess,ind,m.guess[ind])
-# ind=which((is.na(slip))|(is.infinite(slip)))
-# slip=replace(slip,ind,m.slip[ind])
 
 #Convert to odds
 p.i=pmin(pmax(p.i,epsilon),1-epsilon)
@@ -232,6 +244,8 @@ L.i=(p.i/(1-p.i))
 trans=trans/(1-trans)
 guess=guess/(1-guess)
 slip=slip/(1-slip)
+
+## Matrices contain NaNs or Infs in those elements that we do not want to update (it means we don't have sufficient data). Therefore, replace them by the previously stored values.
 
 ##Keep the versions with NAs in them:
 L.i.na=L.i

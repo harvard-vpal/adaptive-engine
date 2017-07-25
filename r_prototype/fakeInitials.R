@@ -130,17 +130,22 @@ rownames(m.unseen)=users$id
 colnames(m.unseen)=probs$id
 row.unseen<<-m.unseen[1,]
 ##
-##Define the matrix of results of user interactions with problems.####
-m.correctness<<-matrix(NA,nrow=n.users, ncol=n.probs);
-rownames(m.correctness)=users$id
-colnames(m.correctness)=probs$id
-row.correctness<<-m.correctness[1,]
 
-##Define the matrix of time stamps of results of user interactions with problems.####
-m.timestamp<<-matrix(NA,nrow=n.users, ncol=n.probs);
-rownames(m.timestamp)=users$id
-colnames(m.timestamp)=probs$id
-row.timestamp<<-m.timestamp[1,]
+
+##Define the data frame of interaction records
+transactions<<-data.frame()
+
+# ##Define the matrix of results of user interactions with problems.####
+# m.correctness<<-matrix(NA,nrow=n.users, ncol=n.probs);
+# rownames(m.correctness)=users$id
+# colnames(m.correctness)=probs$id
+# row.correctness<<-m.correctness[1,]
+# 
+# ##Define the matrix of time stamps of results of user interactions with problems.####
+# m.timestamp<<-matrix(NA,nrow=n.users, ncol=n.probs);
+# rownames(m.timestamp)=users$id
+# colnames(m.timestamp)=probs$id
+# row.timestamp<<-m.timestamp[1,]
 
 ##Define vector that will store the latest item seen by a user
 
