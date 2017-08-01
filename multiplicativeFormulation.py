@@ -67,8 +67,8 @@ def bayesUpdate(u, item, score=1.0,time=0, attempts='all'):
       ##Add the transferred knowledge
       L+=m_trans[item,]*(L+1)
   
-  L[np.isposinf(L)]=inv_epsilon
-  L[L==0.0]=epsilon
+  L[np.where(np.isposinf(L))]=inv_epsilon
+  L[np.where(L==0.0)]=epsilon
     
   m_L[u,]=L
   

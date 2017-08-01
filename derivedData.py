@@ -35,8 +35,8 @@ m_k= -np.log(m_guess)-np.log(m_slip)
 
 ##Normalize and prepare difficulty vector:
 
-if(difficulty.max()!=difficulty.min()):
-    difficulty=(difficulty-difficulty.min())/(difficulty.max()-difficulty.min())
+#if(difficulty.max()!=difficulty.min()):
+#    difficulty=(difficulty-difficulty.min())/(difficulty.max()-difficulty.min())
 
 difficulty=np.minimum(np.maximum(difficulty,epsilon),1-epsilon)
 

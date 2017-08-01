@@ -11,6 +11,12 @@ def knowledge(problems,correctness):
     m_guess_u=m_guess_neg_log[problems,]
     N=len(problems)
     
+    
+    #### In case there is only one problem, need to make sure the result of subsetting is a 1-row matrix, not a 1D array. Later, for dot product to work out.
+    m_slip_u=m_slip_u.reshape(N,n_los)
+    m_guess_u=m_guess_u.reshape(N,n_los)
+    ####
+    
     z=np.zeros((N+1,n_los))
     x=np.repeat(0.0,N)
     z[0,]=np.dot((1.0-correctness),m_slip_u)
@@ -47,7 +53,7 @@ def knowledge(problems,correctness):
 #This function estimates the BKT model using empirical probabilities
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
 ##Thus, the outputs of this function do not contain any non-numeric values and should be used to simply replace the current BKT parameter matrices.
-def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=True):
+def estimate(relevance_threshold=0.01,information_threshold=20, remove_degeneracy=True):
     
     
     global n_items,n_los, m_k, transactions, L_i, m_trans, m_guess, m_slip, epsilon, useForTraining, n_users
@@ -87,6 +93,8 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
         J=np.shape(temp)[0]
         if(J>0):
             m_k_u=m_k[temp.problem_id,]
+            ##Reshape for the case J=1, we still want m_k_u to be a 2D array, not 1D.
+            m_k_u=m_k_u.reshape(J,n_los)
             
             #Calculate the sum of relevances of user's experience for a each learning objective
             if(J==1):
@@ -155,12 +163,11 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
     
     ##Remove guess and slip probabilities of 0.5 and above (degeneracy):
     if(remove_degeneracy):
-	
-	ind_g=np.where((guess>=0.5) | (guess+slip>=1))
-	ind_s=np.where((slip>=0.5) | (guess+slip>=1))
-        
-	guess[ind_g]=np.nan
-	slip[ind_s]=np.nan
+        ind_g=np.where((guess>=0.5) | (guess+slip>=1))
+        ind_s=np.where((slip>=0.5) | (guess+slip>=1))
+                
+        guess[ind_g]=np.nan
+        slip[ind_s]=np.nan
 	
 	##guess[guess>=0.5]=np.nan
         ##slip[slip>=0.5]=np.nan
@@ -184,13 +191,13 @@ def estimate(relevance_threshold=0,information_threshold=20, remove_degeneracy=T
     slip_nan=slip.copy()
     
     
-    ind=np.isnan(L) | np.isinf(L)
+    ind=np.where(np.isnan(L) | np.isinf(L))
     L[ind]=L_i[ind]
-    ind=np.isnan(trans) | np.isinf(trans)
+    ind=np.where(np.isnan(trans) | np.isinf(trans))
     trans[ind]=m_trans[ind]
-    ind=np.isnan(guess) | np.isinf(guess)
+    ind=np.where(np.isnan(guess) | np.isinf(guess))
     guess[ind]=m_guess[ind]
-    ind=np.isnan(slip) | np.isinf(slip)
+    ind=np.where(np.isnan(slip) | np.isinf(slip))
     slip[ind]=m_slip[ind]
         
         

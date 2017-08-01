@@ -2,9 +2,9 @@
 
 #Should L be mastery odds(for multiplicative) or logarithmic odds (for additive formulation)?
 multiplicative=True
-execfile('multiplicativeFormulation1.py')
-execfile('empiricalEstimation1.py')
-execfile('fakeInitials1.py')
+execfile('multiplicativeFormulation.py')
+execfile('empiricalEstimation.py')
+execfile('fakeInitials.py')
 execfile('derivedData.py')
 
 
