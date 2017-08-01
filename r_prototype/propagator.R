@@ -11,7 +11,7 @@ bayesUpdate=function(u, problem, score=1, time=1, attempts="all"){
     m.confidence[u,]<<-m.confidence[u,]+m.k[problem,]
     
     if(attempts=="first"){
-      transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+      # transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
       x=m.x0[problem,]*((m.x10[problem,])^score)
       L=m.L[u,]*x
       
@@ -23,7 +23,7 @@ bayesUpdate=function(u, problem, score=1, time=1, attempts="all"){
   }
   
   if(attempts!="first"){
-    transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+    # transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
     x=m.x0[problem,]*((m.x10[problem,])^score)
    L=m.L[u,]*x
   
@@ -37,7 +37,6 @@ bayesUpdate=function(u, problem, score=1, time=1, attempts="all"){
   ##In case of maxing out to infinity or zero, apply cutoff.
   L[which(is.infinite(L))]=inv.epsilon
   L[which(L==0)]=epsilon
-  
   m.L[u,]<<-L
 
 }

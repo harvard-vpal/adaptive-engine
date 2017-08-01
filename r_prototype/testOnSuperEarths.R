@@ -1,7 +1,16 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
+# K=1; #K-fold validation (if K=1, it will use all data for both training and validation)
+# kfoldRepeatNumber=1 #How many times to do the k-fold validation, to average out weirdness.
+# 
+# ##Use "all" attempts, "first" attempts or "last" attempts
+# attempts="all"
 
-K=5; #K-fold validation (if K=1, it will use all data for both training and validation)
-kfoldRepeatNumber=5 #How many times to do the k-fold validation, to average out weirdness.
+##Use tagging by "SME" or "auto"
+taggingBy="auto"
+
+
+source("load_data.R")
+
 x.c.all=NULL
 x.p.all=NULL
 x.p.chance.all=NULL
@@ -37,11 +46,12 @@ for (fold in 1:K){
     validation.set=users$id
     training.set=users$id
   }
-  before.optimizing=T
+  before.optimizing=TRUE
   source("masterSuperEarths.R")
-  before.optimizing=F
+  before.optimizing=FALSE
   source("masterSuperEarths.R")
-  cat(fold,'out of',K,'folds done\n')  
+  source("evaluate.R")
+  cat(fold,'out of',K,'folds done, iteration',kfoldrepeat,'\n')  
 }
 
 
@@ -54,4 +64,4 @@ x.p.chance=x.p.chance.all
 chance=chance.all
 x.exposure=x.exposure.all
 eval.results=list(list(M=M,eta=eta,x.c=x.c,x.p=x.p,chance=chance, x.p.chance=x.p.chance,x.exposure=x.exposure))
-save(eval.results,file="eval_results_13_LOs_M20_5fold5times_min.RData")
+# save(eval.results,file=paste0("eval_results_SCRAMBLED_",taggingBy,"tag_M_",M,"_",K,"_fold_",kfoldRepeatNumber,"_times_",attempts,"_attempts.RData"))

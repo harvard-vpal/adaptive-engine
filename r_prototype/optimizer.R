@@ -205,10 +205,10 @@ for (u in training.set){
 ##Impose the information threshold:
 
 
-p.i.denom[which(p.i.denom<information.threshold)]=0
-trans.denom[which(trans.denom<information.threshold)]=0
-guess.denom[which(guess.denom<information.threshold)]=0
-slip.denom[which(slip.denom<information.threshold)]=0
+p.i.denom[which(p.i.denom<information.threshold)]=NA
+trans.denom[which(trans.denom<information.threshold)]=NA
+guess.denom[which(guess.denom<information.threshold)]=NA
+slip.denom[which(slip.denom<information.threshold)]=NA
 
 ##Normalize the results over users.
 p.i=p.i/p.i.denom
