@@ -103,7 +103,7 @@ def predictCorrectness(u, item):
 
 
 ##This function returns the id of the next recommended problem in an adaptive module. If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
-def recommend(u, module=1, stopOnMastery=False):
+def recommend(u, module=1, stopOnMastery=True, normalize=False):
     
     global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c, scope
     
@@ -134,7 +134,7 @@ def recommend(u, module=1, stopOnMastery=False):
         if last_seen[u]<0:
             C=np.repeat(0.0,N)
         else:
-            C=np.dot(m_k_unseen, m_k[last_seen[u],])
+            C=np.sqrt(np.dot(m_k_unseen, m_k[last_seen[u],]))
             
         #A=0.0
         d_temp=m_difficulty_add[:,ind_unseen]
@@ -145,21 +145,19 @@ def recommend(u, module=1, stopOnMastery=False):
         next_item=None
         #else:
             
-        temp=(A.max()-A.min());
-        if(temp!=0.0):
-            A=A/temp
-            
-        temp=(D.max()-D.min());
-        if(temp!=0.0):
-            D=D/temp
-                            
-        temp=(R.max()-R.min());
-        if(temp!=0.0):
-            R=R/temp
-            
-        temp=(C.max()-C.min());
-        if(temp!=0.0):
-            C=C/temp     
+        if normalize:
+            temp=(A.max()-A.min());
+            if(temp!=0.0):
+                A=A/temp     
+            temp=(D.max()-D.min());
+            if(temp!=0.0):
+                D=D/temp
+            temp=(R.max()-R.min());
+            if(temp!=0.0):
+                R=R/temp
+            temp=(C.max()-C.min());
+            if(temp!=0.0):
+                C=C/temp     
             
         next_item=ind_unseen[np.argmax(V_r*R+V_d*D+V_a*A+V_c*C)]
             
