@@ -63,7 +63,7 @@ predictCorrectness=function(u, problem){
 }
 
 
-recommend=function(u, module=1, stopOnMastery=TRUE){
+recommend=function(u, module=1, stopOnMastery=TRUE,normalize=FALSE){
   
   ##This function returns the id of the next recommended problem. If none is recommended (list of problems exhausted or the user has reached mastery) it returns NULL.
   
@@ -90,7 +90,7 @@ recommend=function(u, module=1, stopOnMastery=TRUE){
     if(last.seen[u]==""){
       C=rep(0,N)
     }else{
-      C=m.k.unseen %*% m.k[last.seen[u],]
+      C=sqrt(m.k.unseen %*% m.k[last.seen[u],])
     }
       
     d.temp=m.difficulty[,ind.unseen]
@@ -99,15 +99,16 @@ recommend=function(u, module=1, stopOnMastery=TRUE){
 
     next.prob.id=NULL
   
-    temp=1/diff(range(A));
-    if(!is.infinite(temp)){A=A*temp}
-    temp=1/diff(range(D));
-    if(!is.infinite(temp)){D=D*temp}
-    temp=1/diff(range(R));
-    if(!is.infinite(temp)){R=R*temp}
-    temp=1/diff(range(C));
-    if(!is.infinite(temp)){C=C*temp}
-        
+    if(normalize){
+      temp=1/diff(range(A));
+      if(!is.infinite(temp)){A=A*temp}
+      temp=1/diff(range(D));
+      if(!is.infinite(temp)){D=D*temp}
+      temp=1/diff(range(R));
+      if(!is.infinite(temp)){R=R*temp}
+      temp=1/diff(range(C));
+      if(!is.infinite(temp)){C=C*temp}
+    }
         
       next.prob.id=rownames(R)[which.max(V.r*R+V.d*D+V.a*A+V.c*C)]
       
