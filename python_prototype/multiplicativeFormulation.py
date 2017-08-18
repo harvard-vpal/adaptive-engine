@@ -103,9 +103,9 @@ def predictCorrectness(u, item):
 
 
 ##This function returns the id of the next recommended problem in an adaptive module. If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
-def recommend(u, module=0, stopOnMastery=True, normalize=False):
+def recommend(u, module=0, stopOnMastery=False, normalize=False):
     
-    global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty_add, V_r, V_d, V_a, V_c, scope
+    global m_L, L_star, m_w, m_unseen, m_k, r_star, last_seen, m_difficulty, W_r, W_d, W_p, W_c, scope
     
     #Subset to the unseen problems from the relevant scope
     #ind_unseen=np.where(m_unseen[u,] & ((scope==module)|(scope==0)))[0]
@@ -113,8 +113,8 @@ def recommend(u, module=0, stopOnMastery=True, normalize=False):
     L=np.log(m_L[u,])
     if stopOnMastery:
         m_k_unseen=m_k[ind_unseen,]
-        D=np.dot(m_k_unseen, np.maximum((L_star-L),0))
-        ind_unseen=ind_unseen[D!=0.0]
+        R=np.dot(m_k_unseen, np.maximum((L_star-L),0))
+        ind_unseen=ind_unseen[R!=0.0]
     
 
     N=len(ind_unseen)
@@ -129,8 +129,8 @@ def recommend(u, module=0, stopOnMastery=True, normalize=False):
         
         m_r=np.dot(np.minimum(L-L_star,0), m_w);
         m_k_unseen=m_k[ind_unseen,]
-        R=np.dot(m_k_unseen, np.minimum((m_r+r_star),0))
-        D=np.dot(m_k_unseen, np.maximum((L_star-L),0))
+        P=np.dot(m_k_unseen, np.minimum((m_r+r_star),0))
+        R=np.dot(m_k_unseen, np.maximum((L_star-L),0))
         
         if last_seen[u]<0:
             C=np.repeat(0.0,N)
@@ -138,29 +138,29 @@ def recommend(u, module=0, stopOnMastery=True, normalize=False):
             C=np.sqrt(np.dot(m_k_unseen, m_k[last_seen[u],]))
             
         #A=0.0
-        d_temp=m_difficulty_add[:,ind_unseen]
+        d_temp=m_difficulty[:,ind_unseen]
         L_temp=np.tile(L,(N,1)).transpose()
-        A=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
+        D=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
         
         #if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
         next_item=None
         #else:
             
         if normalize:
-            temp=(A.max()-A.min());
-            if(temp!=0.0):
-                A=A/temp     
             temp=(D.max()-D.min());
             if(temp!=0.0):
-                D=D/temp
+                D=D/temp     
             temp=(R.max()-R.min());
             if(temp!=0.0):
                 R=R/temp
+            temp=(P.max()-P.min());
+            if(temp!=0.0):
+                P=P/temp
             temp=(C.max()-C.min());
             if(temp!=0.0):
                 C=C/temp     
             
-        next_item=ind_unseen[np.argmax(V_r*R+V_d*D+V_a*A+V_c*C)]
+        next_item=ind_unseen[np.argmax(W_p*P+W_r*R+W_d*D+W_c*C)]
             
     
     return(next_item)

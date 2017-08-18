@@ -8,15 +8,15 @@ n_items=40
 n_modules=2
 
 epsilon=1e-10 # a regularization cutoff, the smallest value of a mastery probability
-eta=0 ##Relevance threshold used in the BKT optimization procedure
-M=0 ##Information threshold user in the BKT optimization procedure
-L_star=3 #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
+eta=0.0 ##Relevance threshold used in the BKT optimization procedure
+M=0.0 ##Information threshold user in the BKT optimization procedure
+L_star=2.2 #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
 
-r_star=0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
-V_r=5 ##Importance of readiness in recommending the next item
-V_d=3 ##Importance of demand in recommending the next item
-V_a=1 ##Importance of appropriate difficulty in recommending the next item
-V_c=1 ##Importance of continuity in recommending the next item
+r_star=0.0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
+W_p=5.0 ##Importance of readiness in recommending the next item
+W_r=3.0 ##Importance of demand in recommending the next item
+W_d=1.0 ##Importance of appropriate difficulty in recommending the next item
+W_c=1.0 ##Importance of continuity in recommending the next item
 
 ##Values prior to estimating model:
 slip_probability=0.15

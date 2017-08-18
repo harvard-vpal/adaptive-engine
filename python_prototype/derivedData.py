@@ -18,12 +18,12 @@ m_p_slip= m_slip/(m_slip+1.0)
 
 ##Define the matrix of mixed odds:
 
-m_x0_add= np.log(m_slip*(1.0+m_guess)/(1.0+m_slip)) ##Additive formulation
+#m_x0_add= np.log(m_slip*(1.0+m_guess)/(1.0+m_slip)) ##Additive formulation
 
 #Multiplicative formulation
 m_x0_mult= m_slip*(1.0+m_guess)/(1.0+m_slip)
-m_x1_mult=(1.0+m_guess)/(m_guess*(1.0+m_slip))
-m_x1_0_mult=m_x1_mult/m_x0_mult
+#m_x1_mult=(1.0+m_guess)/(m_guess*(1.0+m_slip))
+m_x1_0_mult=((1.0+m_guess)/(m_guess*(1.0+m_slip)))/m_x0_mult
 
 
 #m_x1_0_mult= (1.0+m_guess)/(m_guess*(1.0+m_slip))-m_x0_mult
@@ -44,5 +44,5 @@ difficulty_mult=difficulty/(1.0-difficulty)
 difficulty_add=np.log(difficulty_mult)
 
 ##Define a matrix of problem difficulties clones for all LOs (used in recommendation)
-m_difficulty_mult=np.tile(difficulty_mult,(n_los,1))
-m_difficulty_add=np.tile(difficulty_add,(n_los,1))
+#m_difficulty_mult=np.tile(difficulty_mult,(n_los,1))
+m_difficulty=np.tile(difficulty_add,(n_los,1))
