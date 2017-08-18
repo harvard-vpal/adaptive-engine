@@ -5,6 +5,7 @@ import pandas as pd
 n_users=10
 n_los=8
 n_items=40
+n_modules=2
 
 epsilon=1e-10 # a regularization cutoff, the smallest value of a mastery probability
 eta=0 ##Relevance threshold used in the BKT optimization procedure
@@ -30,11 +31,8 @@ los='l'+np.char.array(range(n_los))
 items='p'+np.char.array(range(n_items))
 
 #Let problems be divided into several modules of adaptivity. In each module, only the items from that scope are used.
-##Proposed code: 
-# -1 - is not among the adaptively served ones
-# 0 - problem can be served in any module
-# n=1,2,3,...  - problem can be served in the module n
-scope=np.repeat(1, n_items)
+scope=np.ones([n_items,n_modules],dtype=bool)
+scope[:,1]=False
 
 ##List which items should be used for training the BKT
 useForTraining=np.repeat(True, n_items)
