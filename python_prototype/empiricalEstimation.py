@@ -148,8 +148,6 @@ def estimate(self, relevance_threshold=0.01,information_threshold=20, remove_deg
                     trans[prob_id,]+=shorthand*u_knowledge[pr+1,]
                     trans_denom[prob_id,]+=shorthand
         
-        
-    
     
     ##Normalize the results over users.
     ind=np.where(p_i_denom!=0)
@@ -160,7 +158,6 @@ def estimate(self, relevance_threshold=0.01,information_threshold=20, remove_deg
     guess[ind]/=guess_denom[ind]
     ind=np.where(slip_denom!=0)
     slip[ind]/=slip_denom[ind]
-    
     
     
     ##Replace with nans where denominators are below information cutoff
@@ -177,7 +174,7 @@ def estimate(self, relevance_threshold=0.01,information_threshold=20, remove_deg
                 
         guess[ind_g]=np.nan
         slip[ind_s]=np.nan
-        
+
 
     #Convert to odds (logarithmic in case of p.i):
     p_i=np.minimum(np.maximum(p_i,self.epsilon),1.0-self.epsilon)

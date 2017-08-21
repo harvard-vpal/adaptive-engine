@@ -3,14 +3,9 @@ import numpy as np
 import pandas as pd
 
 def initialize_variables(self, 
-
-    
     users=None,
     los=None,
     items=None,
-    # n_users=10, 
-    # n_los=8, 
-    # n_items=40, 
     n_modules=2,
 
     epsilon=1e-10, # a regularization cutoff, the smallest value of a mastery probability
@@ -32,28 +27,6 @@ def initialize_variables(self,
 
     los_per_item=2, ##Number of los per problem
     ):
-
-    # self.n_users=10
-    # self.n_los=8
-    # self.n_items=40
-    # self.n_modules=2
-
-    # self.epsilon=1e-10 # a regularization cutoff, the smallest value of a mastery probability
-    # self.eta=0.0 ##Relevance threshold used in the BKT optimization procedure
-    # self.M=0.0 ##Information threshold user in the BKT optimization procedure
-    # self.L_star=2.2 #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
-
-    # self.r_star=0.0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
-    # self.W_p=5.0 ##Importance of readiness in recommending the next item
-    # self.W_r=3.0 ##Importance of demand in recommending the next item
-    # self.W_d=1.0 ##Importance of appropriate difficulty in recommending the next item
-    # self.W_c=1.0 ##Importance of continuity in recommending the next item
-
-    # ##Values prior to estimating model:
-    # self.slip_probability=0.15
-    # self.guess_probability=0.1
-    # self.trans_probability=0.1
-    # self.prior_knowledge_probability=0.2
 
     self.epsilon=epsilon # a regularization cutoff, the smallest value of a mastery probability
     self.eta=eta ##Relevance threshold used in the BKT optimization procedure
@@ -118,8 +91,6 @@ def initialize_variables(self,
 
     ##Define the preliminary relevance matrix: problems tagged with LOs. rownames are problems. Assumed that the entries are 0 or 1 ####
 
-    # los_per_item=2 ##Number of los per problem
-
     temp=np.append(np.repeat(1.0,los_per_item),np.repeat(0.0,n_los-los_per_item))
 
     self.m_tagging=np.zeros([n_items,n_los])
@@ -128,7 +99,7 @@ def initialize_variables(self,
         self.m_tagging[i,]=np.random.choice(temp,size=len(temp),replace=False)
 
       
-      ##CHeck that ther eare no zero rows or columns in tagging
+    ##CHeck that there are no zero rows or columns in tagging
       
     ind=np.where(~self.m_tagging.any(axis=0))[0]
 
@@ -149,22 +120,16 @@ def initialize_variables(self,
       print("Problems without an LO: none\n")
 
 
-
     ##Define the matrix of transit odds ####
-      
     self.m_trans=(trans_probability/(1.0-trans_probability))*self.m_tagging
-     ##
       
-      ##Define the matrix of guess odds ####
+    ##Define the matrix of guess odds ####
     self.m_guess=guess_probability/(1.0-guess_probability)*np.ones([n_items,n_los]);
     self.m_guess[np.where(self.m_tagging==0.0)]=1.0
-
-      ##
       
-      ##Define the matrix of slip odds ####
+    ##Define the matrix of slip odds ####
     self.m_slip=slip_probability/(1.0-slip_probability)*np.ones([n_items,n_los]);
     self.m_slip[np.where(self.m_tagging==0.0)]=1.0
-      ##
 
       
     ##Define the matrix which keeps track whether a LO for a user has ever been updated
@@ -193,7 +158,6 @@ def initialize_variables(self,
 
     #Initialize the data frame which will store the results of users submit-transactions (much like problem_check in Glenn's data)
     self.transactions=pd.DataFrame()
-
 
 
     ##Define vector that will store the latest item seen by a user

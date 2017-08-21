@@ -1,11 +1,6 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
 #Should L be mastery odds(for multiplicative) or logarithmic odds (for additive formulation)?
-# multiplicative=True
-# execfile('multiplicativeFormulation.py')
-# execfile('empiricalEstimation.py')
-# execfile('fakeInitials.py')
-# execfile('derivedData.py')
 
 from multiplicativeFormulation import MultiplicativeFormulation
 import numpy as np
@@ -47,14 +42,10 @@ engine = MultiplicativeFormulation(
     los_per_item=2, ##Number of los per problem
 )
 
-
-
 # initialize random user response data
 T=2000
 user_ids=np.random.choice(users,T)
 score=np.random.choice([0,1],T)
-
-# m_L=m_L_i.copy()
 
 for t in range(T):
     
