@@ -3,12 +3,19 @@
 ######################################
 ####Estimation functions are below####
 ######################################
-##This function finds the empirical knowledge of a single user given a chronologically ordered sequence of items submitted.
-def knowledge(problems,correctness):
-    
-    global m_slip_neg_log, m_guess_neg_log, n_los
-    m_slip_u=m_slip_neg_log[problems,]
-    m_guess_u=m_guess_neg_log[problems,]
+
+import numpy as np
+
+def knowledge(self, problems,correctness):
+    """
+    ##This function finds the empirical knowledge of a single user given a 
+    chronologically ordered sequence of items submitted.
+    """
+    # global m_slip_neg_log, m_guess_neg_log, n_los
+    n_los = len(self.los)
+
+    m_slip_u=self.m_slip_neg_log[problems,]
+    m_guess_u=self.m_guess_neg_log[problems,]
     N=len(problems)
     
     
@@ -22,7 +29,7 @@ def knowledge(problems,correctness):
     z[0,]=np.dot((1.0-correctness),m_slip_u)
     z[N,]=np.dot(correctness,m_guess_u)
     
-    if(N>1):
+    if N>1:
         
         for n in range(1,N):
             x[range(n)]=correctness[range(n)]
@@ -53,11 +60,14 @@ def knowledge(problems,correctness):
 #This function estimates the BKT model using empirical probabilities
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
 ##Thus, the outputs of this function do not contain any non-numeric values and should be used to simply replace the current BKT parameter matrices.
-def estimate(relevance_threshold=0.01,information_threshold=20, remove_degeneracy=True):
+def estimate(self, relevance_threshold=0.01,information_threshold=20, remove_degeneracy=True):
     
     
-    global n_items,n_los, m_k, transactions, L_i, m_trans, m_guess, m_slip, epsilon, useForTraining, n_users
-    
+    # global n_items,n_los, m_k, transactions, L_i, m_trans, m_guess, m_slip, self.epsilon, useForTraining, n_users
+    n_items = len(self.items)
+    n_los = len(self.los)
+    n_users = len(self.users)
+
     trans=np.zeros((n_items,n_los))
     trans_denom=trans.copy()
     guess=trans.copy()
@@ -71,8 +81,6 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
     training_set=range(n_users)
 
     
-    
-    
     for u in training_set:
         
         ##List problems that the user tried, in chronological order
@@ -85,14 +93,14 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
 #        problems=np.intersect1d(problems, useForTraining)
         
         
-        temp=transactions.loc[(transactions.user_id==u)&(transactions.problem_id.isin(useForTraining))]
-        temp=temp.sort('time')
+        temp=self.transactions.loc[(self.transactions.user_id==u)&(self.transactions.problem_id.isin(self.useForTraining))]
+        temp=temp.sort_values('time')
         temp.index=range(np.shape(temp)[0])
         ## Now temp is the data frame of submits of a particular user u, arranged in chronological order. In particular, temp.problem_id is the list of problems in chronological order.
         
         J=np.shape(temp)[0]
         if(J>0):
-            m_k_u=m_k[temp.problem_id,]
+            m_k_u=self.m_k[temp.problem_id,]
             ##Reshape for the case J=1, we still want m_k_u to be a 2D array, not 1D.
             m_k_u=m_k_u.reshape(J,n_los)
             
@@ -112,7 +120,7 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
             
             #u_correctness=m_correctness[u,problems]
             #u_knowledge=knowledge(problems, u_correctness)
-            u_knowledge=knowledge(temp.problem_id, temp.score)
+            u_knowledge=knowledge(self, temp.problem_id, temp.score)
             #Now prepare the matrix by replicating the correctness column for each LO.
             #u_correctness=np.tile(u_correctness,(n_los,1)).transpose()          
 
@@ -135,7 +143,7 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
                 slip[prob_id,]+=shorthand*(1.0-temp.score[pr])
                 slip_denom[prob_id,]+=shorthand
                 
-                if(pr<(J-1)):
+                if pr<(J-1):
                     shorthand=m_k_u[pr,]*(1.0-u_knowledge[pr,])
                     trans[prob_id,]+=shorthand*u_knowledge[pr+1,]
                     trans_denom[prob_id,]+=shorthand
@@ -162,21 +170,20 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
     slip[(slip_denom<information_threshold)|(slip_denom==0)]=np.nan
     
     ##Remove guess and slip probabilities of 0.5 and above (degeneracy):
-    if(remove_degeneracy):
+    if remove_degeneracy:
+        # these two lines will throw warnings for comparisons to np.nan's
         ind_g=np.where((guess>=0.5) | (guess+slip>=1))
         ind_s=np.where((slip>=0.5) | (guess+slip>=1))
                 
         guess[ind_g]=np.nan
         slip[ind_s]=np.nan
-	
-	##guess[guess>=0.5]=np.nan
-        ##slip[slip>=0.5]=np.nan
+        
 
     #Convert to odds (logarithmic in case of p.i):
-    p_i=np.minimum(np.maximum(p_i,epsilon),1.0-epsilon)
-    trans=np.minimum(np.maximum(trans,epsilon),1.0-epsilon)
-    guess=np.minimum(np.maximum(guess,epsilon),1.0-epsilon)
-    slip=np.minimum(np.maximum(slip,epsilon),1.0-epsilon)
+    p_i=np.minimum(np.maximum(p_i,self.epsilon),1.0-self.epsilon)
+    trans=np.minimum(np.maximum(trans,self.epsilon),1.0-self.epsilon)
+    guess=np.minimum(np.maximum(guess,self.epsilon),1.0-self.epsilon)
+    slip=np.minimum(np.maximum(slip,self.epsilon),1.0-self.epsilon)
     
     #L=np.log(p_i/(1-p_i))
     L=p_i/(1.0-p_i)
@@ -192,14 +199,22 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
     
     
     ind=np.where(np.isnan(L) | np.isinf(L))
-    L[ind]=L_i[ind]
+    L[ind]=self.L_i[ind]
     ind=np.where(np.isnan(trans) | np.isinf(trans))
-    trans[ind]=m_trans[ind]
+    trans[ind]=self.m_trans[ind]
     ind=np.where(np.isnan(guess) | np.isinf(guess))
-    guess[ind]=m_guess[ind]
+    guess[ind]=self.m_guess[ind]
     ind=np.where(np.isnan(slip) | np.isinf(slip))
-    slip[ind]=m_slip[ind]
+    slip[ind]=self.m_slip[ind]
         
         
-        
-    return{'L_i':L, 'trans':trans,'guess':guess, 'slip':slip, 'L_i_nan':L_i_nan, 'trans_nan':trans_nan,'guess_nan':guess_nan, 'slip_nan':slip_nan}
+    return {
+        'L_i':L, 
+        'trans':trans,
+        'guess':guess, 
+        'slip':slip, 
+        'L_i_nan':L_i_nan, 
+        'trans_nan':trans_nan,
+        'guess_nan':guess_nan, 
+        'slip_nan':slip_nan
+    }

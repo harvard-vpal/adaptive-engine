@@ -21,7 +21,7 @@ def mapUser(user_id):
         m_timestamp=np.vstack((m_timestamp,row_timestamp))
         
     
-    return(u)
+    return u
 
 
 def mapItem(item_id):
@@ -37,29 +37,29 @@ def bayesUpdate(u, item, score=1, time=0):
   
   #This function updates the user mastery and record of interactions that will be needed for recommendation and estimation of the BKT
   
-  global m_x0_add, m_k, m_L, m_trans, last_seen, m_unseen, m_correctness, m_timestamp, m_exposure, m_tagging, log_epsilon
+  # global m_x0_add, m_k, m_L, m_trans, last_seen, m_unseen, m_correctness, m_timestamp, m_exposure, m_tagging, log_epsilon
   
   
   last_seen[u]=item
-  m_correctness[u,item]=score
-  m_timestamp[u,item]=time
+  self.m_correctness[u,item]=score
+  self.m_timestamp[u,item]=time
   if m_unseen[u,item]:
-      m_unseen[u,item]=False
-      m_exposure[u,]+=m_tagging[item,]
+      self.m_unseen[u,item]=False
+      self.m_exposure[u,]+=self.m_tagging[item,]
   
   ##The increment of log-odds due to evidence of the problem, but before the transfer
-  x=m_x0_add[item,]+score*m_k[item,]
-  L=m_L[u,]+x
+  x=self.m_x0_add[item,]+score*self.m_k[item,]
+  L=self.m_L[u,]+x
   
   ##Add the transferred knowledge
-  trans=m_trans[item,]
+  trans=self.m_trans[item,]
   #L=np.log(trans+(trans+1)*np.exp(L))
   L=np.log(trans+(trans+1)*np.exp(L))
   
-  L[np.isposinf(L)]=log_epsilon
-  L[np.isneginf(L)]=-log_epsilon
+  L[np.isposinf(L)]=self.log_epsilon
+  L[np.isneginf(L)]=-self.log_epsilon
   
-  m_L[u,]=L
+  self.m_L[u,]=L
   #return{'L':L, 'x':x}
   
 

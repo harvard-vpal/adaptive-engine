@@ -1,48 +1,51 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 import numpy as np
 
-##Define infinity cutoff and the log cutoff:
-inv_epsilon=1.0/epsilon
+def calculate_derived_data(self):
 
-log_epsilon=-np.log(epsilon)
+    ##Define infinity cutoff and the log cutoff:
+    self.inv_epsilon=1.0/self.epsilon
 
-## Calculate the useful matrices of guess and slip probabilities and of negative logs of the odds.
-m_guess_neg_log= -np.log(m_guess)
-m_p_guess= m_guess/(m_guess+1.0)
+    self.log_epsilon=-np.log(self.epsilon)
 
-m_slip_neg_log= -np.log(m_slip)
-m_p_slip= m_slip/(m_slip+1.0)
+    ## Calculate the useful matrices of guess and slip probabilities and of negative logs of the odds.
+    self.m_guess_neg_log= -np.log(self.m_guess)
+    self.m_p_guess= self.m_guess/(self.m_guess+1.0)
 
-#m_trans_log = np.log(m_trans)
-#m_g_trans = m_trans_log-m_trans
+    self.m_slip_neg_log= -np.log(self.m_slip)
+    self.m_p_slip= self.m_slip/(self.m_slip+1.0)
 
-##Define the matrix of mixed odds:
+    #m_trans_log = np.log(m_trans)
+    #m_g_trans = m_trans_log-m_trans
 
-#m_x0_add= np.log(m_slip*(1.0+m_guess)/(1.0+m_slip)) ##Additive formulation
+    ##Define the matrix of mixed odds:
 
-#Multiplicative formulation
-m_x0_mult= m_slip*(1.0+m_guess)/(1.0+m_slip)
-#m_x1_mult=(1.0+m_guess)/(m_guess*(1.0+m_slip))
-m_x1_0_mult=((1.0+m_guess)/(m_guess*(1.0+m_slip)))/m_x0_mult
+    #m_x0_add= np.log(m_slip*(1.0+m_guess)/(1.0+m_slip)) ##Additive formulation
 
-
-#m_x1_0_mult= (1.0+m_guess)/(m_guess*(1.0+m_slip))-m_x0_mult
-
-
-##Define the matrix of relevance m_k
-m_k= -np.log(m_guess)-np.log(m_slip)
+    #Multiplicative formulation
+    self.m_x0_mult= self.m_slip*(1.0+self.m_guess)/(1.0+self.m_slip)
+    #m_x1_mult=(1.0+m_guess)/(m_guess*(1.0+m_slip))
+    self.m_x1_0_mult=((1.0+self.m_guess)/(self.m_guess*(1.0+self.m_slip)))/self.m_x0_mult
 
 
-##Normalize and prepare difficulty vector:
+    #m_x1_0_mult= (1.0+m_guess)/(m_guess*(1.0+m_slip))-m_x0_mult
 
-#if(difficulty.max()!=difficulty.min()):
-#    difficulty=(difficulty-difficulty.min())/(difficulty.max()-difficulty.min())
 
-difficulty=np.minimum(np.maximum(difficulty,epsilon),1-epsilon)
+    ##Define the matrix of relevance m_k
+    self.m_k= -np.log(self.m_guess)-np.log(self.m_slip)
 
-difficulty_mult=difficulty/(1.0-difficulty)
-difficulty_add=np.log(difficulty_mult)
 
-##Define a matrix of problem difficulties clones for all LOs (used in recommendation)
-#m_difficulty_mult=np.tile(difficulty_mult,(n_los,1))
-m_difficulty=np.tile(difficulty_add,(n_los,1))
+    ##Normalize and prepare difficulty vector:
+
+    #if(difficulty.max()!=difficulty.min()):
+    #    difficulty=(difficulty-difficulty.min())/(difficulty.max()-difficulty.min())
+
+    self.difficulty=np.minimum(np.maximum(self.difficulty,self.epsilon),1-self.epsilon)
+
+    self.difficulty_mult=self.difficulty/(1.0-self.difficulty)
+    self.difficulty_add=np.log(self.difficulty_mult)
+
+    ##Define a matrix of problem difficulties clones for all LOs (used in recommendation)
+    #m_difficulty_mult=np.tile(difficulty_mult,(n_los,1))
+    n_los = len(self.los)
+    self.m_difficulty=np.tile(self.difficulty_add,(n_los,1))
