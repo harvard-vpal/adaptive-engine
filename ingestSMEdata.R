@@ -37,20 +37,22 @@ KcColumn='LO.short.name'
 itemColumn='Item.ID'
 guessColumn='Guess.probability..chance.of.answering.correctly.despite.not.knowing.the.LO.'
 transColumn='Learning.value..chance.of.learning.the.LO.from.this.item.'
+locationColumn="Pre.Post.If.location.provided..this.question.is.fixed..this.is.where.it.currently.appears.in.the.course.and.should.be.part.of.the.adaptive.testing.in.that.location."
 slipColumn=NA
 items_KC=subset(items_KC,!((items_KC[,itemColumn]=='')|(is.na(items_KC[,itemColumn]))))
 items_KC[,itemColumn]=as.character(items_KC[,itemColumn])
 
 ##Provide items that will be served as pre-test for control group with no adaptivity
-ind=which(items_KC[,9]=='Final')
+ind_nonadpt=which(grepl('Final',items_KC[,locationColumn])|grepl('Module',items_KC[,locationColumn]))
+ind=which(items_KC[,locationColumn]=='Final')
 
 ind1=rep(NA,length(ind))
 for(i in 1:length(ind)){
   
-  if(!grepl('Module',items_KC[ind[i]-1,9])){
+  if(!grepl('Module',items_KC[ind[i]-1,locationColumn])){
     ind1[i]=ind[i]-1
   }else{
-    if(!grepl('Module',items_KC[ind[i]+1,9])){
+    if(!grepl('Module',items_KC[ind[i]+1,locationColumn])){
       ind1[i]=ind[i]+1
     }
   }
@@ -58,10 +60,13 @@ for(i in 1:length(ind)){
 }
 
 ind1=ind1[!is.na(ind1)]
-items_KC[ind1,9]="Pretest_Group_C"
-items_KC[ind1,10]=1
+items_KC_export=items_KC
+items_KC_export[ind1,locationColumn]="Pretest"
+items_KC_export=items_KC_export[sort(c(ind1,ind_nonadpt)),]
 
-write.csv(items_KC,file='items_KC_Group_C_marked.csv',row.names = FALSE)
+names(items_KC_export)[which(names(items_KC_export)==locationColumn)]='Module'
+
+write.csv(items_KC_export,file='items_KC_Group_C_marked.csv',row.names = FALSE)
 
 
 
