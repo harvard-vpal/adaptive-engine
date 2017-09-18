@@ -1,0 +1,9 @@
+[
+  {
+    "model": "engine.collection",
+    "pk": 1,
+    "fields": {
+      "name": "My test collection"
+    }
+  }
+]

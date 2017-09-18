@@ -1,0 +1,16 @@
+version: '2'
+services:
+  engine:
+    container_name: engine
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "sleep 5 && python manage.py runserver 0.0.0.0:8000 --settings=site.settings.prod"
+    volumes:
+      - .:/bridge_adaptivity
+    ports:
+      - "80:8000"
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app

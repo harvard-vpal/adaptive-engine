@@ -5,10 +5,9 @@ from . import views
 router = routers.DefaultRouter(trailing_slash=False)
 router.register('activity', views.ActivityViewSet)
 router.register('collection', views.CollectionViewSet)
-router.register('taglabel', views.TagLabelViewSet)
-router.register('tag', views.TagViewSet)
-router.register('score', views.TagViewSet)
+router.register('score', views.ScoreViewSet)
 
 urlpatterns = [
-    url(r'^api/v1/', include(router.urls, namespace='api')),
+    url(r'^api/', include(router.urls, namespace='api')),
+    url(r'^testing/', views.testing), # for testing TODO remove
 ]

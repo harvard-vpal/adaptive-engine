@@ -1,0 +1,23 @@
+[
+  {
+    "model": "engine.knowledgecomponent",
+    "pk": 1,
+    "fields": {
+      "name": "kc1"
+    }
+  },
+  {
+    "model": "engine.knowledgecomponent",
+    "pk": 2,
+    "fields": {
+      "name": "kc2"
+    }
+  },
+  {
+    "model": "engine.knowledgecomponent",
+    "pk": 3,
+    "fields": {
+      "name": "kc3"
+    }
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "model": "engine.learner",
+    "pk": 1,
+    "fields": {
+      "course": 1,
+      "identifier": 1
+    }
+  },
+  {
+    "model": "engine.learner",
+    "pk": 2,
+    "fields": {
+      "course": 1,
+      "identifier": 2
+    }
+  }
+]

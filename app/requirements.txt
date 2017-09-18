@@ -1,2 +1,4 @@
 Django
 djangorestframework
+numpy
+pandas

@@ -1,0 +1,29 @@
+[
+  {
+    "model": "engine.activity",
+    "pk": 1,
+    "fields": {
+      "name": "test activity 1",
+      "collections": [1],
+      "knowledge_components": [1]
+    }
+  },
+  {
+    "model": "engine.activity",
+    "pk": 2,
+    "fields": {
+      "name": "test activity 2",
+      "collections": [1],
+      "knowledge_components": [1]
+    }
+  },
+  {
+    "model": "engine.activity",
+    "pk": 3,
+    "fields": {
+      "name": "test activity 3",
+      "collections": [1],
+      "knowledge_components": [2]
+    }
+  }
+]

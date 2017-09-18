@@ -1,0 +1,16 @@
+version: '2'
+services:
+  engine:
+    container_name: engine
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "python manage.py runserver 0.0.0.0:8000 --settings=prod.settings.prod"
+    volumes:
+      - .:/bridge_adaptivity
+    ports:
+      - "8000:8000"
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app

@@ -1,0 +1,23 @@
+[
+  {
+    "model": "engine.enginesettings",
+    "pk": 1,
+    "fields": {
+      "name": "My engine settings",
+      "epsilon": 1e-10,
+      "eta": 0.0,
+      "M": 0.0,
+      "L_star": 2.2,
+      "r_star": 0.0,
+      "W_p": 5.0,
+      "W_r": 3.0,
+      "W_d": 1.0,
+      "W_c": 1.0,
+      "slip_probability": 0.15,
+      "guess_probability":0.1,
+      "trans_probability":0.1,
+      "prior_knowledge_probability":0.2,
+      "stop_on_mastery": true
+    }
+  }
+]

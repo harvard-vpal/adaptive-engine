@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# local database
+*.sqlite3
+
+# collected static files
+http_static/
+
+## Secure settings
+secure.py
+
+# OSX files
+.DS_Store
