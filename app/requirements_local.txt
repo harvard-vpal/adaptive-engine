@@ -1,2 +1,2 @@
--r requirements_base.txt
+-r requirements.txt
 django_extensions

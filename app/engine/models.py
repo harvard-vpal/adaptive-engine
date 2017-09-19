@@ -10,18 +10,15 @@ class Collection(models.Model):
     """
     name = models.CharField(max_length=200)
 
-    def recommend(self,learner):
-        """
-        Recommend and return an activity from this collection for a particular learner
-        """
-        # simple example
-        activity = self.activity_set.first()
-
-        return activity
+    def __unicode__(self):
+        return "{}".format(self.pk)
 
 
 class KnowledgeComponent(models.Model):
     name = models.CharField(max_length=200)
+
+    def __unicode__(self):
+        return "{}".format(self.pk)
 
 
 class PrerequisiteRelation(models.Model):
@@ -36,10 +33,15 @@ class Activity(models.Model):
     """
     Activity model
     """
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, default='')
     collection = models.ForeignKey(Collection)
+    # identifier = models.PositiveIntegerField()
     knowledge_components = models.ManyToManyField(KnowledgeComponent,blank=True)
+    difficulty = models.FloatField(null=True,blank=True)
+    tags = models.TextField(default='')
 
+    def __unicode__(self):
+        return "{}".format(self.pk)
 
 # class Course(models.Model):
 #     """
@@ -53,11 +55,13 @@ class Learner(models.Model):
     User model for students
     """
     # course = models.ForeignKey(Course)
-    identifier = models.PositiveIntegerField(unique=True) #maybe int?
+    # identifier = models.PositiveIntegerField(unique=True) # bridge user pk
 
     # class Meta:
     #     unique_together = ('course','identifier')
 
+    def __unicode__(self):
+        return "{}".format(self.pk)
 
 class Score(models.Model):
     """
@@ -69,10 +73,10 @@ class Score(models.Model):
     # timestamp
 
 
-class Difficulty(models.Model):
-    activity = models.ForeignKey(Activity)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
-    value = models.FloatField()
+# class Difficulty(models.Model):
+#     activity = models.ForeignKey(Activity)
+#     knowledge_component = models.ForeignKey(KnowledgeComponent)
+#     value = models.FloatField()
 
 class Guess(models.Model):
     activity = models.ForeignKey(Activity)
@@ -122,6 +126,7 @@ class EngineSettings(models.Model):
     trans_probability = models.FloatField()
     prior_knowledge_probability = models.FloatField()
     stop_on_mastery = models.BooleanField()
-
+    def __unicode__(self):
+        return "{}".format(self.pk)
 
 

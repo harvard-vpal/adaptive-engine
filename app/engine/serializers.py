@@ -47,15 +47,20 @@ class ActivitySerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = Activity 
-        fields = (collections)
+        fields = ('collection','id','name','difficulty','tags')
+
+
+class ActivityRecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = ('collection','id')
 
 
 class ScoreSerializer(serializers.ModelSerializer):
-    learner = CreatableSlugRelatedField(
+    learner = CreatablePrimaryKeyRelatedField(
         queryset = Learner.objects.all(),
-        slug_field = 'identifier'
     )
     class Meta:
         model = Score
-        fields = ('learner', 'activity', 'score')
+        fields = ('id', 'learner', 'activity', 'score')
 

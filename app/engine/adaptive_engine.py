@@ -2,6 +2,7 @@
 import numpy as np
 from data_structures import Matrix, Vector
 from models import * 
+import utils
 
 #### adaptive engine parameter settings ####
 # ENGINE_PARAMS = dict(
@@ -40,15 +41,18 @@ class Engine(object):
             stop_on_mastery
             prior_knowledge_probability
         """
-        self.engine_settings = engine_settings
+        self.settings = engine_settings
         
         #### convenience values ####
-        self.epsilon = self.engine_settings.epsilon
-        self.prior_knowledge_probability = self.engine_settings.prior_knowledge_probability
+        self.epsilon = self.settings.epsilon
+        self.prior_knowledge_probability = self.settings.prior_knowledge_probability
 
         self.inv_epsilon = 1.0/self.epsilon
         self.log_epsilon = -np.log(self.epsilon)
 
+        self.guess_initial = utils.odds(self.settings.guess_probability)
+        self.trans_initial = utils.odds(self.settings.trans_probability)
+        self.slip_initial = utils.odds(self.settings.trans_probability)
 
     #### convenience computations that involve arguments ####
 
@@ -137,46 +141,49 @@ class Engine(object):
             - row of L/Mastery
             - row of Confidence
         """
-        # vector of values, corresponding to row of guess and slip matrices for single activity
-        guess = Matrix(Guess)[activity,].values() # nparray [1 x # KCs]
-        slip = Matrix(Slip)[activity,].values() # nparray vector [1 x # KCs]
-        # mastery row for learner (queryset)
-        mastery = Matrix(Mastery)[learner,] # nparray vector [1 x # KCs]
+        try:
+            # vector of values, corresponding to row of guess and slip matrices for single activity
+            guess = Matrix(Guess)[activity,].values() # nparray [1 x # KCs]
+            slip = Matrix(Slip)[activity,].values() # nparray vector [1 x # KCs]
+            # mastery row for learner (queryset)
+            mastery = Matrix(Mastery)[learner,] # nparray vector [1 x # KCs]
 
-        # update last_seen entry to reflect that learner has just seen activity (TODO consider if this is needed)
-        LastSeen.objects.get(learner=learner).update(value=activity.pk)
+            # update last_seen entry to reflect that learner has just seen activity (TODO consider if this is needed)
+            LastSeen.objects.get(learner=learner).update(value=activity.pk)
 
-        ## if this is the first time learner sees/does the problem
-        if not Score.objects.filter(learner=learner,activity=activity).exists():
+            ## if this is the first time learner sees/does the problem
+            if not Score.objects.filter(learner=learner,activity=activity).exists():
 
-            # increment exposure values for learner to the particular learning objective(s)
-            # could this be moved to model update function?
-            # self.m_exposure[u,]+=self.m_tagging[item,]
-            # Exposure.objects.filter(
-            #     learner=learner, 
-            #     knowledge_component__in=activity.knowledge_component_set.values('pk')
-            # ).update(value=F('value')+1)
+                # increment exposure values for learner to the particular learning objective(s)
+                # could this be moved to model update function?
+                # self.m_exposure[u,]+=self.m_tagging[item,]
+                # Exposure.objects.filter(
+                #     learner=learner, 
+                #     knowledge_component__in=activity.knowledge_component_set.values('pk')
+                # ).update(value=F('value')+1)
 
-            # update row of confidence matrix
-            relevance = -np.log(guess) - np.log(slip)
-            confidence = Matrix(Confidence)['learner',] # vector
-            confidence.update(confidence.values() + relevance) # update database values
+                # update row of confidence matrix
+                relevance = -np.log(guess) - np.log(slip)
+                confidence = Matrix(Confidence)['learner',] # vector
+                confidence.update(confidence.values() + relevance) # update database values
 
-        # Record the transaction by appending a new row to the data frame "transactions":
-        Score.create(learner=learner, activity=activity, score=score)
+            # Record the transaction by appending a new row to the data frame "transactions":
+            Score.create(learner=learner, activity=activity, score=score)
 
-        # The increment of odds due to evidence of the problem, but before the transfer
-        x = x0_mult(guess,slip) * np.power(self.x1_0_mult(guess,slip), score) #vector-wise multiply
-        L = mastery.values() * x  # L is an nparray vector
-        # Add the transferred knowledge
-        L += Matrix(Transfer)[item,].values()*(L+1)
+            # The increment of odds due to evidence of the problem, but before the transfer
+            x = x0_mult(guess,slip) * np.power(self.x1_0_mult(guess,slip), score) #vector-wise multiply
+            L = mastery.values() * x  # L is an nparray vector
+            # Add the transferred knowledge
+            L += Matrix(Transfer)[item,].values()*(L+1)
 
-        # cleaning invalid mastery values
-        L[np.where(np.isposinf(L))] = self.inv_epsilon
-        L[np.where(L==0.0)] = self.epsilon
+            # cleaning invalid mastery values
+            L[np.where(np.isposinf(L))] = self.inv_epsilon
+            L[np.where(L==0.0)] = self.epsilon
 
-        # update row of mastery values in database
-        mastery.update(L)
+            # update row of mastery values in database
+            mastery.update(L)
+        except:
+            pass
 
     def recommend(self, learner, collection=None):
         """
@@ -184,83 +191,90 @@ class Engine(object):
         If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
         """
 
-        # TODO: get rid of this example
+        # TODO: get rid of this example after implementation
         next_item = Activity.objects.first()
 
-        # actual functionality
+        try:
+            # actual functionality is below
 
-        
-        # determined unseen activities within scope
-        # User.objects.distinct().filter(widget__in=your_widget_queryset)
-        # valid_activities = (Activity.objects.distinct()
-        #     .exclude(score__in=Score.objects.filter(learner=learner))
-        # )
-        # if collection:
-        #     valid_activities = valid_activities.filter(collections__in=[collection])
+            # determine unseen activities within scope
+            valid_activities = (Activity.objects.distinct()
+                .exclude(score__in=Score.objects.filter(learner=learner))
+            )
+            # restrict to activities for the given collection
+            if collection:
+                valid_activities = valid_activities.filter(collection=collection)
 
-        # L = np.log(Matrix(Mastery)[learner,].values())
+            # row of mastery values matrix
+            L = np.log(Matrix(Mastery)[learner,].values())
 
+            # check if we still have available problems
+            if valid_activities.count() == 0:
+                return None # return next_item = None if no items left to serve
 
-        # if self.stopOnMastery:
-
-        #     guess = Matrix(Guess)[learner,].filter(activity__in=valid_activities).values()
-        #     slip = Matrix(Slip)[learner,].filter(activity__in=valid_activities).values()
-
-        #     k_unseen = self.relevance(guess,slip)
-        #     R = np.dot(k_unseen, np.maximum(self.L_star-L,0))
-        #     valid_activity_ids = valid_activities.values_list('pk')[R!=0]
-        #     valid_activities = valid_activities.filter(activity__in=valid_activity_ids)
-
-        # # check if we still have available problems
-        # if valid_activities.count() == 0:
-        #     return None # return next_item = None if no items left to serve
-
-        # #Calculate the user readiness for LOs
-        # r = np.dot(np.minimum(L-self.L_star,0), Matrix(PrerequisiteRelation).values())
-        # k_unseen = self.relevance(guess,slip)
+            #Calculate the user readiness for LOs
+            # r = np.dot(np.minimum(L-self.settings.L_star,0), Matrix(PrerequisiteRelation).values())
+            # k_unseen = self.relevance(guess,slip)[ind_unseen]
 
 
-        #### progress placeholder ####
-        
-
-        #     #L=np.log(m_L[u,])
+            #### progress placeholder ####
             
-        #     #Calculate the user readiness for LOs
-            
-        #     m_r=np.dot(np.minimum(L-self.L_star,0), self.m_w);
-        #     m_k_unseen=self.m_k[ind_unseen,]
-        #     P=np.dot(m_k_unseen, np.minimum((m_r+self.r_star),0))
-        #     R=np.dot(m_k_unseen, np.maximum((self.L_star-L),0))
-            
-        #     if self.last_seen[u]<0:
-        #         C=np.repeat(0.0,N)
-        #     else:
-        #         C=np.sqrt(np.dot(m_k_unseen, self.m_k[self.last_seen[u],]))
+
+            #     P=np.dot(m_k_unseen, np.minimum((m_r+self.r_star),0))
+            #     R=np.dot(m_k_unseen, np.maximum((self.L_star-L),0))
                 
-        #     #A=0.0
-        #     d_temp=self.m_difficulty[:,ind_unseen]
-        #     L_temp=np.tile(L,(N,1)).transpose()
-        #     D=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
-            
-        #     #if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
-        #     next_item=None
-        #     #else:
+            #     if self.last_seen[u]<0:
+            #         C=np.repeat(0.0,N)
+            #     else:
+            #         C=np.sqrt(np.dot(m_k_unseen, self.m_k[self.last_seen[u],]))
+                    
+            #     #A=0.0
+            #     d_temp=self.m_difficulty[:,ind_unseen]
+            #     L_temp=np.tile(L,(N,1)).transpose()
+            #     D=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
                 
-        #     if normalize:
-        #         temp=(D.max()-D.min());
-        #         if(temp!=0.0):
-        #             D=D/temp     
-        #         temp=(R.max()-R.min());
-        #         if(temp!=0.0):
-        #             R=R/temp
-        #         temp=(P.max()-P.min());
-        #         if(temp!=0.0):
-        #             P=P/temp
-        #         temp=(C.max()-C.min());
-        #         if(temp!=0.0):
-        #             C=C/temp     
-                
-        #     next_item=ind_unseen[np.argmax(self.W_p*P+self.W_r*R+self.W_d*D+self.W_c*C)]
-                
+            #     #if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
+            #     next_item=None
+            #     #else:
+                    
+            #     if normalize:
+            #         temp=(D.max()-D.min());
+            #         if(temp!=0.0):
+            #             D=D/temp     
+            #         temp=(R.max()-R.min());
+            #         if(temp!=0.0):
+            #             R=R/temp
+            #         temp=(P.max()-P.min());
+            #         if(temp!=0.0):
+            #             P=P/temp
+            #         temp=(C.max()-C.min());
+            #         if(temp!=0.0):
+            #             C=C/temp     
+                    
+            #     next_item=ind_unseen[np.argmax(self.W_p*P+self.W_r*R+self.W_d*D+self.W_c*C)]
+        except:
+            pass            
         
         return next_item
+
+
+    def updateModel(self):
+        """
+        Notes:
+            Updates initial mastery
+        """
+        try:
+            est=utils.estimate(self, self.eta, self.M)
+
+            self.L_i=1.0*est['L_i']
+            self.m_L_i=np.tile(self.L_i,(self.m_L.shape[0],1))
+            
+            ind_pristine=np.where(self.m_exposure==0.0)
+            self.m_L[ind_pristine]=self.m_L_i[ind_pristine]
+            m_trans=1.0*est['trans']
+            m_guess=1.0*est['guess']
+            m_slip=1.0*est['slip']
+            # execfile('derivedData.py')
+            calculate_derived_data(self)
+        except:
+            pass

@@ -2,3 +2,4 @@ Django
 djangorestframework
 numpy
 pandas
+requests

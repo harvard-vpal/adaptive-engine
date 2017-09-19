@@ -1,6 +1,6 @@
 from django.db.models.query import QuerySet
 from django.db.models import Model
-
+import numpy as np
 
 def multiple_update(qset, field, values):
     new_qset = qset.filter().count()
@@ -70,16 +70,15 @@ class Matrix(object):
         self.row_field = fields[0]
         self.col_field = fields[1]
 
-        # sorts matrix elements so that they are in linear indexing order
-        # https://www.mathworks.com/help/matlab/math/matrix-indexing.html
+        # sorts matrix elements so that they are in C-like indexing order
         self.qset = model.objects.order_by(self.row_field, self.col_field)
 
 
         # TODO some validation to see if expected number of elements are present
     
     def shape(self):
-        row_model = _meta.get_field(self.row_field).remote_field.model
-        col_model = _meta.get_field(self.col_field).remote_field.model
+        row_model = self.model._meta.get_field(self.row_field).remote_field.model
+        col_model = self.model._meta.get_field(self.col_field).remote_field.model
         return (row_model.objects.count(), col_model.objects.count())
 
     # TODO values() method to get 2d nparray
@@ -87,45 +86,54 @@ class Matrix(object):
         """
         Returns 2d np array
         """
-        return np.array(self.qset.values_list('values',flat=True)).reshape(self.shape())
+        return np.array(self.qset.values_list('value',flat=True)).reshape(self.shape())
 
     def __getitem__(self,indices):
         """
-        indices is a tuple (of length 2) of model instances or Nones
+        Arguments:
+            indices: is a tuple (of length 2) of model instances or Nones
         Returns a queryset corresponding to a row (if one selector present) or element
-
-        Cases:
-            specify single row or column index -> Vector (single row or column)
-            specify queryset for either row or column index -> Matrix (subset of rows or columns)
+        Examples:
+            matrix = Matrix(..)
+            matrix[:,model_instance]
+            matrix[queryset,:]
+            matrix[model_instance,]
         """
-        if len(indices)!=2:
-            raise Exception("Need to specify 2 indices")
-        
-        row_idx = indices[0]
-        col_idx = indices[1]
-        
-        # XOR: either row/col specified, but not both
-        if not bool(row_idx) ^ bool(col_idx): 
-            raise NotImplementedError 
 
+        if not isinstance(indices, tuple):
+            raise ValueError
 
-        idx = row_idx if row_idx else col_idx
+        # Case: Matrix[idx,] -> row vector
+        if len(indices)==1:
+            row_idx = indices[0]
+            col_idx = None
 
-        qset_args = {}
-        # check type - single element or queryset
-        if isinstance(idx, Model):
+        elif len(indices)==2:
+            # replace slice objects (:) in indices with Nones
+            row_idx = indices[0] if not isinstance(indices[0],slice) else None
+            col_idx = indices[1] if not isinstance(indices[1],slice) else None
 
-            # select single row or col -> Vector
-            if row_idx: qset_args[self.row_field] = row_idx
-            if col_idx: qset_args[self.col_field] = col_idx
-            # TODO: maybe want to sort here?
-            return Vector(self.model.objects.filter(*qset_args))
+        else:
+            raise ValueError
 
-        elif isinstance(idx, QuerySet):
-            # accept queryset as index selector -> output matrix
-            if row_idx: qset_args[self.row_field+"__in"] = row_idx
-            if col_idx: qset_args[self.col_field+"__in"] = col_idx
+        # Case: Matrix[:,:]
+        if not row_idx or col_idx: 
+            return self
 
-            return Matrix(self.model.objects.filter(*qset_args))
+        filters = {}
+
+        for field,idx in {self.row_field:row_idx, self.col_field:col_idx}.items():
+            print field,idx
+            if isinstance(idx,Model):
+                filters[field] = idx
+            elif isinstance(idx,QuerySet):
+                filters[field+"__in"] = idx
+            elif idx:
+                raise NotImplementedError
+
+        if any([isinstance(idx,QuerySet) for idx in [row_idx,col_idx]]):
+            return Matrix(self.model.objects.filter(**filters))
+        else:
+            return Vector(self.model.objects.filter(**filters))
 
 

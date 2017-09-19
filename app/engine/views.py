@@ -34,7 +34,18 @@ class ActivityViewSet(viewsets.ModelViewSet):
         engine = Engine(engine_settings)
 
         activity = engine.recommend(learner, collection)
-        return Response(ActivitySerializer(activity).data)
+
+        if activity:
+            recommendation_data = ActivityRecommendationSerializer(activity).data
+            recommendation_data['complete'] = False
+        else:
+            recommendation_data = dict(
+                collection=collection,
+                id=None,
+                complete=True,
+            )
+
+        return Response(recommendation_data)
 
 
 class CollectionViewSet(viewsets.ModelViewSet):

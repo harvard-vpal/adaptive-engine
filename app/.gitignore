@@ -8,8 +8,13 @@ __pycache__/
 # collected static files
 http_static/
 
-## Secure settings
+# Secure settings
 secure.py
 
 # OSX files
 .DS_Store
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
