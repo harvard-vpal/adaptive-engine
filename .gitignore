@@ -2,15 +2,5 @@
 __pycache__/
 *.py[cod]
 
-# local database
-*.sqlite3
-
-# collected static files
-http_static/
-
-## Secure settings
-secure.py
-secure.config
-
 # OSX files
 .DS_Store
