@@ -36,10 +36,10 @@ class Activity(models.Model):
     """
     name = models.CharField(max_length=200, default='')
     collection = models.ForeignKey(Collection)
-    # identifier = models.PositiveIntegerField()
     knowledge_components = models.ManyToManyField(KnowledgeComponent,blank=True)
     difficulty = models.FloatField(null=True,blank=True)
     tags = models.TextField(default='')
+    type = models.CharField(max_length=200, default='')
 
     def __unicode__(self):
         return "{}".format(self.pk)
@@ -55,12 +55,6 @@ class Learner(models.Model):
     """
     User model for students
     """
-    # course = models.ForeignKey(Course)
-    # identifier = models.PositiveIntegerField(unique=True) # bridge user pk
-
-    # class Meta:
-    #     unique_together = ('course','identifier')
-
     def __unicode__(self):
         return "{}".format(self.pk)
 
@@ -71,14 +65,17 @@ class Score(models.Model):
     """
     learner = models.ForeignKey(Learner)
     activity = models.ForeignKey(Activity)
+    # score value
     score = models.FloatField()
-    # timestamp
+    # creation time
+    timestamp = models.DateTimeField(null=True,auto_now_add=True)
 
 
-# class Difficulty(models.Model):
-#     activity = models.ForeignKey(Activity)
-#     knowledge_component = models.ForeignKey(KnowledgeComponent)
-#     value = models.FloatField()
+class Transit(models.Model):
+    activity = models.ForeignKey(Activity)
+    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    value = models.FloatField()
+
 
 class Guess(models.Model):
     activity = models.ForeignKey(Activity)
@@ -86,11 +83,6 @@ class Guess(models.Model):
     value = models.FloatField()
 
 class Slip(models.Model):
-    activity = models.ForeignKey(Activity)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
-    value = models.FloatField()
-
-class Transfer(models.Model):
     activity = models.ForeignKey(Activity)
     knowledge_component = models.ForeignKey(KnowledgeComponent)
     value = models.FloatField()
