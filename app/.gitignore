@@ -9,7 +9,10 @@ __pycache__/
 http_static/
 
 # Secure settings
-secure.py
+config/settings/secure.py
+config/settings/dev.py
+config/settings/test.py
+config/settings/prod.py
 
 # OSX files
 .DS_Store

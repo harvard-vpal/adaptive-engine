@@ -1,3 +1,7 @@
+"""
+Example production config
+"""
+
 from base import *
 import secure
 

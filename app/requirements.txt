@@ -1,5 +1,6 @@
 Django
 djangorestframework
 numpy
-pandas
 requests
+gunicorn
+psycopg2

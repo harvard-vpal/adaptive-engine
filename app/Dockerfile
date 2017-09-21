@@ -6,7 +6,8 @@ WORKDIR /app
 ADD ./requirements.txt /app/
 RUN pip install -r requirements.txt
 ADD . /app/
+RUN ["chmod", "+x", "run_container.sh"]
 
-EXPOSE 80
+EXPOSE 8000
 
-CMD ["python","manage.py","runserver","0.0.0.0:80","--settings=config.settings.aws"]
+CMD ["./run_container.sh"]
