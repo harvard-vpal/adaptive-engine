@@ -28,14 +28,15 @@ class CreatablePrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         if self.pk_field is not None:
             data = self.pk_field.to_internal_value(data)
         try:
-            return self.get_queryset().get_or_create(pk=data)[0]
+            return self.get_queryset().get(pk=data)
         except ObjectDoesNotExist:
-            self.fail('does_not_exist', pk_value=data)
+            return self.get_queryset().create(pk=data)
         except (TypeError, ValueError):
             self.fail('incorrect_type', data_type=type(data).__name__)
 
 
 class CollectionSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=False)
     class Meta:
         model = Collection 
         fields = '__all__'
@@ -45,9 +46,11 @@ class ActivitySerializer(serializers.ModelSerializer):
     collection = CreatablePrimaryKeyRelatedField(
         queryset = Collection.objects.all(),
     )
+    id = serializers.IntegerField(read_only=False)
     class Meta:
         model = Activity 
         fields = ('collection','id','name','difficulty','tags')
+        read_only_fields = ()
 
 
 class ActivityRecommendationSerializer(serializers.ModelSerializer):
@@ -57,10 +60,6 @@ class ActivityRecommendationSerializer(serializers.ModelSerializer):
 
 
 class ScoreSerializer(serializers.ModelSerializer):
-    learner = CreatablePrimaryKeyRelatedField(
-        queryset = Learner.objects.all(),
-    )
     class Meta:
         model = Score
         fields = ('id', 'learner', 'activity', 'score')
-

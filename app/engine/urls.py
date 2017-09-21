@@ -9,5 +9,4 @@ router.register('score', views.ScoreViewSet)
 
 urlpatterns = [
     url(r'^api/', include(router.urls, namespace='api')),
-    url(r'^testing/', views.testing), # for testing TODO remove
 ]

@@ -16,6 +16,7 @@ class Collection(models.Model):
 
 class KnowledgeComponent(models.Model):
     name = models.CharField(max_length=200)
+    mastery_prior = models.FloatField()
 
     def __unicode__(self):
         return "{}".format(self.pk)
@@ -63,6 +64,7 @@ class Learner(models.Model):
     def __unicode__(self):
         return "{}".format(self.pk)
 
+
 class Score(models.Model):
     """
     Score resulting from a learner's attempt on an activity
@@ -98,6 +100,7 @@ class Mastery(models.Model):
     learner = models.ForeignKey(Learner)
     knowledge_component = models.ForeignKey(KnowledgeComponent)
     value = models.FloatField()
+
 
 class Exposure(models.Model):
     learner = models.ForeignKey(Learner)

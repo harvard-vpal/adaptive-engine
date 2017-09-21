@@ -165,5 +165,3 @@ class Matrix(object):
                 elif idx:
                     raise NotImplementedError
             return Vector(self.model.objects.filter(**filters))
-
-
