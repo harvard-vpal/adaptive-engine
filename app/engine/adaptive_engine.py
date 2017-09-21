@@ -1,28 +1,17 @@
-
 import numpy as np
 from data_structures import Matrix, Vector
 from models import * 
 import utils
 
-#### adaptive engine parameter settings ####
-# ENGINE_PARAMS = dict(
-#     epsilon=1e-10, # a regularization cutoff, the smallest value of a mastery probability
-#     eta=0.0, ##Relevance threshold used in the BKT optimization procedure
-#     M=0.0, ##Information threshold user in the BKT optimization procedure
-#     L_star=2.2, #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
-#     r_star=0.0, #Threshold for forgiving lower odds of mastering pre-requisite LOs.
-#     W_p=5.0, ##Importance of readiness in recommending the next item
-#     W_r=3.0, ##Importance of demand in recommending the next item
-#     W_d=1.0, ##Importance of appropriate difficulty in recommending the next item
-#     W_c=1.0, ##Importance of continuity in recommending the next item
 
-#     ##Values prior to estimating model:
-#     slip_probability=0.15,
-#     guess_probability=0.1,
-#     trans_probability=0.1,
-#     prior_knowledge_probability=0.2,
-# )
+def get_engine_for_learner(learner):
+    """
+    Get relevant engine for learner
+    """
+    return Engine(utils.get_engine_settings_for_learner(learner))
 
 
 class Engine(object):
@@ -41,7 +30,10 @@ class Engine(object):
             stop_on_mastery
             prior_knowledge_probability
         """
-        self.settings = engine_settings
+        if isinstance(engine_settings,EngineSettings):
+            self.settings = engine_settings
+        else:
+            raise ValueError
         
         #### convenience values ####
         self.epsilon = self.settings.epsilon
@@ -77,7 +69,7 @@ class Engine(object):
         Assume slip and guess are single values, and run this element-wise
         original formula: # self.m_x0_mult= self.m_slip*(1.0+self.m_guess)/(1.0+self.m_slip)
         """
-        return slip*(1.0+m_guess)/(1.0+slip)
+        return slip*(1.0+guess)/(1.0+slip)
 
     def x1_0_mult(self, guess, slip):
         """
@@ -107,30 +99,44 @@ class Engine(object):
 
     #### utils ####
 
-    def new_learner(self, learner_pk):
+    def initialize_learner(self, learner):
         """
         Arguments:
-            learner_pk (int): pk of new learner model instance
+            learner_id (int): pk of new learner model instance
 
-        call this function when a new learner is created
-        creates placeholder values in data matrices
+        This method is called right after a new learner is created in db
+        Creates placeholder values in data matrices
+            - populates learner's Mastery values using current KC priors
+        This method is under the Engine class in case engine instance attributes 
+        are needed for setting initial values in the future
         """
+        print "Triggered initialize learner for learner = {}".format(learner.pk)
+        knowledge_components = KnowledgeComponent.objects.all()
+
         # add mastery row
-        v = self.prior_knowledge_probability/(1.0-self.prior_knowledge_probability)
         Mastery.objects.bulk_create([
             Mastery(
-                learner=learner_pk, 
+                learner=learner, 
                 knowledge_component=kc, 
-                value=v
-            ) for kc in KnowledgeComponent.objects.values_list('pk',flat=True)
+                value=kc.mastery_prior,
+            ) for kc in knowledge_components
         ])
+        # add confidence row
+        Confidence.objects.bulk_create([
+            Confidence(
+                learner=learner,
+                knowledge_component=kc,
+                value=0,
+            ) for kc in knowledge_components
+        ])
+
 
     # TODO: how about updates when a new knowledge component is added?
 
 
     #### engine functionality ####
 
-    def bayes_update(self, learner, activity, score):
+    def bayes_update(self, score):
         """
         Arguments:
             learner (Learner django model instance)
@@ -140,50 +146,62 @@ class Engine(object):
         What persistent values are updated?
             - row of L/Mastery
             - row of Confidence
+
+        Note: use of {last_seen, m_unseen, transactions} replaced by Score database table
+        Doesnt save score to database
         """
-        try:
-            # vector of values, corresponding to row of guess and slip matrices for single activity
-            guess = Matrix(Guess)[activity,].values() # nparray [1 x # KCs]
-            slip = Matrix(Slip)[activity,].values() # nparray vector [1 x # KCs]
-            # mastery row for learner (queryset)
-            mastery = Matrix(Mastery)[learner,] # nparray vector [1 x # KCs]
 
-            # update last_seen entry to reflect that learner has just seen activity (TODO consider if this is needed)
-            LastSeen.objects.get(learner=learner).update(value=activity.pk)
 
-            ## if this is the first time learner sees/does the problem
-            if not Score.objects.filter(learner=learner,activity=activity).exists():
+        print "Bayes update method triggered"
 
-                # increment exposure values for learner to the particular learning objective(s)
-                # could this be moved to model update function?
-                # self.m_exposure[u,]+=self.m_tagging[item,]
-                # Exposure.objects.filter(
-                #     learner=learner, 
-                #     knowledge_component__in=activity.knowledge_component_set.values('pk')
-                # ).update(value=F('value')+1)
+        activity = score.activity
+        learner = score.learner
+        score_value = score.score
 
-                # update row of confidence matrix
-                relevance = -np.log(guess) - np.log(slip)
-                confidence = Matrix(Confidence)['learner',] # vector
-                confidence.update(confidence.values() + relevance) # update database values
 
-            # Record the transaction by appending a new row to the data frame "transactions":
-            Score.create(learner=learner, activity=activity, score=score)
+        # vector of values, corresponding to row of guess and slip matrices for single activity
+        guess = Matrix(Guess)[activity,].values() # nparray [1 x # KCs]
+        slip = Matrix(Slip)[activity,].values() # nparray vector [1 x # KCs]
+        
+        # Updating last_seen is replaced with updating Score database table outside of this function
 
-            # The increment of odds due to evidence of the problem, but before the transfer
-            x = x0_mult(guess,slip) * np.power(self.x1_0_mult(guess,slip), score) #vector-wise multiply
-            L = mastery.values() * x  # L is an nparray vector
-            # Add the transferred knowledge
-            L += Matrix(Transfer)[item,].values()*(L+1)
+        ## If this is the first time learner sees/does the problem...
+        ## e.g. is there a score object for the activity in the learner's transaction history apart from this one
+        ## Replaces use of LastSeen
 
-            # cleaning invalid mastery values
-            L[np.where(np.isposinf(L))] = self.inv_epsilon
-            L[np.where(L==0.0)] = self.epsilon
+        if not Score.objects.filter(learner=learner,activity=activity).exists():
 
-            # update row of mastery values in database
-            mastery.update(L)
-        except:
-            pass
+            # increment exposure values for learner to the particular learning objective(s)
+            # could this be moved to model update function?
+            # self.m_exposure[u,]+=self.m_tagging[item,]
+            # Exposure.objects.filter(
+            #     learner=learner, 
+            #     knowledge_component__in=activity.knowledge_component_set.values('pk')
+            # ).update(value=F('value')+1)
+
+            # update row of confidence matrix
+            relevance = -np.log(guess) - np.log(slip)
+            confidence = Matrix(Confidence)[learner,] # vector
+            confidence.update(confidence.values() + relevance) # update database values
+
+        # save score to database outside this function
+
+        # row of mastery table for learner
+        mastery = Matrix(Mastery)[learner,] # Vector [1 x # KCs]
+
+        # The increment of odds due to evidence of the problem, but before the transfer
+        x = self.x0_mult(guess,slip) * np.power(self.x1_0_mult(guess,slip), score_value) #vector-wise multiply
+        L = mastery.values() * x  # L is an nparray vector
+        # Add the transferred knowledge
+        L += Matrix(Transfer)[activity,].values()*(L+1)
+
+        # cleaning invalid mastery values
+        L[np.where(np.isposinf(L))] = self.inv_epsilon
+        L[np.where(L==0.0)] = self.epsilon
+
+        # update row of mastery values in database
+        mastery.update(L)
+
 
     def recommend(self, learner, collection=None):
         """
@@ -191,90 +209,94 @@ class Engine(object):
         If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
         """
 
+        valid_activities = utils.get_valid_activities(learner, collection)
+        # check if we still have available problems
+        if not valid_activities.exists():
+            # return next_item = None if no items left to serve
+            return None 
+
         # TODO: get rid of this example after implementation
-        next_item = Activity.objects.first()
+        next_item = valid_activities.first()
 
-        try:
-            # actual functionality is below
+        # row of mastery values matrix
+        L = np.log(Matrix(Mastery)[learner,].values())
 
-            # determine unseen activities within scope
-            valid_activities = (Activity.objects.distinct()
-                .exclude(score__in=Score.objects.filter(learner=learner))
-            )
-            # restrict to activities for the given collection
-            if collection:
-                valid_activities = valid_activities.filter(collection=collection)
-
-            # row of mastery values matrix
-            L = np.log(Matrix(Mastery)[learner,].values())
-
-            # check if we still have available problems
-            if valid_activities.count() == 0:
-                return None # return next_item = None if no items left to serve
-
-            #Calculate the user readiness for LOs
-            # r = np.dot(np.minimum(L-self.settings.L_star,0), Matrix(PrerequisiteRelation).values())
-            # k_unseen = self.relevance(guess,slip)[ind_unseen]
+        # check if we still have available problems
+        if valid_activities.count() == 0:
+            return None
+        # R=np.dot(m_k_unseen, np.maximum((self.L_star-L),0))
 
 
-            #### progress placeholder ####
+        #Calculate the user readiness for LOs
+        m_w = Matrix(PrerequisiteRelation).values()
+        m_r = np.dot(np.minimum(L-self.settings.L_star,0), m_w)
+
+        guess = Matrix(Guess)[valid_activities,].values()
+        slip = Matrix(Slip)[valid_activities,].values()
+        # m_k is matrix of relevance (derived from guess/slip)
+        m_k_unseen = self.relevance(guess,slip)
+
+
+        # P=np.dot(m_k_unseen, np.minimum((m_r+self.r_star),0))
+        # R=np.dot(m_k_unseen, np.maximum((self.L_star-L),0))
+
+
+        #### progress placeholder ####
+        
+
+        #     P=np.dot(m_k_unseen, np.minimum((m_r+self.r_star),0))
+        #     R=np.dot(m_k_unseen, np.maximum((self.L_star-L),0))
             
-
-            #     P=np.dot(m_k_unseen, np.minimum((m_r+self.r_star),0))
-            #     R=np.dot(m_k_unseen, np.maximum((self.L_star-L),0))
+        #     if self.last_seen[u]<0:
+        #         C=np.repeat(0.0,N)
+        #     else:
+        #         C=np.sqrt(np.dot(m_k_unseen, self.m_k[self.last_seen[u],]))
                 
-            #     if self.last_seen[u]<0:
-            #         C=np.repeat(0.0,N)
-            #     else:
-            #         C=np.sqrt(np.dot(m_k_unseen, self.m_k[self.last_seen[u],]))
-                    
-            #     #A=0.0
-            #     d_temp=self.m_difficulty[:,ind_unseen]
-            #     L_temp=np.tile(L,(N,1)).transpose()
-            #     D=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
+        #     #A=0.0
+        #     d_temp=self.m_difficulty[:,ind_unseen]
+        #     L_temp=np.tile(L,(N,1)).transpose()
+        #     D=-np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
+            
+        #     #if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
+        #     next_item=None
+        #     #else:
                 
-            #     #if stopOnMastery and sum(D)==0: ##This means the user has reached threshold mastery in all LOs relevant to the problems in the homework, so we stop
-            #     next_item=None
-            #     #else:
-                    
-            #     if normalize:
-            #         temp=(D.max()-D.min());
-            #         if(temp!=0.0):
-            #             D=D/temp     
-            #         temp=(R.max()-R.min());
-            #         if(temp!=0.0):
-            #             R=R/temp
-            #         temp=(P.max()-P.min());
-            #         if(temp!=0.0):
-            #             P=P/temp
-            #         temp=(C.max()-C.min());
-            #         if(temp!=0.0):
-            #             C=C/temp     
-                    
-            #     next_item=ind_unseen[np.argmax(self.W_p*P+self.W_r*R+self.W_d*D+self.W_c*C)]
-        except:
-            pass            
+        #     if normalize:
+        #         temp=(D.max()-D.min());
+        #         if(temp!=0.0):
+        #             D=D/temp     
+        #         temp=(R.max()-R.min());
+        #         if(temp!=0.0):
+        #             R=R/temp
+        #         temp=(P.max()-P.min());
+        #         if(temp!=0.0):
+        #             P=P/temp
+        #         temp=(C.max()-C.min());
+        #         if(temp!=0.0):
+        #             C=C/temp     
+                
+        #     next_item=ind_unseen[np.argmax(self.W_p*P+self.W_r*R+self.W_d*D+self.W_c*C)]          
         
         return next_item
 
 
-    def updateModel(self):
-        """
-        Notes:
-            Updates initial mastery
-        """
-        try:
-            est=utils.estimate(self, self.eta, self.M)
+    # def updateModel(self):
+    #     """
+    #     Notes:
+    #         Updates initial mastery
+    #     """
+    #     try:
+    #         est=utils.estimate(self, self.eta, self.M)
 
-            self.L_i=1.0*est['L_i']
-            self.m_L_i=np.tile(self.L_i,(self.m_L.shape[0],1))
+    #         self.L_i=1.0*est['L_i']
+    #         self.m_L_i=np.tile(self.L_i,(self.m_L.shape[0],1))
             
-            ind_pristine=np.where(self.m_exposure==0.0)
-            self.m_L[ind_pristine]=self.m_L_i[ind_pristine]
-            m_trans=1.0*est['trans']
-            m_guess=1.0*est['guess']
-            m_slip=1.0*est['slip']
-            # execfile('derivedData.py')
-            calculate_derived_data(self)
-        except:
-            pass
+    #         ind_pristine=np.where(self.m_exposure==0.0)
+    #         self.m_L[ind_pristine]=self.m_L_i[ind_pristine]
+    #         m_trans=1.0*est['trans']
+    #         m_guess=1.0*est['guess']
+    #         m_slip=1.0*est['slip']
+
+    #         # calculate_derived_data(self)
+    #     except:
+    #         pass
