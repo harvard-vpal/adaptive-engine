@@ -19,16 +19,21 @@ class Vector(object):
     """
     Vector data structure that wraps a django model
     """
-    def __init__(self, qset):
+    def __init__(self, qset, value_field='value'):
+        """
+        Arguments:
+            qset (QuerySet): should already be sorted
+            value_field (str): name of model field to expect value
+        """
         self.qset = qset
-        # self.len = qset.count()
-        # self.values = np.array(qset.values_list('value',flat=True))
+        self.value_field = value_field
 
     def values(self):
         """
-        Return numpy array of raw values, using 'value' field
+        Return 1-d numpy array of raw values, using 'value' field 
+        (or custom field specified by vector.value_field)
         """
-        return np.array(self.qset.values_list('value',flat=True))
+        return np.array(self.qset.values_list(self.value_field,flat=True))
 
     def filter(self, **kwargs):
         """
@@ -40,7 +45,7 @@ class Vector(object):
         """
         Runs multiple update to replace values with elements of given list
         """
-        multiple_update(self.qset,'value',new_values)
+        multiple_update(self.qset,self.value_field,new_values)
 
     def length(self):
         return self.qset.count()
@@ -54,7 +59,7 @@ class Matrix(object):
     Axes = namedtuple('Axes',['row','col'])
     Axis = namedtuple('axis',['name','model','index'])
 
-    def __init__(self,model,indices=None):
+    def __init__(self,model,indices=None, value_field='value'):
         if isinstance(model, ModelBase):
             self.model = model
         else:
@@ -77,7 +82,7 @@ class Matrix(object):
         self.qset = self._filtered_qset()
         # sorts matrix elements so that they are in C-like indexing order
         self.qset.order_by(self.axes.row.name, self.axes.col.name)
-
+        self.value_field = value_field
         # TODO some validation to see if expected number of elements are present
     
     def shape(self):
@@ -91,7 +96,7 @@ class Matrix(object):
         """
         Returns 2d np array
         """
-        return np.array(self.qset.values_list('value',flat=True)).reshape(self.shape())
+        return np.array(self.qset.values_list(self.value_field,flat=True)).reshape(self.shape())
 
     def _validate_indices(self, indices):
         """
@@ -124,6 +129,15 @@ class Matrix(object):
         if filters:
             qset = qset.filter(**filters)
         return qset
+
+    def update(self, new_values):
+        """
+        Runs multiple update to replace values with elements of given list
+        Flattens new_values to 1-D array
+        Arguments:
+            new_values (np.ndarray)
+        """
+        multiple_update(self.qset,self.value_field,new_values.flatten())
 
     def __getitem__(self,indices):
         """

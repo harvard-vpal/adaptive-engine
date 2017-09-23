@@ -15,38 +15,19 @@ def get_engine_for_learner(learner):
 
 
 class Engine(object):
+    """
+    Adaptive engine class
+    """
     def __init__(self, engine_settings):
         """
-        self.engine_instance gives access to engine-specific params:
-            epsilon
-            eta
-            M
-            r_star
-            L_star
-            W_r
-            W_c
-            W_d
-            W_p
-            stop_on_mastery
-            prior_knowledge_probability
+        Arguments:
+            engine_settings (EngineSettings): EngineSettings model instance containing parameter settings
         """
         if isinstance(engine_settings,EngineSettings):
             self.settings = engine_settings
         else:
             raise ValueError
         
-        #### convenience values ####
-        self.prior_knowledge_probability = self.settings.prior_knowledge_probability
-
-
-
-        self.guess_initial = utils.odds(self.settings.guess_probability)
-        self.trans_initial = utils.odds(self.settings.trans_probability)
-        self.slip_initial = utils.odds(self.settings.trans_probability)
-
-
-
-    #### utils ####
 
     def initialize_learner(self, learner):
         """
@@ -92,15 +73,13 @@ class Engine(object):
             activity (Activity django model instance)
             score (Score django model instance)
 
-        What persistent values are updated?
+        Updates:
             - row of L/Mastery
             - row of Confidence
 
         Note: use of {last_seen, m_unseen, transactions} replaced by Score database table
         Note: saving score to database is handled outside this function
-
         """
-        print "Bayes update method triggered"
 
         activity = score.activity
         learner = score.learner
@@ -124,9 +103,9 @@ class Engine(object):
         x = utils.x0_mult(guess,slip) * np.power(utils.x1_0_mult(guess,slip), score_value)
         L = mastery.values() * x
         # Add the transferred knowledge
-        L += Matrix(Transit)[activity,].values()*(L+1)
+        L += Matrix(Transit)[activity,].values() * (L+1)
         # Clean up invalid values
-        L[np.where(np.isposinf(L))] = utils.inv_epsilon
+        L[np.where(np.isposinf(L))] = 1.0/utils.epsilon
         L[np.where(L==0.0)] = utils.epsilon
 
         # update row of mastery values in database
@@ -138,7 +117,8 @@ class Engine(object):
         This function returns the id of the next recommended problem in an adaptive module. 
         If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
         """
-        valid_activities = utils.get_valid_activities(learner, collection)
+        # get unseen activities within module
+        valid_activities = utils.get_activities(learner, collection, seen=False)
         # check if we still have available problems
         if not valid_activities.exists():
             # return next_item = None if no items left to serve
@@ -166,24 +146,29 @@ class Engine(object):
         # m_k is matrix of relevance (derived from guess/slip)
         relevance_unseen = utils.relevance(guess,slip)
 
-        P = np.dot(m_k_unseen, np.minimum((m_r+self.settings.r_star),0))
-        R = np.dot(m_k_unseen, np.maximum((self.settings.L_star-L),0))
+        P = np.dot(relevance_unseen, np.minimum((m_r+self.settings.r_star),0))
+        R = np.dot(relevance_unseen, np.maximum((self.settings.L_star-L),0))
 
         if not Score.objects.filter(learner=learner).exists():
             C = np.repeat(0.0,N)
         else:
             last_seen = Score.objects.filter(learner=learner).latest('timestamp').activity
-            relevance_lastseen = self.relevance(
+            relevance_lastseen = utils.relevance(
                 Matrix(Guess)[last_seen,].values(),
                 Matrix(Slip)[last_seen,].values()
             )
             C = np.sqrt(np.dot(relevance_unseen, relevance_lastseen))
 
         # vector of difficulties for valid activities
-        difficulty = self.difficulty(valid_activities)
-        d_temp = np.tile(difficulty,(N,1)).T # repeated column vector
+        difficulty = utils.difficulty(valid_activities)
+
+        # number of learning objectives
+        K = KnowledgeComponent.objects.count()
+        d_temp = np.tile(difficulty,(K,1)) # repeated column vector
         L_temp = np.tile(L,(N,1)).T # repeated column vector
-        D =- np.diag(np.dot(m_k_unseen,np.abs(L_temp-d_temp)))
+        print d_temp
+        print L_temp
+        D =- np.diag(np.dot(relevance_unseen,np.abs(L_temp-d_temp)))
                 
         next_item = valid_activities[np.argmax(
             self.settings.W_p * P 
@@ -195,23 +180,18 @@ class Engine(object):
         return next_item
 
 
-    def updateModel(self):
-        """
-        Notes:
-            Updates initial mastery
-        """
-        try:
-            est=utils.estimate(self, self.eta, self.M)
+def update_model(eta=0.0, M=0.0):
+    """
+    Notes:
+        Updates initial mastery and tranit/guess/slip matrices
+    """
+    est = utils.estimate(eta, M)
 
-            self.L_i=1.0*est['L_i']
-            self.m_L_i=np.tile(self.L_i,(self.m_L.shape[0],1))
-            
-            ind_pristine=np.where(self.m_exposure==0.0)
-            self.m_L[ind_pristine]=self.m_L_i[ind_pristine]
-            m_trans=1.0*est['trans']
-            m_guess=1.0*est['guess']
-            m_slip=1.0*est['slip']
-
-            # calculate_derived_data(self)
-        except:
-            pass
+    # save L_i
+    L_i = Vector(KnowledgeComponent.objects.all(),value_field='mastery_prior')
+    L_i.update(1.0*est['L_i'])
+    
+    # save param matrices
+    Matrix(Transit).update(1.0*est['trans'])
+    Matrix(Guess).update(1.0*est['guess'])
+    Matrix(Slip).update(1.0*est['slip'])
