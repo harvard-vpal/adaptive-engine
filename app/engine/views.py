@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework import status
-
 from django.http import HttpResponse
-
 from .serializers import *
 from .models import *
-from .adaptive_engine import Engine
-from adaptive_engine import get_engine_for_learner
+from adaptive_engine import get_engine
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
@@ -24,17 +20,24 @@ class ActivityViewSet(viewsets.ModelViewSet):
     def recommend(self, request):
         collection = request.GET.get('collection',None)
         learner = request.GET.get('learner',None)
-        # TODO throw error if arguments not found
 
-        # TODO retrieve right engine instance for A/B testing
-        engine = get_engine_for_learner(learner)
+        # throw error if arguments not found
+        if not collection and learner:
+            return Response(dict(
+                message = "Specify learner and collection arguments"
+            ))
 
+        # retrieve relevant engine instance for A/B testing
+        engine = get_engine(learner)
+
+        # get recommendation from engine
         activity = engine.recommend(learner, collection)
-
+        
         if activity:
             recommendation_data = ActivityRecommendationSerializer(activity).data
             recommendation_data['complete'] = False
         else:
+            # engine indicates learner is done with sequence
             recommendation_data = dict(
                 collection=collection,
                 id=None,
@@ -78,16 +81,22 @@ class ScoreViewSet(viewsets.ModelViewSet):
         serializer = ScoreSerializer(data=request.data)
         # create learner if one doesn't exist
         learner, created = self.get_or_create_learner(serializer)
-        engine = get_engine_for_learner(learner)
+
         # initialize matrix data for learner
         if created:
+            # get_engine() also assigns the experimental group
+            engine = get_engine(learner)
             engine.initialize_learner(learner)
             # reset serializer
             serializer = ScoreSerializer(data=request.data)
+        else:
+            engine = get_engine(learner)
+
+        # run bayes update and save score
         if serializer.is_valid():
             score = Score(**serializer.validated_data)
             # trigger adaptive engine bayes_update
-            engine.bayes_update(score)
+            engine.update(score)
             # save score to database
             score.save()
             # return response with created score

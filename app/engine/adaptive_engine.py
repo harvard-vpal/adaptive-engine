@@ -1,20 +1,63 @@
 import numpy as np
-from data_structures import Matrix, Vector
-from models import * 
-import utils
-
-from django.dispatch import receiver
-from django.db.models.signals import post_save
+from .data_structures import Matrix, Vector
+from .models import * 
+from . import utils
 
 
-def get_engine_for_learner(learner):
+def pick_experimental_group():
     """
-    Get relevant engine for learner
+    Randomly pick an experimental group and attach to learner
     """
-    return Engine(utils.get_engine_settings_for_learner(learner))
+    return np.random.choice(ExperimentalGroup.objects.all())
 
 
-class Engine(object):
+def get_engine(learner):
+    """
+    Get relevant engine for learner based on their experimental group
+    Also assigns experimental group if none assigned
+    """
+    experimental_group = learner.experimental_group
+    # assign experimental group if none exists (new learner)
+    if not experimental_group:
+        experimental_group = pick_experimental_group()
+        learner.experimental_group = experimental_group
+        learner.save()
+    engine_settings = experimental_group.engine_settings
+    # engine settings will exist if experimental group is adaptive
+    if engine_settings:
+        return AdaptiveEngine(engine_settings)
+    # otherwise they will have non-adaptive behavior
+    else:
+        return NonAdaptiveEngine()
+
+
+class NonAdaptiveEngine(object):
+    """
+    Serves activities in default order
+    """
+    def __init__(self):
+        pass
+
+    def initialize_learner(self, learner):
+        """
+        Don't need to initialize additional data for non-adaptive case
+        """
+        pass
+
+    def update(self, score):
+        """
+        No additional action needed
+        """
+        pass
+
+    def recommend(self, learner, collection):
+        """
+        TODO base on some explicit ordering, may require additional field
+        """
+        utils.get_activities(learner, collection, seen=False).first()
+
+
+class AdaptiveEngine(object):
     """
     Adaptive engine class
     """
@@ -32,7 +75,8 @@ class Engine(object):
     def initialize_learner(self, learner):
         """
         Arguments:
-            learner_id (int): pk of new learner model instance
+            learner (Learner): new learner model instance
+            experimental_group (ExperimentalGroup): optional experimental group to assign
 
         This method is called right after a new learner is created in db
         Creates placeholder values in data matrices
@@ -40,7 +84,6 @@ class Engine(object):
         This method is under the Engine class in case engine instance attributes 
         are needed for setting initial values in the future
         """
-        print "Triggered initialize learner for learner = {}".format(learner.pk)
         knowledge_components = KnowledgeComponent.objects.all()
 
         # add mastery row
@@ -66,7 +109,7 @@ class Engine(object):
 
     #### engine functionality ####
 
-    def bayes_update(self, score):
+    def update(self, score):
         """
         Arguments:
             learner (Learner django model instance)
@@ -166,8 +209,6 @@ class Engine(object):
         K = KnowledgeComponent.objects.count()
         d_temp = np.tile(difficulty,(K,1)) # repeated column vector
         L_temp = np.tile(L,(N,1)).T # repeated column vector
-        print d_temp
-        print L_temp
         D =- np.diag(np.dot(relevance_unseen,np.abs(L_temp-d_temp)))
                 
         next_item = valid_activities[np.argmax(

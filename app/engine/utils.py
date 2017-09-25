@@ -2,6 +2,7 @@ from .models import *
 from .data_structures import Matrix, Vector
 import numpy as np
 
+
 epsilon=1e-10 # a regularization cutoff, the smallest value of a mastery probability
 eta=0.0 ##Relevance threshold used in the BKT optimization procedure
 M=0.0 ##Information threshold user in the BKT optimization procedure

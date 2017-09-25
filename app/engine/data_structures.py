@@ -4,6 +4,7 @@ from django.db.models import Model
 import numpy as np
 from django.db import transaction
 from collections import namedtuple
+from engine.models import Learner
 
 
 @transaction.atomic
@@ -89,14 +90,29 @@ class Matrix(object):
         """
         Return 2-tuple of dimensions
         """
-        return tuple([a.index.count() if a.index else a.model.objects.count() for a in self.axes])
+        # problem: full list of learners is not necessarily axes for Mastery if there are non-adaptive learners
+        shape = [None, None]
+        for i, a in enumerate(self.axes):
+            if a.index:
+                shape[i] = a.index.count()
+            else:
+                if a.model == Learner:
+                    # filter for learners that are in adaptive experiemental groups
+                    shape[i] = Learner.objects.filter(experimental_group__engine_settings__isnull=False).count()
+                else:
+                    shape[i] = a.model.objects.count()
 
-    # TODO values() method to get 2d nparray
+        return tuple(shape)
+
     def values(self):
         """
         Returns 2d np array
         """
-        return np.array(self.qset.values_list(self.value_field,flat=True)).reshape(self.shape())
+        shape = self.shape()
+        if any([dim==0 for dim in shape]):
+            return np.array([])
+        else: 
+            return np.array(self.qset.values_list(self.value_field,flat=True)).reshape(self.shape())
 
     def _validate_indices(self, indices):
         """

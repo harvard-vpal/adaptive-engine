@@ -44,17 +44,35 @@ class Activity(models.Model):
     def __unicode__(self):
         return "{}".format(self.pk)
 
-# class Course(models.Model):
-#     """
-#     Course from which a learner can come from
-#     """
-#     name = models.CharField(max_length=200)
+
+class EngineSettings(models.Model):
+    name = models.CharField(max_length=200, default='')
+    r_star = models.FloatField() #Threshold for forgiving lower odds of mastering pre-requisite LOs.
+    L_star = models.FloatField() #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
+    W_p = models.FloatField() #Importance of readiness in recommending the next item
+    W_r = models.FloatField() #Importance of demand in recommending the next item
+    W_c = models.FloatField() #Importance of continuity in recommending the next item
+    W_d = models.FloatField() #Importance of appropriate difficulty in recommending the next item
+
+    def __unicode__(self):
+        return "{}".format(self.pk)
+
+
+class ExperimentalGroup(models.Model):
+    name = models.CharField(max_length=200,default='')
+    weight = models.FloatField(default=0)
+    engine_settings = models.ForeignKey(EngineSettings, blank=True, null=True)
+
+
+#TODO Course model?
 
 
 class Learner(models.Model):
     """
     User model for students
     """
+    experimental_group = models.ForeignKey(ExperimentalGroup, null=True)
+
     def __unicode__(self):
         return "{}".format(self.pk)
 
@@ -82,6 +100,7 @@ class Guess(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent)
     value = models.FloatField()
 
+
 class Slip(models.Model):
     activity = models.ForeignKey(Activity)
     knowledge_component = models.ForeignKey(KnowledgeComponent)
@@ -99,22 +118,8 @@ class Exposure(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent)
     value = models.IntegerField()
 
+
 class Confidence(models.Model):
     learner = models.ForeignKey(Learner)
     knowledge_component = models.ForeignKey(KnowledgeComponent)
     value = models.FloatField()
-
-
-class EngineSettings(models.Model):
-    name = models.CharField(max_length=200, default='')
-    r_star = models.FloatField() #Threshold for forgiving lower odds of mastering pre-requisite LOs.
-    L_star = models.FloatField() #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
-    W_p = models.FloatField() #Importance of readiness in recommending the next item
-    W_r = models.FloatField() #Importance of demand in recommending the next item
-    W_c = models.FloatField() #Importance of continuity in recommending the next item
-    W_d = models.FloatField() #Importance of appropriate difficulty in recommending the next item
-
-    def __unicode__(self):
-        return "{}".format(self.pk)
-
-
