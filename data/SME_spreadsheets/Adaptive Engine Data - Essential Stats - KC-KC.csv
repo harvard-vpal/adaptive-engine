@@ -1,0 +1,46 @@
+Post-req LO short name,Post-req LO Description,Pre-req LO short name,Pre-req LO Description,Connection strength
+Histograms and Skewness,Types of Histograms and Skewness,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
+Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Data types,Types of Data,Moderate
+CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+Boxplot,Boxplot Definition and for Comparing Multiple Populations,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Moderate
+Charts,Understanding charts,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
+Pareto,#N/A,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
+Law of Complements,Law of Complements,Probability overview,Introduction to Probability,Strong
+Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Probability overview,Introduction to Probability,Moderate
+Independent Events,Independent Events,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong
+Conditional Probability,Conditional Probability,Independent Events,Independent Events,Strong
+Law of Total Probability,Law of Total Probability,Conditional Probability,Conditional Probability,Strong
+Bayes Theorem,Bayes Theorem,Law of Total Probability,Law of Total Probability,Strong
+Continuous Random Variables,Continuous Random Variables,Discrete Random Variables,Discrete Random Variables,Moderate
+Mean of Sum of Random Variables,Mean of Sum of Random Variables,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong
+Binomial ,Binomial Probabilities & Random Variables,Discrete Random Variables,Discrete Random Variables,Moderate
+Poisson Probabilities,Poisson Probabilities,Discrete Random Variables,Discrete Random Variables,Moderate
+"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Normal Random Variable,Definition of Normal Random Variable,Moderate
+Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Problems in Sampling,Problems in Sampling,Weak
+Confidence Interval,Confidence Interval for Population Mean & Proporitons,Estimate P-hat,Estimate Population Proportion using P-hat,Strong
+Confidence Interval,Confidence Interval for Population Mean & Proporitons,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong
+P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
+One Sample T-Test,One Sample T-Test,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong
+One Sample T-Test,One Sample T-Test,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+One Sample T-Test,One Sample T-Test,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
+Testing Equality of Variances,Testing Equality of Variances,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+Two Sample Z-Test,Two Sample Z-Test,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong
+Two Sample Z-Test,Two Sample Z-Test,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong
+Two Sample Z-Test,Two Sample Z-Test,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+Two Sample Z-Test,Two Sample Z-Test,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
+Equal Variance T-Test,,Testing Equality of Variances,Testing Equality of Variances,Strong
+Equal Variance T-Test,,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong
+Equal Variance T-Test,,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+Equal Variance T-Test,Equal Variance T-Test,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
+Unequal Variance T-Test,Unequal Variance T-Test,Testing Equality of Variances,Testing Equality of Variances,Strong
+Unequal Variance T-Test,Unequal Variance T-Test,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong
+Unequal Variance T-Test,,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+Unequal Variance T-Test,,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
+T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong
+T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
+Chi Square,Computation of Chi Squared Statistic,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong
+Chi Square,Computation of Chi Squared Statistic,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
+Chi Square,Computation of Chi Squared Statistic,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
+Chi Square,Computation of Chi Squared Statistic,Types of Data,Types of Data,Moderate

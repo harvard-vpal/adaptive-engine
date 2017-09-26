@@ -1,0 +1,436 @@
+Item ID,category,Item name,LO short name,LO (knowledge component) description,Relevance,Guess probability (chance of answering correctly despite not knowing the LO),Learning value (chance of learning the LO from this item),"Pre/Post/If location provided, this question is fixed (this is where it currently appears in the course and should be part of the adaptive testing in that location)"
+1,Problem,Adapt 1,Data types,Types of Data,Strong,Moderate,Low,Pre
+2,Problem,Adapt 2,Data types,Types of Data,Strong,Low,Low,Module 1
+3,Problem,Adapt 3,Data types,Types of Data,Strong,Moderate,Low,Post
+4,Problem,Adapt 4,Data types,Types of Data,Strong,Low,Low,Final
+5,Problem,Adapt 5,Data types,Types of Data,Strong,High,Low,Pre
+6,Problem,Adapt 6,Data types,Types of Data,Strong,Low,Low,Post
+7,Problem,Adapt 7,Data types,Types of Data,Strong,High,Low,Module 1
+8,Problem,Adapt 8,Data types,Types of Data,Strong,Low,Low,Module 1
+9,Problem,Adapt 9,Data types,Types of Data,Strong,High,Low,Post
+10,Problem,Adapt 10,Data types,Types of Data,Strong,Low,Low,Pre
+11,Problem,Adapt 11,Data types,Types of Data,Strong,High,Low,Module 1
+12,Problem,Adapt 12,Data types,Types of Data,Strong,Low,Low,Module 1
+13,Problem,Adapt 13,Data types,Types of Data,Strong,High,Low,Pre
+14,Problem,Adapt 14,Data types,Types of Data,Strong,Low,Low,Post
+15,Problem,Adapt 15,Data types,Types of Data,Strong,Moderate,Low,Post
+16,Problem,Adapt 16,Data types,Types of Data,Strong,Low,Low,Pre
+17,Problem,Adapt 17,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low,Moderate,Final
+18,Problem,Adapt 18,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low,Moderate,Module 1
+19,Problem,Adapt 19,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Pre
+20,Problem,Adapt 20,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Post
+21,Problem,Adapt 21,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Moderate,Low,Low,Pre
+22,Problem,Adapt 22,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Post
+23,Problem,Adapt 23,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Module 1
+24,Problem,Adapt 24,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Pre
+25,Problem,Adapt 25,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Post
+26,Problem,Adapt 26,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Pre
+27,Problem,Adapt 27,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Final
+28,Problem,Adapt 28,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Pre
+29,Problem,Adapt 29,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Post
+30,Problem,Adapt 30,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Post
+31,Problem,Adapt 31,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Pre
+32,Problem,Adapt 32,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Module 1
+33,Problem,Adapt 33,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Post
+34,Problem,Adapt 34,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low,Moderate,Post
+35,Problem,Adapt 35,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low,Moderate,Pre
+36,Problem,Adapt 36,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low,Moderate,Module 1
+37,Problem,Adapt 37,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low,Moderate,Post
+38,Problem,Adapt 38,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low ,Moderate,Pre
+39,Problem,Adapt 39,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low,Moderate,Pre
+40,Problem,Adapt 40,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low,Moderate,Module 1
+41,Problem,Adapt 41,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low,Moderate,Post
+42,Problem,Adapt 42,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low,Moderate,Pre
+43,Problem,Adapt 43,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low,Moderate,Post
+44,Problem,Adapt 44,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Pre
+45,Problem,Adapt 45,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Post
+46,Problem,Adapt 46,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Moderate,Low ,Moderate,Pre & Post
+47,Problem,Adapt 47,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Post
+48,Problem,Adapt 48,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Pre
+49,Problem,Adapt 49,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Post
+50,Problem,Adapt 50,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Pre
+51,Problem,Adapt 51,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Post
+52,Problem,Adapt 52,Boxplot,Boxplot Definition and for Comparing Multiple Populations,Strong,Low ,Moderate,Final
+53,Problem,Adapt 53,Boxplot,Boxplot Definition and for Comparing Multiple Populations,Strong,Low ,Moderate,Module 1
+54,Problem,Adapt 54,Boxplot,Boxplot Definition and for Comparing Multiple Populations,Strong,Low ,Moderate,Pre
+55,Problem,Adapt 55,Boxplot,Boxplot Definition and for Comparing Multiple Populations,Strong,Low ,Moderate,Post
+56,Problem,Adapt 56,CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Strong,Low ,Moderate,Pre
+57,Problem,Adapt 57,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low ,Moderate,Module 1
+58,Problem,Adapt 58,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low ,Moderate,Post
+59,Problem,Adapt 59,Histograms and Skewness,Types of Histograms and Skewness,Strong,Low ,Moderate,Pre & Post
+60,Problem,Adapt 60,Charts,Understanding charts,Strong,Low ,Moderate,Pre
+61,Problem,Adapt 61,Charts,Understanding charts,Strong,Low ,Moderate,Module 1
+62,Problem,Adapt 62,Charts,Understanding charts,Strong,Low ,Moderate,Final
+63,Problem,Adapt 63,Charts,Understanding charts,Moderate,Low ,Moderate,Module 1
+64,Problem,Adapt 64,Charts,Understanding charts,Moderate,Low ,Moderate,Post
+65,Problem,Adapt 65,Charts,Understanding charts,Moderate,Low ,Moderate,Final
+66,Problem,Adapt 66,Charts,Understanding charts,Moderate,Low ,Moderate,Pre
+67,Problem,Adapt 67,Charts,Understanding charts,Moderate,Low ,Moderate,Post
+68,Problem,Adapt 68,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Pre
+69,Problem,Adapt 69,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Module 1
+70,Problem,Adapt 70,Probability overview,Introduction to Probability,Strong,Moderate,Moderate,Module 2
+71,Problem,Adapt 71,Probability overview,Introduction to Probability,Strong,Moderate,Moderate,Pre
+72,Problem,Adapt 72,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Final
+73,Problem,Adapt 73,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Post
+74,Problem,Adapt 74,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Pre
+75,Problem,Adapt 75,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Final
+76,Problem,Adapt 76,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Post
+77,Problem,Adapt 77,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Pre
+78,Problem,Adapt 78,Law of Complements,Law of Complements,Strong,Low ,Moderate,Module 2
+79,Problem,Adapt 79,Law of Complements,Law of Complements,Strong,Low ,Moderate,Pre
+80,Problem,Adapt 80,Law of Complements,Law of Complements,Strong,Low ,Moderate,Post
+81,Problem,Adapt 81,Law of Complements,Law of Complements,Strong,Low ,Moderate,Pre
+82,Problem,Adapt 82,Law of Complements,Law of Complements,Strong,Low ,Moderate,Post
+83,Problem,Adapt 83,Law of Complements,Law of Complements,Strong,Low ,Moderate,Pre
+84,Problem,Adapt 84,Independent Events,Independent Events,Strong,Low ,Moderate,Final
+85,Problem,Adapt 85,Law of Complements,Law of Complements,Strong,Low ,Moderate,Post
+86,Problem,Adapt 86,Law of Complements,Law of Complements,Strong,Low ,Moderate,Pre
+87,Problem,Adapt 87,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Module 2
+88,Problem,Adapt 88,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Post
+89,Problem,Adapt 89,Law of Complements,Law of Complements,Strong,Low ,Moderate,Post
+90,Problem,Adapt 90,Law of Complements,Law of Complements,Strong,Low ,Moderate,Pre
+91,Problem,Adapt 91,Independent Events,Independent Events,Strong,Low ,Moderate,Final
+92,Problem,Adapt 92,Independent Events,Independent Events,Strong,Low ,Moderate,Module 2
+93,Problem,Adapt 93,Independent Events,Independent Events,Strong,Low ,Moderate,Pre
+94,Problem,Adapt 94,Independent Events,Independent Events,Strong,Low ,Moderate,Post
+95,Problem,Adapt 95,Independent Events,Independent Events,Strong,Low ,Moderate,Pre
+96,Problem,Adapt 96,Independent Events,Independent Events,Strong,Low ,Moderate,Post
+97,Problem,Adapt 97,Independent Events,Independent Events,Strong,Low ,Moderate,Pre
+98,Problem,Adapt 98,Law of Complements,Law of Complements,Strong,Low ,Moderate,Post
+99,Problem,Adapt 99,Independent Events,Independent Events,Strong,Low ,Moderate,Post
+100,Problem,Adapt 100,Independent Events,Independent Events,Strong,Low ,Moderate,Pre & Post
+101,Problem,Adapt 101,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Pre
+102,Problem,Adapt 102,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Post
+103,Problem,Adapt 103,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Pre
+104,Problem,Adapt 104,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Post
+105,Problem,Adapt 105,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Pre
+106,Problem,Adapt 106,Probability overview,Introduction to Probability,Strong,Low ,Moderate,Post
+107,Problem,Adapt 107,Law of Complements,Law of Complements,Strong,Low ,Moderate,Pre
+108,Problem,Adapt 108,Law of Complements,Law of Complements,Strong,Low ,Moderate,Post
+109,Problem,Adapt 109,Law of Complements,Law of Complements,Strong,Low ,Moderate,Pre & Post
+110,Problem,Adapt 110,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Module 2
+111,Problem,Adapt 111,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Pre
+112,Problem,Adapt 112,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Post
+113,Problem,Adapt 113,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Module 2
+114,Problem,Adapt 114,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Post
+115,Problem,Adapt 115,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong,Low ,Moderate,Pre
+116,Problem,Adapt 116,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Pre
+117,Problem,Adapt 117,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Post
+118,Problem,Adapt 118,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Pre
+119,Problem,Adapt 119,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Post
+120,Problem,Adapt 120,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Module 2
+121,Problem,Adapt 121,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Final
+122,Problem,Adapt 122,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Pre
+123,Problem,Adapt 123,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Post
+124,Problem,Adapt 124,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Pre
+125,Problem,Adapt 125,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Post
+126,Problem,Adapt 126,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Pre
+127,Problem,Adapt 127,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Module 2
+128,Problem,Adapt 128,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Post
+129,Problem,Adapt 129,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Post
+130,Problem,Adapt 130,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Pre
+131,Problem,Adapt 131,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Post
+132,Problem,Adapt 132,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Pre
+133,Problem,Adapt 133,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Post
+134,Problem,Adapt 134,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Pre
+135,Problem,Adapt 135,Bayes Theorem,Bayes Theorem,Strong,Low ,Moderate,Post
+136,Problem,Adapt 136,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Module 2
+137,Problem,Adapt 137,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Pre
+138,Problem,Adapt 138,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Final
+139,Problem,Adapt 139,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Post
+140,Problem,Adapt 140,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Module 2
+141,Problem,Adapt 141,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Pre
+142,Problem,Adapt 142,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Post
+143,Problem,Adapt 143,Law of Total Probability,Law of Total Probability,Strong,Low ,Moderate,Pre & Post
+144,Problem,Adapt 144,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Pre
+145,Problem,Adapt 145,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Post
+146,Problem,Adapt 146,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Module 2
+147,Problem,Adapt 147,Conditional Probability,Conditional Probability,Strong,Low ,Moderate,Pre & Post
+148,Problem,Adapt 148,Discrete Random Variables,Discrete Random Variables,Strong,Low ,Moderate,Module 3
+149,Problem,Adapt 149,Discrete Random Variables,Discrete Random Variables,Strong,Low ,Moderate,Module 3
+150,Problem,Adapt 150,Discrete Random Variables,Discrete Random Variables,Strong,Low ,Moderate,Module 3
+151,Problem,Adapt 151,Continuous Random Variables,Continuous Random Variables,Strong,Low ,Moderate,Module 3
+152,Problem,Adapt 152,Discrete Random Variables,Discrete Random Variables,Strong,Low ,Moderate,Module 3
+153,Problem,Adapt 153,Continuous Random Variables,Continuous Random Variables,Strong,Low ,Moderate,Module 3
+154,Problem,Adapt 154,Continuous Random Variables,Continuous Random Variables,Strong,Low ,Moderate,Module 3
+155,Problem,Adapt 155,Continuous Random Variables,Continuous Random Variables,Strong,Low ,Moderate,Module 3
+156,Problem,Adapt 156,Continuous Random Variables,Continuous Random Variables,Strong,Low ,Moderate,Module 3
+157,Problem,Adapt 157,Discrete Random Variables,Discrete Random Variables,Strong,Low ,Moderate,Module 3
+158,Problem,Adapt 158,Discrete Random Variables,Discrete Random Variables,Strong,Low ,Moderate,Module 3
+159,Problem,Adapt 159,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+160,Problem,Adapt 160,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+161,Problem,Adapt 161,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+162,Problem,Adapt 162,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Module 3
+163,Problem,Adapt 163,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Final
+164,Problem,Adapt 164,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Pre
+165,Problem,Adapt 165,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Post
+166,Problem,Adapt 166,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Pre
+167,Problem,Adapt 167,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Post
+168,Problem,Adapt 168,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Module 3
+169,Problem,Adapt 169,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Pre
+170,Problem,Adapt 170,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Post
+171,Problem,Adapt 171,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Pre
+172,Problem,Adapt 172,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Post
+173,Problem,Adapt 173,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Pre
+174,Problem,Adapt 174,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Post
+175,Problem,Adapt 175,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Pre
+176,Problem,Adapt 176,Descriptive Stats--Discrete Random Variable,Finding the Mean & Variance of a Discrete Random Variable,Strong,Low ,Moderate,Post
+177,Problem,Adapt 177,Mean of Sum of Random Variables,Mean of Sum of Random Variables,Strong,Low ,Moderate,Module 3
+178,Problem,Adapt 178,Mean of Sum of Random Variables,Mean of Sum of Random Variables,Strong,Low ,Moderate,Final
+179,Problem,Adapt 179,Mean of Sum of Random Variables,Mean of Sum of Random Variables,Strong,Low ,Moderate,Pre & Post
+180,Problem,Adapt 180,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Module 3
+181,Problem,Adapt 181,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Pre
+182,Problem,Adapt 182,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Post
+183,Problem,Adapt 183,Binomial ,Binomial Probabilities & Random Variables,Moderate,Low ,Low,Pre
+184,Problem,Adapt 184,Binomial ,Binomial Probabilities & Random Variables,Moderate,Low ,Low,Post
+185,Problem,Adapt 185,Binomial ,Binomial Probabilities & Random Variables,Moderate,Low ,Low,Post
+186,Problem,Adapt 186,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Module 3
+187,Problem,Adapt 187,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Final
+188,Problem,Adapt 188,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Pre
+189,Problem,Adapt 189,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Post
+190,Problem,Adapt 190,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Pre
+191,Problem,Adapt 191,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Post
+192,Problem,Adapt 192,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Pre
+193,Problem,Adapt 193,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Post
+194,Problem,Adapt 194,Binomial ,Binomial Probabilities & Random Variables,Strong,Low ,Moderate,Pre
+195,Problem,Adapt 195,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Module 3
+196,Problem,Adapt 196,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Final
+197,Problem,Adapt 197,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Pre
+198,Problem,Adapt 198,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Post
+199,Problem,Adapt 199,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Pre
+200,Problem,Adapt 200,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Post
+201,Problem,Adapt 201,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Pre
+202,Problem,Adapt 202,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Post
+203,Problem,Adapt 203,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Pre
+204,Problem,Adapt 204,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Post
+205,Problem,Adapt 205,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Pre
+206,Problem,Adapt 206,Poisson Probabilities,Poisson Probabilities,Strong,Low ,Moderate,Post
+207,Problem,Adapt 207,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Module 3
+208,Problem,Adapt 208,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+209,Problem,Adapt 209,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+210,Problem,Adapt 210,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Final
+211,Problem,Adapt 211,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+212,Problem,Adapt 212,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+213,Problem,Adapt 213,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+214,Problem,Adapt 214,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+215,Problem,Adapt 215,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+216,Problem,Adapt 216,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+217,Problem,Adapt 217,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+218,Problem,Adapt 218,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+219,Problem,Adapt 219,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+220,Problem,Adapt 220,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Module 3
+221,Problem,Adapt 221,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Pre
+222,Problem,Adapt 222,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Post
+223,Problem,Adapt 223,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Final
+224,Problem,Adapt 224,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Pre
+225,Problem,Adapt 225,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Post
+226,Problem,Adapt 226,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Pre
+227,Problem,Adapt 227,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Post
+228,Problem,Adapt 228,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Pre
+229,Problem,Adapt 229,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+230,Problem,Adapt 230,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Module 3
+231,Problem,Adapt 231,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+232,Problem,Adapt 232,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Pre
+233,Problem,Adapt 233,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Module 3
+234,Problem,Adapt 234,Normal Random Variable,Definition of Normal Random Variable,Strong,Low ,Moderate,Post
+235,Problem,Adapt 235,Problems in Sampling,Problems in Sampling,Strong,Low ,Moderate,Final
+236,Problem,Adapt 236,Problems in Sampling,Problems in Sampling,Strong,Low ,Moderate,Module 4
+237,Problem,Adapt 237,Problems in Sampling,Problems in Sampling,Strong,Low ,Moderate,Pre
+238,Problem,Adapt 238,Problems in Sampling,Problems in Sampling,Strong,Low ,Moderate,Post
+239,Problem,Adapt 239,Problems in Sampling,Problems in Sampling,Strong,Low ,Moderate,Pre
+240,Problem,Adapt 240,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Pre
+241,Problem,Adapt 241,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Module 4
+242,Problem,Adapt 242,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Post
+243,Problem,Adapt 243,Estimate P-hat,Estimate Population Proportion using P-hat,Strong,Low ,Moderate,Pre
+244,Problem,Adapt 244,Estimate P-hat,Estimate Population Proportion using P-hat,Strong,Low ,Moderate,Module 4
+245,Problem,Adapt 245,Estimate P-hat,Estimate Population Proportion using P-hat,Strong,Low ,Moderate,Post
+246,Problem,Adapt 246,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Final
+247,Problem,Adapt 247,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Module 4
+248,Problem,Adapt 248,"Z-Scores, Standard Normal and the .S Functions","Computing Z scores, standard Normal and the .S Functions",Strong,Low ,Moderate,Post
+249,Problem,Adapt 249,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Pre
+250,Problem,Adapt 250,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Module 4
+251,Problem,Adapt 251,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Post
+252,Problem,Adapt 252,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Final
+253,Problem,Adapt 253,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Pre
+254,Problem,Adapt 254,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong,Low ,Moderate,Post
+255,Problem,Adapt 255,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+256,Problem,Adapt 256,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Module 4
+257,Problem,Adapt 257,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+258,Problem,Adapt 258,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+259,Problem,Adapt 259,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Final
+260,Problem,Adapt 260,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+261,Problem,Adapt 261,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+262,Problem,Adapt 262,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+263,Problem,Adapt 263,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+264,Problem,Adapt 264,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+265,Problem,Adapt 265,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+266,Problem,Adapt 266,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+267,Problem,Adapt 267,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Module 4
+268,Problem,Adapt 268,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+269,Problem,Adapt 269,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+270,Problem,Adapt 270,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Pre
+271,Problem,Adapt 271,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Module 4
+272,Problem,Adapt 272,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Post
+273,Problem,Adapt 273,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Final
+274,Problem,Adapt 274,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Module 4
+275,Problem,Adapt 275,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Pre
+276,Problem,Adapt 276,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Post
+277,Problem,Adapt 277,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Pre
+278,Problem,Adapt 278,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Post
+279,Problem,Adapt 279,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Pre
+280,Problem,Adapt 280,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Post
+281,Problem,Adapt 281,Sample Size,Sample Size for Estimating Population Mean & Proportion,Strong,Low ,Moderate,Pre & Post
+282,Problem,Adapt 282,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Final
+283,Problem,Adapt 283,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Module 4
+284,Problem,Adapt 284,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Pre
+285,Problem,Adapt 285,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Post
+286,Problem,Adapt 286,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Pre
+287,Problem,Adapt 287,Finite Correction,Finite Correction Formula for Estimating Population & Sample Sizes,Strong,Low ,Moderate,Post
+288,Problem,Adapt 288,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Module 4
+289,Problem,Adapt 289,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+290,Problem,Adapt 290,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+291,Problem,Adapt 291,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Pre
+292,Problem,Adapt 292,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Module 4
+293,Problem,Adapt 293,Confidence Interval,Confidence Interval for Population Mean & Proporitons,Strong,Low ,Moderate,Post
+294,Problem,Adapt 294,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Low ,Low,Pre
+295,Problem,Adapt 295,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Low ,Low,Module 5
+296,Problem,Adapt 296,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Low ,Low,Post
+297,Problem,Adapt 297,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Moderate,Low,Final
+298,Problem,Adapt 298,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Low ,Low,Pre
+299,Problem,Adapt 299,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Moderate,Low,Post
+300,Problem,Adapt 300,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Moderate,Low,Pre
+301,Problem,Adapt 301,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Low ,Low,Post
+302,Problem,Adapt 302,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Low,Pre
+303,Problem,Adapt 303,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Low,Post
+304,Problem,Adapt 304,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Low,Pre
+305,Problem,Adapt 305,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Moderate,Low,Post
+306,Problem,Adapt 306,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate,Moderate,Low,Pre
+307,Problem,Adapt 307,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Moderate,Low,Post
+308,Problem,Adapt 308,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Moderate,Low,Pre
+309,Problem,Adapt 309,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Moderate,Low,Module 5
+310,Problem,Adapt 310,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Moderate,Low,Post
+311,Problem,Adapt 311,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Final
+312,Problem,Adapt 312,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+313,Problem,Adapt 313,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Pre
+314,Problem,Adapt 314,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Post
+315,Problem,Adapt 315,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Pre
+316,Problem,Adapt 316,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre
+317,Problem,Adapt 317,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Pre
+318,Problem,Adapt 318,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Post
+319,Problem,Adapt 319,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Pre
+320,Problem,Adapt 320,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+321,Problem,Adapt 321,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Post
+322,Problem,Adapt 322,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre
+323,Problem,Adapt 323,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Post
+324,Problem,Adapt 324,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Post
+325,Problem,Adapt 325,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Post
+326,Problem,Adapt 326,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+327,Problem,Adapt 327,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Pre
+328,Problem,Adapt 328,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre
+329,Problem,Adapt 329,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Pre & Post
+330,Problem,Adapt 330,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+331,Problem,Adapt 331,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Post
+332,Problem,Adapt 332,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Post
+333,Problem,Adapt 333,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Strong,Low ,Moderate,Post
+334,Problem,Adapt 334,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre
+335,Problem,Adapt 335,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+336,Problem,Adapt 336,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+337,Problem,Adapt 337,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+338,Problem,Adapt 338,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Post
+339,Problem,Adapt 339,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+340,Problem,Adapt 340,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre
+341,Problem,Adapt 341,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+342,Problem,Adapt 342,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+343,Problem,Adapt 343,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+344,Problem,Adapt 344,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Final
+345,Problem,Adapt 345,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+346,Problem,Adapt 346,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Post
+347,Problem,Adapt 347,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+348,Problem,Adapt 348,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+349,Problem,Adapt 349,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+350,Problem,Adapt 350,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre
+351,Problem,Adapt 351,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+352,Problem,Adapt 352,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Post
+353,Problem,Adapt 353,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+354,Problem,Adapt 354,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Module 5
+355,Problem,Adapt 355,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+356,Problem,Adapt 356,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre
+357,Problem,Adapt 357,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre & Post
+358,Problem,Adapt 358,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong,Low ,Moderate,Pre & Post
+359,Problem,Adapt 359,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Final
+360,Problem,Adapt 360,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Module 5
+361,Problem,Adapt 361,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+362,Problem,Adapt 362,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+363,Problem,Adapt 363,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+364,Problem,Adapt 364,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+365,Problem,Adapt 365,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+366,Problem,Adapt 366,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Module 5
+367,Problem,Adapt 367,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+368,Problem,Adapt 368,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+369,Problem,Adapt 369,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+370,Problem,Adapt 370,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+371,Problem,Adapt 371,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+372,Problem,Adapt 372,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Module 5
+373,Problem,Adapt 373,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+374,Problem,Adapt 374,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+375,Problem,Adapt 375,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+376,Problem,Adapt 376,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+377,Problem,Adapt 377,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+378,Problem,Adapt 378,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Module 5
+379,Problem,Adapt 379,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+380,Problem,Adapt 380,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+381,Problem,Adapt 381,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Post
+382,Problem,Adapt 382,One Sample T-Test,One Sample T-Test,Strong,Low ,Moderate,Pre
+383,Problem,Adapt 383,Testing Equality of Variances,Testing Equality of Variances,Strong,Low ,Moderate,Final
+384,Problem,Adapt 384,Testing Equality of Variances,Testing Equality of Variances,Strong,Low ,Moderate,Module 5
+385,Problem,Adapt 385,Testing Equality of Variances,Testing Equality of Variances,Strong,Low ,Moderate,Post
+386,Problem,Adapt 386,Testing Equality of Variances,Testing Equality of Variances,Strong,Low ,Moderate,Pre
+387,Problem,Adapt 387,Testing Equality of Variances,Testing Equality of Variances,Strong,Low ,Moderate,Pre & Post
+388,Problem,Adapt 388,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Pre
+389,Problem,Adapt 389,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Post
+390,Problem,Adapt 390,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Module 5
+391,Problem,Adapt 391,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Pre
+392,Problem,Adapt 392,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Post
+393,Problem,Adapt 393,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Pre
+394,Problem,Adapt 394,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Post
+395,Problem,Adapt 395,Equal Variance T-Test,Equal Variance T-Test,Strong,Low ,Moderate,Pre & Post
+396,Problem,Adapt 396,Unequal Variance T-Test,Unequal Variance T-Test,Strong,Low ,Moderate,Post
+397,Problem,Adapt 397,Unequal Variance T-Test,Unequal Variance T-Test,Strong,Low ,Moderate,Module 5
+398,Problem,Adapt 398,Unequal Variance T-Test,Unequal Variance T-Test,Strong,Low ,Moderate,Pre
+399,Problem,Adapt 399,Unequal Variance T-Test,Unequal Variance T-Test,Strong,Low ,Moderate,Post
+400,Problem,Adapt 400,Unequal Variance T-Test,Unequal Variance T-Test,Strong,Low ,Moderate,Pre
+401,Problem,Adapt 401,Unequal Variance T-Test,Unequal Variance T-Test,Strong,Low ,Moderate,Pre & Post
+402,Problem,Adapt 402,Two Sample Z-Test,Two Sample Z-Test,Strong,Low ,Moderate,Final
+403,Problem,Adapt 403,Two Sample Z-Test,Two Sample Z-Test,Strong,Low ,Moderate,Module 5
+404,Problem,Adapt 404,Two Sample Z-Test,Two Sample Z-Test,Strong,Low ,Moderate,Pre
+405,Problem,Adapt 405,Two Sample Z-Test,Two Sample Z-Test,Strong,Low ,Moderate,Post
+406,Problem,Adapt 406,Two Sample Z-Test,Two Sample Z-Test,Strong,Low ,Moderate,Pre
+407,Problem,Adapt 407,Two Sample Z-Test,Two Sample Z-Test,Strong,Low ,Moderate,Post
+408,Problem,Adapt 408,T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Strong,Low ,Moderate,Pre
+409,Problem,Adapt 409,T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Strong,Low ,Moderate,Module 5
+410,Problem,Adapt 410,T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Strong,Low ,Moderate,Post
+411,Problem,Adapt 411,T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Strong,Low ,Moderate,Pre
+412,Problem,Adapt 412,T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Strong,Low ,Moderate,Post
+413,Problem,Adapt 413,T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Strong,Low ,Moderate,Pre & Post
+414,Problem,Adapt 414,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+415,Problem,Adapt 415,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Module 5
+416,Problem,Adapt 416,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+417,Problem,Adapt 417,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+418,Problem,Adapt 418,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+419,Problem,Adapt 419,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+420,Problem,Adapt 420,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+421,Problem,Adapt 421,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+422,Problem,Adapt 422,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+423,Problem,Adapt 423,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+424,Problem,Adapt 424,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+425,Problem,Adapt 425,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+426,Problem,Adapt 426,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+427,Problem,Adapt 427,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+428,Problem,Adapt 428,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+429,Problem,Adapt 429,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+430,Problem,Adapt 430,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+431,Problem,Adapt 431,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+432,Problem,Adapt 432,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+433,Problem,Adapt 433,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Post
+434,Problem,Adapt 434,Chi Square,Computation of Chi Squared Statistic,Strong,Low ,Moderate,Pre
+435,Problem,Adapt 435,Problems in Sampling,Problems in Sampling,Strong,Low ,Moderate,Post
