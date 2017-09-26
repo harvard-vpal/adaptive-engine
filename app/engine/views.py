@@ -59,7 +59,7 @@ class ScoreViewSet(viewsets.ModelViewSet):
 
     def get_or_create_learner(self, serializer):
         """
-        Not a view - attempts to create learner if serializer data looks
+        Not a view - attempts to create learner if unvalidated serializer data looks
         reasonable and one doesn't exist already
         """
         if serializer.is_valid():

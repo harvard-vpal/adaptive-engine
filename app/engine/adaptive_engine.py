@@ -54,7 +54,8 @@ class NonAdaptiveEngine(object):
         """
         TODO base on some explicit ordering, may require additional field
         """
-        utils.get_activities(learner, collection, seen=False).first()
+        utils.get_activities(learner, collection, seen=False).order_by('order').first()
+
 
 
 class AdaptiveEngine(object):
@@ -89,8 +90,8 @@ class AdaptiveEngine(object):
         # add mastery row
         Mastery.objects.bulk_create([
             Mastery(
-                learner=learner, 
-                knowledge_component=kc, 
+                learner=learner,
+                knowledge_component=kc,
                 value=kc.mastery_prior,
             ) for kc in knowledge_components
         ])
@@ -223,8 +224,11 @@ class AdaptiveEngine(object):
 
 def update_model(eta=0.0, M=0.0):
     """
-    Notes:
-        Updates initial mastery and tranit/guess/slip matrices
+    Updates initial mastery and tranit/guess/slip matrices
+    
+    Arguments:
+        eta (float): Relevance threshold used in the BKT optimization procedure
+        M (float): Information threshold user in the BKT optimization procedure
     """
     est = utils.estimate(eta, M)
 

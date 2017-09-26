@@ -3,15 +3,11 @@ from .data_structures import Matrix, Vector
 import numpy as np
 
 
-epsilon=1e-10 # a regularization cutoff, the smallest value of a mastery probability
-eta=0.0 ##Relevance threshold used in the BKT optimization procedure
-M=0.0 ##Information threshold user in the BKT optimization procedure
+epsilon = 1e-10 # a regularization cutoff, the smallest value of a mastery probability
 
-# Values prior to estimating model:
-slip_probability=0.15
-guess_probability=0.1
-trans_probability=0.1
-prior_knowledge_probability=0.2
+
+def is_adaptive(learner):
+    return bool(learner.experimental_group.engine_settings)
 
 
 def get_activities(learner, collection=None, seen=False):
@@ -30,10 +26,18 @@ def get_activities(learner, collection=None, seen=False):
     # alternatively, get activities that have been seen before
     else:
         activities = activities.filter(score__in=learner_scores)
+
     if collection:
         activities = activities.filter(collection=collection)
 
+        # filtering based on adaptive/non-adaptive problems
+        if is_adaptive(learner):
+            activities.filter(include_adaptive=True)
+        else:
+            activities.filter(order__isnull=False)
+
     return activities
+
 
 def get_engine_settings_for_learner(learner):
     """
@@ -72,8 +76,11 @@ def relevance(guess, slip):
     return -np.log(guess)-np.log(slip)
 
 
-def odds(p):
+def odds(p, clean=True):
+    if clean:
+        p = np.minimum(np.maximum(p,epsilon),1-epsilon)
     return p/(1.0-p)
+    #np.minimum(np.maximum(slip,epsilon),1.0-epsilon)
 
 
 def log_odds(p, clean=True):
@@ -81,9 +88,22 @@ def log_odds(p, clean=True):
     Return log odds
     If 'clean'=True, replaces 0 and 1 in input with epsilon
     """
-    if clean:
-        p = np.minimum(np.maximum(p,epsilon),1-epsilon)
-    return np.log(odds(p))
+    return np.log(odds(p, clean=clean))
+
+def replace_nan(A,B,inplace=True):
+    """
+    Replaces all NaN (or Inf) elements of A with the corresponding 
+    elements of matrix B
+    Arguments:
+        A (ndarray): matrix with NaN values that should be replaced
+        B (ndarray): matrix whose values will be used to fill in NaN
+        spots in A
+    """
+    ind = np.where(np.isnan(A) | np.isinf(A))
+    if not inplace:
+        A = A.copy()
+    A[ind] = B[ind]
+    return A if not inplace else None
 
 
 def difficulty(activities=None):
@@ -93,7 +113,7 @@ def difficulty(activities=None):
     Corresponds to m_difficulty, without tileing
     """
     if not activities:
-        activities = Activity.objects.all()
+        activities = Activity.objects.filter(include_adaptive=True)
     difficulty_raw = activities.values_list('difficulty',flat=True)
     return log_odds(difficulty_raw, clean=True)
 
@@ -180,7 +200,8 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
     # full QxK relevance matrix
     m_k = relevance(Matrix(Guess).values(),Matrix(Slip).values())
 
-    scores = Score.objects.order_by('timestamp')
+    # last filter might be redundant
+    scores = Score.objects.order_by('timestamp').filter(activity__include_adaptive=True)
     activities = Activity.objects.all()
 
     # get map of activity objects to matrix index
@@ -267,17 +288,11 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
         guess[ind_g]=np.nan
         slip[ind_s]=np.nan
 
-    #Convert to odds (logarithmic in case of p.i):
-    p_i=np.minimum(np.maximum(p_i,epsilon),1.0-epsilon)
-    trans=np.minimum(np.maximum(trans,epsilon),1.0-epsilon)
-    guess=np.minimum(np.maximum(guess,epsilon),1.0-epsilon)
-    slip=np.minimum(np.maximum(slip,epsilon),1.0-epsilon)
-    
-    #L=np.log(p_i/(1-p_i))
-    L=p_i/(1.0-p_i)
-    trans=trans/(1.0-trans)
-    guess=guess/(1.0-guess)
-    slip=slip/(1.0-slip)
+    #Convert to odds:
+    L = odds(p_i)
+    trans = odds(trans)
+    guess = odds(guess)
+    slip = odds(slip)
     
     ##Keep the versions with NAs in them:
     L_i_nan=L.copy()
@@ -293,14 +308,10 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
     m_slip = Matrix(Slip).values()
 
     # replace invalid values
-    ind=np.where(np.isnan(L) | np.isinf(L))
-    L[ind]=L_i[ind]
-    ind=np.where(np.isnan(trans) | np.isinf(trans))
-    trans[ind]=m_trans[ind]
-    ind=np.where(np.isnan(guess) | np.isinf(guess))
-    guess[ind]=m_guess[ind]
-    ind=np.where(np.isnan(slip) | np.isinf(slip))
-    slip[ind]=m_slip[ind]
+    replace_nan(L, L_i, inplace=True)
+    replace_nan(trans, m_trans, inplace=True)
+    replace_nan(guess, m_guess, inplace=True)
+    replace_nan(slip, m_slip, inplace=True)
         
     return {
         'L_i':L, 
