@@ -156,20 +156,23 @@ class AdaptiveEngine(object):
         mastery.update(L)
 
 
-    def recommend(self, learner, collection=None):
+    def recommend(self, learner, collection):
         """
         This function returns the id of the next recommended problem in an adaptive module. 
         If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
         """
-        # get unseen activities within module
+        # enforce max problems limit for collection
+        if collection.max_problems:
+            if utils.get_activities(learner, collection, seen=True).count() > collection.max_problems:
+                return None
+
+        # get unseen activities within module that are valid to serve to adaptive group
         valid_activities = utils.get_activities(learner, collection, seen=False)
+
         # check if we still have available problems
         if not valid_activities.exists():
             # return next_item = None if no items left to serve
             return None 
-
-        # TODO: get rid of this example after implementation
-        # next_item = valid_activities.first()
 
         # row of mastery values matrix
         L = np.log(Matrix(Mastery)[learner,].values())
@@ -225,7 +228,7 @@ class AdaptiveEngine(object):
 def update_model(eta=0.0, M=0.0):
     """
     Updates initial mastery and tranit/guess/slip matrices
-    
+
     Arguments:
         eta (float): Relevance threshold used in the BKT optimization procedure
         M (float): Information threshold user in the BKT optimization procedure

@@ -9,6 +9,7 @@ class Collection(models.Model):
     Collection consists of multiple activities
     """
     name = models.CharField(max_length=200)
+    max_problems = models.PositiveIntegerField(null=True,blank=True)
 
     def __unicode__(self):
         return "{}".format(self.pk)
