@@ -4,141 +4,15 @@ from django.apps import apps
 from engine import engines, utils
 from .utils import reset_database
 
-
 class EngineSimulator():
-    def __init__(self, num_activities=5, num_collections=1, num_kcs=5,
-        slip_probability=0.15, guess_probability=0.1, trans_probability=0.1,
-        prior_knowledge_probability=0.2):
-        """
-        Reset database data and initialize with test environment
-        """
-        self.num_activities = num_activities
-        self.num_collections = num_collections
-        self.num_kcs = num_kcs
-
-        reset_database('engine')
-
-        self.initialize_engine_settings()
-        self.initialize_experimental_groups()
-        self.initialize_collections()
-        self.initialize_knowledge_components(prior_knowledge_probability)
-        self.initialize_prereqs()
-        self.initialize_activities()
-        self.initialize_param_matrix(Guess,guess_probability)
-        self.initialize_param_matrix(Slip,slip_probability)
-        self.initialize_param_matrix(Transit,trans_probability)
-
-
-    # collections
-    def initialize_collections(self):
-        Collection.objects.all().delete()
-
-        Collection.objects.bulk_create([Collection(
-            pk=pk,
-            name="Collection {}".format(pk)
-    ) for pk in range(1,self.num_collections+1)])
-
-
-    def initialize_prereqs(self):
-        """
-        initialize QxK matrices guess/slip/transit
-        """
-        model = PrerequisiteRelation
-        model.objects.all().delete()
-        objs_to_create = []
-        for k1 in range(1,self.num_kcs+1):
-            for k2 in range(1,self.num_kcs+1):
-                objs_to_create.append(
-                    model(
-                        prerequisite_id=k1,
-                        knowledge_component_id=k2,
-                        value = np.random.uniform()
-                    )
-                )
-        return model.objects.bulk_create(objs_to_create)
-
-    def initialize_knowledge_components(self, prior_knowledge_probability):
-        """
-        Initialize knowledge components
-        """
-        return KnowledgeComponent.objects.bulk_create([KnowledgeComponent(
-            pk=pk,
-            name="KnowledgeComponent {}".format(pk),
-            mastery_prior = utils.odds(prior_knowledge_probability)
-        ) for pk in range(1,self.num_kcs+1)])
-
-
-    def initialize_activities(self):
-
-        activities = Activity.objects.bulk_create([Activity(
-            pk=pk,
-            name="Activity {}".format(pk),
-            difficulty = np.random.uniform(),
-            collection_id = np.random.randint(1,self.num_activities+1),
-            knowledge_components = [np.random.randint(1,self.num_kcs+1)]
-        ) for pk in range(1,self.num_activities+1)])
-
-
-    def initialize_engine_settings(self):
-        default_params = dict(
-            L_star = 2.2,
-            r_star = 0.0,
-            W_p = 5.0,
-            W_d = 0.5
-        )
-        EngineSettings.objects.bulk_create([
-            EngineSettings(
-                pk=1,
-                name="Engine A",
-                W_r=2.0,
-                W_c=1.0,
-                **default_params
-            ),
-            EngineSettings(
-                pk=2,
-                name="Engine B",
-                W_r=1.0,
-                W_c=2.0,
-                **default_params
-            )
-        ])
-
-
-    def initialize_experimental_groups(self):
-        ExperimentalGroup.objects.bulk_create([
-            ExperimentalGroup(
-                pk=1,
-                name="Group A",
-                engine_settings_id=1,
-            ),
-            ExperimentalGroup(
-                pk=2,
-                name="Group B",
-                engine_settings_id=2,
-            ),
-            ExperimentalGroup(
-                pk=3,
-                name="Group C"
-                # no engine specified for Group C
-            )
-        ])
-
-    def initialize_param_matrix(self, model, value):
-        """
-        Initialize (Q x K) matrices: Guess, Slip, Transfer
-        """
-        model.objects.all().delete()
-        objs_to_create = []
-        for q in range(1,self.num_activities+1):
-            for k in range(1,self.num_kcs+1):
-                objs_to_create.append(
-                    model(
-                        activity_id=q,
-                        knowledge_component_id=k,
-                        value=utils.odds(value)
-                    )
-                )
-        return model.objects.bulk_create(objs_to_create)
+    """
+    Base engine simulator that assumes that database models have already been populated
+    Explicitly calls engine subfunctions to simulate the submit and recommmend operations
+    """
+    def __init__(self, initializer=None, **kwargs):
+        # initialize database
+        if initializer:
+            initializer(**kwargs)
 
     def submit_score(self, learner_id, activity_id, score_value):
         activity = Activity.objects.get(pk=activity_id)
