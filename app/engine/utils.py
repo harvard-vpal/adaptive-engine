@@ -34,7 +34,7 @@ def get_activities(learner, collection=None, seen=False):
         if is_adaptive(learner):
             activities.filter(include_adaptive=True)
         else:
-            activities.filter(order__isnull=False)
+            activities.filter(nonadaptive_order__isnull=False)
 
     return activities
 

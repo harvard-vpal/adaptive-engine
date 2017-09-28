@@ -17,7 +17,7 @@ class Collection(models.Model):
 
 class KnowledgeComponent(models.Model):
     name = models.CharField(max_length=200)
-    mastery_prior = models.FloatField()
+    mastery_prior = models.FloatField(null=True,blank=True)
 
     def __unicode__(self):
         return "{}".format(self.pk)
@@ -44,7 +44,9 @@ class Activity(models.Model):
     # whether to include as valid problem to recommend from adaptive engine
     include_adaptive = models.BooleanField(default=True)
     # order for non-adaptive problems
-    order = models.PositiveIntegerField(null=True,blank=True)
+    nonadaptive_order = models.PositiveIntegerField(null=True,blank=True)
+    # order for pre-adaptive problems
+    preadaptive_order = models.PositiveIntegerField(null=True,blank=True)
 
     def __unicode__(self):
         return "{}".format(self.pk)

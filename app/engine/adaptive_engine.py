@@ -54,7 +54,7 @@ class NonAdaptiveEngine(object):
         """
         TODO base on some explicit ordering, may require additional field
         """
-        utils.get_activities(learner, collection, seen=False).order_by('order').first()
+        utils.get_activities(learner, collection, seen=False).order_by('nonadaptive_order').first()
 
 
 
@@ -173,6 +173,11 @@ class AdaptiveEngine(object):
         if not valid_activities.exists():
             # return next_item = None if no items left to serve
             return None 
+
+        # check for preadaptive activities
+        valid_preadaptive_activities = valid_activities.filter(preadaptive_order__isnull=False)
+        if valid_preadaptive_activities.exists():
+            return valid_preadaptive_activities.order_by('preadaptive_order').first()
 
         # row of mastery values matrix
         L = np.log(Matrix(Mastery)[learner,].values())
