@@ -2,6 +2,7 @@ import numpy as np
 from engine.models import *
 from django.apps import apps
 from engine import engines, utils
+from .utils import reset_database
 
 
 class EngineSimulator():
@@ -15,7 +16,7 @@ class EngineSimulator():
         self.num_collections = num_collections
         self.num_kcs = num_kcs
 
-        utils.reset_database('engine')
+        reset_database('engine')
 
         self.initialize_engine_settings()
         self.initialize_experimental_groups()
