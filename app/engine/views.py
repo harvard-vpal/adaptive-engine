@@ -8,7 +8,7 @@ from rest_framework import status
 from django.http import HttpResponse
 from .serializers import *
 from .models import *
-from adaptive_engine import get_engine
+from .engines import get_engine
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
