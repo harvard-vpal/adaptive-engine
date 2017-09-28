@@ -6,6 +6,14 @@ import numpy as np
 epsilon = 1e-10 # a regularization cutoff, the smallest value of a mastery probability
 
 
+def pick_experimental_group():
+    """
+    Randomly pick an experimental group
+    Currently weights all groups equally
+    """
+    return np.random.choice(ExperimentalGroup.objects.all())
+
+
 def is_adaptive(learner):
     return bool(learner.experimental_group.engine_settings)
 

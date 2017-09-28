@@ -4,13 +4,6 @@ from .models import *
 from . import utils
 
 
-def pick_experimental_group():
-    """
-    Randomly pick an experimental group and attach to learner
-    """
-    return np.random.choice(ExperimentalGroup.objects.all())
-
-
 def get_engine(learner):
     """
     Get relevant engine for learner based on their experimental group
@@ -19,7 +12,7 @@ def get_engine(learner):
     experimental_group = learner.experimental_group
     # assign experimental group if none exists (new learner)
     if not experimental_group:
-        experimental_group = pick_experimental_group()
+        experimental_group = utils.pick_experimental_group()
         learner.experimental_group = experimental_group
         learner.save()
     engine_settings = experimental_group.engine_settings
@@ -33,7 +26,8 @@ def get_engine(learner):
 
 class NonAdaptiveEngine(object):
     """
-    Serves activities in default order
+    Engine that serves only activities that have the 'nonadaptive_order' 
+    field populated (and in the order specified by that field)
     """
     def __init__(self):
         pass
@@ -52,15 +46,16 @@ class NonAdaptiveEngine(object):
 
     def recommend(self, learner, collection):
         """
-        TODO base on some explicit ordering, may require additional field
+        Recommend activity according to 'nonadaptive_order' field
         """
         utils.get_activities(learner, collection, seen=False).order_by('nonadaptive_order').first()
 
 
-
 class AdaptiveEngine(object):
     """
-    Adaptive engine class
+    Adaptive engine class that does internal parameter updates (Mastery, 
+    Guess, Slip, etc) and recommends activities according to adaptive 
+    algorithm
     """
     def __init__(self, engine_settings):
         """
