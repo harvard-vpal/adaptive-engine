@@ -46,9 +46,9 @@ def get_activities(learner, collection=None, seen=False):
         # filtering based on whether learner should be seeing adaptive
         # vs non-adaptive problems
         if is_adaptive(learner):
-            activities.filter(include_adaptive=True)
+            activities = activities.filter(include_adaptive=True)
         else:
-            activities.filter(nonadaptive_order__isnull=False)
+            activities = activities.filter(nonadaptive_order__isnull=False)
 
     return activities
 
