@@ -20,25 +20,31 @@ def is_adaptive(learner):
 
 def get_activities(learner, collection=None, seen=False):
     """
+    Get activities for a learner, based on:
+        - what experimental group they are in (adaptive/non-adaptive)
+        - what collection they are in
+        - seen problems vs unseen
     Arguments:
         learner (Learner)
         collection (Collection)
         seen (bool): True to return seen activities, 
             False to return unseen activities
     """
-    activities = Activity.objects.distinct()
+    activities = Activity.objects
     learner_scores = Score.objects.filter(learner=learner)
-    # get activities that haven't been seen before
+    
     if seen == False:
+        # get activities that haven't been seen before
         activities = activities.exclude(score__in=learner_scores)
-    # alternatively, get activities that have been seen before
     else:
+        # alternatively, get activities that have been seen before
         activities = activities.filter(score__in=learner_scores)
 
     if collection:
         activities = activities.filter(collection=collection)
 
-        # filtering based on adaptive/non-adaptive problems
+        # filtering based on whether learner should be seeing adaptive
+        # vs non-adaptive problems
         if is_adaptive(learner):
             activities.filter(include_adaptive=True)
         else:
@@ -122,7 +128,7 @@ def difficulty(activities=None):
     """
     if not activities:
         activities = Activity.objects.filter(include_adaptive=True)
-    difficulty_raw = activities.values_list('difficulty',flat=True)
+    difficulty_raw = np.array(activities.values_list('difficulty',flat=True))
     return log_odds(difficulty_raw, clean=True)
 
 

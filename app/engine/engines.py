@@ -132,7 +132,7 @@ class AdaptiveEngine(object):
         ## e.g. is there a score for the activity in the learner's transaction history
         if not Score.objects.filter(learner=learner,activity=activity).exists():
             # update row of confidence matrix
-            relevance = -np.log(guess) - np.log(slip)
+            relevance = utils.relevance(guess,slip)
             confidence = Matrix(Confidence)[learner,] # vector
             confidence.update(confidence.values() + relevance) # update database values
 
@@ -205,10 +205,8 @@ class AdaptiveEngine(object):
                 Matrix(Slip)[last_seen,].values()
             )
             C = np.sqrt(np.dot(relevance_unseen, relevance_lastseen))
-
         # vector of difficulties for valid activities
         difficulty = utils.difficulty(valid_activities)
-
         # number of learning objectives
         K = KnowledgeComponent.objects.count()
         d_temp = np.tile(difficulty,(K,1)) # repeated column vector
