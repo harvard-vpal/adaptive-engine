@@ -4,7 +4,7 @@ from django.apps import apps
 from engine import engines, utils
 from .utils import reset_database
 
-class EngineSimulator():
+class EngineSimulator(object):
     """
     Base engine simulator that assumes that database models have already been populated
     Explicitly calls engine subfunctions to simulate the submit and recommmend operations

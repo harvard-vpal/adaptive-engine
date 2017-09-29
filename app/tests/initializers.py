@@ -272,7 +272,8 @@ class RealInitializer(BaseInitializer):
                 item_id =item_id,
                 name = "Adapt {}".format(item_id),
                 collection_id = self.activity_collections[idx]+1,
-                include_adaptive=True
+                include_adaptive=True,
+                difficulty=self.data['difficulty'][idx],
             ) for idx, item_id in self.data['items'].iteritems()
             ])
         )
@@ -383,9 +384,10 @@ class RealInitializer(BaseInitializer):
                 pk = row.pk,
                 collection_id = row.collection_id,
                 name = row.name,
+                difficulty = row.difficulty,
                 include_adaptive = self.replace_nan_none(row.include_adaptive),
                 nonadaptive_order = self.replace_nan_none(row.nonadaptive_order),
-                preadaptive_order = self.replace_nan_none(row.nonadaptive_order)
+                preadaptive_order = self.replace_nan_none(row.nonadaptive_order),
             ) for row in self.df_activities.itertuples()
         ])
         # add in knowledge component tagging
