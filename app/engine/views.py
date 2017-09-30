@@ -8,7 +8,8 @@ from rest_framework import status
 from django.http import HttpResponse
 from .serializers import *
 from .models import *
-from .engines import get_engine
+from .engines import get_engine, initialize_learner
+from django.shortcuts import get_object_or_404
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
@@ -18,14 +19,24 @@ class ActivityViewSet(viewsets.ModelViewSet):
     # "recommend activity" endpoint
     @list_route()
     def recommend(self, request):
-        collection = request.GET.get('collection',None)
-        learner = request.GET.get('learner',None)
+        collection_id = request.GET.get('collection',None)
+        learner_id = request.GET.get('learner',None)
 
         # throw error if arguments not found
-        if not collection and learner:
+        if not collection_id and learner_id:
             return Response(dict(
                 message = "Specify learner and collection arguments"
             ))
+
+        # get collection object
+        collection = get_object_or_404(Collection, pk=collection_id)
+
+        # get or create learner
+        learner, created = Learner.objects.get_or_create(pk=learner_id)
+
+        if created:
+            # if new learner, assign experimental group, initialize learner params
+            initialize_learner(learner)
 
         # retrieve relevant engine instance for A/B testing
         engine = get_engine(learner)
@@ -52,56 +63,52 @@ class CollectionViewSet(viewsets.ModelViewSet):
     serializer_class = CollectionSerializer
 
 
-# "create transaction" endpoint
-class ScoreViewSet(viewsets.ModelViewSet):
-    queryset = Score.objects.all()
-    serializer_class = ScoreSerializer
-
-    def get_or_create_learner(self, serializer):
+def is_valid_except_learner_not_found(serializer):
         """
-        Not a view - attempts to create learner if unvalidated serializer data looks
-        reasonable and one doesn't exist already
+        Not a view - method to determine whether to go ahead and get/create
+        learner based on serializer validity
         """
         if serializer.is_valid():
-            return serializer.validated_data['learner'], False
+            return True
         else:
             # check if learner is only field not validating
             if serializer.errors.keys()==['learner']:
                 learner_id = serializer.data['learner']
                 # check data type
                 if isinstance(learner_id,int):
-                    try:
-                        return Learner.objects.get_or_create(pk=learner_id)
-                    except:
-                        pass
-            return None, None
+                    return True
+            return False
+
+# "create transaction" endpoint
+class ScoreViewSet(viewsets.ModelViewSet):
+    queryset = Score.objects.all()
+    serializer_class = ScoreSerializer
 
     # override create behavior
     def create(self, request):
         serializer = ScoreSerializer(data=request.data)
-        # create learner if one doesn't exist
-        learner, created = self.get_or_create_learner(serializer)
+        # run validation, catching exception where learner is not found
+        if is_valid_except_learner_not_found(serializer):
 
-        # initialize matrix data for learner
-        if created:
-            # get_engine() also assigns the experimental group
-            engine = get_engine(learner)
-            engine.initialize_learner(learner)
-            # reset serializer
-            serializer = ScoreSerializer(data=request.data)
-        else:
-            engine = get_engine(learner)
+            # create learner if one doesn't exist
+            learner, created = Learner.objects.get_or_create(pk=serializer.data['learner'])
 
-        # run bayes update and save score
-        if serializer.is_valid():
-            score = Score(**serializer.validated_data)
-            # trigger adaptive engine bayes_update
-            engine.update(score)
-            # save score to database
-            score.save()
-            # return response with created score
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST)
+            if created:
+                # assign experimental group
+                initialize_learner(learner)
+                # reset serializer to recognize newly created learner
+                serializer = ScoreSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                # get engine
+                engine = get_engine(learner)
+                # make score object
+                score = Score(**serializer.validated_data)
+                # trigger update function for engine (bayes update if adaptive)
+                engine.update(score)
+                # return response with created score
+                return Response(serializer.data)
+        
+        return Response(serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)
 

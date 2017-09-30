@@ -4,18 +4,29 @@ from .models import *
 from . import utils
 
 
+def initialize_learner(learner, experimental_group_id=None):
+    """
+    Initializes learner by assigning an experimental group (can be specified manually)
+    """
+    if experimental_group_id:
+        learner.experimental_group = ExperimentalGroup.objects.get(pk=experimental_group_id)
+    else:
+        learner.experimental_group = utils.pick_experimental_group()
+    learner.save()
+    engine = get_engine(learner)
+    # engine-specific initialize learner method
+    engine.initialize_learner(learner)
+
+
 def get_engine(learner):
     """
     Get relevant engine for learner based on their experimental group
     Also assigns experimental group if none assigned
     """
     experimental_group = learner.experimental_group
-    # assign experimental group if none exists (new learner)
     if not experimental_group:
-        experimental_group = utils.pick_experimental_group()
-        learner.experimental_group = experimental_group
-        learner.save()
-    engine_settings = experimental_group.engine_settings
+        initialize_learner(learner)
+    engine_settings = learner.experimental_group.engine_settings
     # engine settings will exist if experimental group is adaptive
     if engine_settings:
         return AdaptiveEngine(engine_settings)
@@ -42,7 +53,7 @@ class NonAdaptiveEngine(object):
         """
         No additional action needed
         """
-        pass
+        score.save()
 
     def recommend(self, learner, collection):
         """
@@ -149,6 +160,9 @@ class AdaptiveEngine(object):
 
         # update row of mastery values in database
         mastery.update(L)
+
+        # save score to database
+        score.save()
 
 
     def recommend(self, learner, collection):
