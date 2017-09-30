@@ -8,6 +8,14 @@ import numpy as np
 import os
 import pandas as pd
 
+def create_and_initialize_learner(learner_id, experimental_group_id=None):
+    """
+    Create new learners, optionally with a specific experimental group
+    Useful for testing
+    """
+    learner = Learner.objects.create(pk=learner_id)
+    initialize_learner(learner_id, experimental_group_id)
+
 
 class BaseInitializer(object):
     """
@@ -173,13 +181,13 @@ class FakeInitializer(BaseInitializer):
                 )
         return model.objects.bulk_create(objs_to_create)
 
-
 class RealInitializer(BaseInitializer):
     """
     Initialize with realistic data for adaptive study
+    Only A and B groups
     """
     
-    def __init__(self, repo_path=None, groups=['A','B','C']):
+    def __init__(self, repo_path=None, groups=['A','B']):
         """
         Arguments:
             repo_path: path to the github repo, e.g. /Users/me/github/adaptive-engine
@@ -240,33 +248,6 @@ class RealInitializer(BaseInitializer):
         ])
         return df_collections
 
-    def make_nonadaptive_item_df(self):
-        """
-        Make df of nonadaptive item info
-        Loads and uses separate spreadsheet from tagging data
-        Requires self.df_collections to be set
-        """
-        df_nonadaptive_items = pd.read_csv(os.path.join(self.repo_path,'data/items_KC_Group_C_marked.csv'))
-
-        order = (df_nonadaptive_items
-            .assign(order=None)
-            .sort_values('Item.ID')
-            .groupby('Module')
-            .order
-            .transform(lambda x: range(1,len(x)+1))
-        )
-
-        df_nonadaptive_items = (df_nonadaptive_items
-            .assign(nonadaptive_order=order)
-            .merge(self.df_collections,left_on='Module',right_on='name')
-            .rename(columns={
-                  'Item.ID':'item_id',
-                  'Item.name':'name'
-            })
-            [['item_id','collection_id','nonadaptive_order']]
-        )
-        return df_nonadaptive_items
-
     def make_adaptive_item_df(self):
         df_adaptive_items = (pd.DataFrame([dict(
                 item_id =item_id,
@@ -305,18 +286,12 @@ class RealInitializer(BaseInitializer):
         df_adaptive_items['collection_id'] = df_adaptive_items.collection_id.apply(lambda x: collection_id_mapping[x])
         return df_adaptive_items
 
+
     def make_activity_df(self):
         """
-        create activity table by combining adaptive item table and non-adaptive item table
-        Requires self.df_adaptive_items and self.df_nonadaptive_items to be set
+        Can combine non-adpative and adaptive here in subclass
         """
-        df_activities = (self.df_adaptive_items
-            # join on both (collection_id, item_id)
-            .merge(self.df_nonadaptive_items,how='outer')
-            .assign(pk=lambda x: x.index+1)
-        )
-        df_activities['include_adaptive'].fillna(False,inplace=True)
-        return df_activities
+        return self.df_adaptive_items.assign(pk=lambda x: x.index+1)
 
 
     def initialization_prep(self):
@@ -334,7 +309,7 @@ class RealInitializer(BaseInitializer):
 
         # prepare dataframes
         self.df_collections = self.make_collection_df()
-        self.df_nonadaptive_items = self.make_nonadaptive_item_df()
+
         self.df_adaptive_items = self.make_adaptive_item_df()
         self.df_activities = self.make_activity_df()
 
@@ -386,8 +361,7 @@ class RealInitializer(BaseInitializer):
                 name = row.name,
                 difficulty = row.difficulty,
                 include_adaptive = self.replace_nan_none(row.include_adaptive),
-                nonadaptive_order = self.replace_nan_none(row.nonadaptive_order),
-                preadaptive_order = self.replace_nan_none(row.nonadaptive_order),
+                preadaptive_order = self.replace_nan_none(row.preadaptive_order),
             ) for row in self.df_activities.itertuples()
         ])
         # add in knowledge component tagging
@@ -430,5 +404,110 @@ class RealInitializer(BaseInitializer):
                         value = value
                     ))
             model.objects.bulk_create(objs)
+
+
+
+class RealAdaptiveNonadaptiveInitializer(RealInitializer):
+    """
+    Initialize with realistic data for adaptive study
+    """
+    
+    def __init__(self, repo_path=None, groups=['A','B','C']):
+        """
+        Arguments:
+            repo_path: path to the github repo, e.g. /Users/me/github/adaptive-engine
+            groups: list of group codes
+        """
+        # initialize experimental groups and engine settings
+        super(self.__class__, self).__init__(repo_path=repo_path, groups=groups)
+
+
+    def make_nonadaptive_item_df(self):
+        """
+        Make df of nonadaptive item info
+        Loads and uses separate spreadsheet from tagging data
+        Requires self.df_collections to be set
+        """
+        df_nonadaptive_items = pd.read_csv(os.path.join(self.repo_path,'data/items_KC_Group_C_marked.csv'))
+
+        order = (df_nonadaptive_items
+            .assign(order=None)
+            .sort_values('Item.ID')
+            .groupby('Module')
+            .order
+            .transform(lambda x: range(1,len(x)+1))
+        )
+
+        df_nonadaptive_items = (df_nonadaptive_items
+            .assign(nonadaptive_order=order)
+            .merge(self.df_collections,left_on='Module',right_on='name')
+            .rename(columns={
+                  'Item.ID':'item_id',
+                  'Item.name':'name'
+            })
+            [['item_id','collection_id','nonadaptive_order']]
+        )
+        return df_nonadaptive_items
+
+
+    def make_activity_df(self):
+        """
+        create activity table by combining adaptive item table and non-adaptive item table
+        Requires self.df_adaptive_items and self.df_nonadaptive_items to be set
+        """
+        df_activities = (self.df_adaptive_items
+            # join on both (collection_id, item_id)
+            .merge(self.df_nonadaptive_items,how='outer')
+            .assign(pk=lambda x: x.index+1)
+        )
+        df_activities['include_adaptive'].fillna(False,inplace=True)
+        return df_activities
+
+
+    def initialization_prep(self):
+        """
+        Prepare dataframes / arrays to use for database object population
+        """
+        # load matrices from files
+        self.data = self.load_tagging_data()
+
+        # activity_collections[activity_pk] will return collection_id for that activity
+        self.activity_collections = self.data['scope'].stack().groupby(level=0).apply(lambda x: x[x==1].index[0][1])
+
+        # activity_tagging[activity_pk] will return kc_id-1 for that activity
+        self.activity_tagging = self.data['m_tagging'].stack().groupby(level=0).apply(lambda x: x[x==1].index[0][1])
+
+        # prepare dataframes
+        self.df_collections = self.make_collection_df()
+        self.df_nonadaptive_items = self.make_nonadaptive_item_df()
+        self.df_adaptive_items = self.make_adaptive_item_df()
+        self.df_activities = self.make_activity_df()
+
+
+        
+    def initialize_activities(self):
+        """
+        Create activity objects in database
+        """
+
+        # create activities from df
+
+        # create activities
+        activities = Activity.objects.bulk_create([
+            Activity(
+                pk = row.pk,
+                collection_id = row.collection_id,
+                name = row.name,
+                difficulty = row.difficulty,
+                include_adaptive = self.replace_nan_none(row.include_adaptive),
+                nonadaptive_order = self.replace_nan_none(row.nonadaptive_order),
+                preadaptive_order = self.replace_nan_none(row.preadaptive_order),
+            ) for row in self.df_activities.itertuples()
+        ])
+        # add in knowledge component tagging
+        for idx in self.activity_tagging:
+            activities[idx].knowledge_components.add(self.activity_tagging[idx])
+
+
 
 
