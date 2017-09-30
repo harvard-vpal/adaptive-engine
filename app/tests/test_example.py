@@ -19,24 +19,44 @@ class DataLoading(TestCase):
         self.num_kcs = 37
 
     def test_num_collections(self):
+        """
+        Check that the number of Collections initialized is 7
+        """
         self.assertEqual(Collection.objects.count(),7)
 
     def test_num_activities(self):
+        """
+        Check that the number of Activities initialized is 435
+        """
         self.assertEqual(Activity.objects.count(),435)
 
     def test_num_knowledge_components(self):
+        """
+        Check that the number of KnowledgeComponents initialized
+        is 37
+        """
         self.assertEqual(KnowledgeComponent.objects.count(),37)
 
     def test_num_guess(self):
+        """
+        Check that the number of Guess paraeters initialized is 
+        number of activities * number of knowledge componenents
+        """
         self.assertEqual(Guess.objects.count(), self.num_activities*self.num_kcs)
 
 
 class ApiTest(TestCase):
+    """
+    Test cases using the engine API
+    """
     def setUp(self):
         RealInitializer()
         self.engine = EngineApiTestClient(token=create_token())
         
     def test_recommend_activity(self):
+        """
+        Check that we can get a recommendation via the engine API
+        """
         recommendation = self.engine.recommend(
             learner=1,
             collection=1,
@@ -45,6 +65,10 @@ class ApiTest(TestCase):
         self.assertTrue(recommendation)
 
     def test_submit_score(self):
+        """
+        Check that we can get submit a score via the engine API
+        and that we see the score saved to the database
+        """
         print self.engine.submit_score(
             activity=1,
             score=0.5,
@@ -54,11 +78,19 @@ class ApiTest(TestCase):
 
 
 class AdaptiveLearnerSequence(TestCase):
+    """
+    Test cases simulating a sequence of problems
+    """
     def setUp(self):
         RealInitializer(groups=['A'])
         self.engine = EngineSimulator()
 
     def simulate_learner_sequence(self, learner_id=None, collection_id=None, num_trials=30):
+        """
+        Simulates learner actions by repeating the process of asking for a recommendation,
+        then submitting an answer for the recommended activity (then asking for another
+        recommendation, and so on). Directly uses engine methods rather than the API
+        """
         for i in range(num_trials):
             recommendation = self.engine.recommend(learner=learner_id, collection=2)
             print recommendation
@@ -74,10 +106,16 @@ class AdaptiveLearnerSequence(TestCase):
                 break
     
     def test_single_learner(self):
+        """
+        Simulate single learner doing a sequence of problems
+        """
         np.random.seed(1)
         self.simulate_learner_sequence(learner_id=1, collection_id=2)
 
     def test_multiple_learners(self):
+        """
+        Repeat process of simulating single learner doing a sequence of problems
+        """
         num_learners = 10
         for learner_id in range(1,num_learners+1):
             print "Learner {}".format(learner_id)
