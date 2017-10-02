@@ -25,8 +25,8 @@ cd app
 Run directly - You will likely want to set up a python virtual environment beforehand. See [conda](https://conda.io/docs/user-guide/tasks/manage-environments.html) or [virtualenv](https://virtualenv.pypa.io/en/stable/userguide/) for details.
 
 ```
-# install dependencies
-pip install -r requirements.py
+# install dependencies for local development
+pip install -r requirements_local.py
 
 # run database migrations
 python manage.py makemigrations
