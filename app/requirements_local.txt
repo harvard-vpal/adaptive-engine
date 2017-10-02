@@ -1,2 +1,3 @@
 -r requirements.txt
 django_extensions
+pandas  # used for data loading in tests
