@@ -301,10 +301,10 @@ class RealInitializer(BaseInitializer):
         # load matrices from files
         self.data = self.load_tagging_data()
 
-        # activity_collections[activity_pk] will return collection_id for that activity
+        # activity_collections[activity_pk-1] will return collection_id (pre-remapping) for that activity
         self.activity_collections = self.data['scope'].stack().groupby(level=0).apply(lambda x: x[x==1].index[0][1])
 
-        # activity_tagging[activity_pk] will return kc_id-1 for that activity
+        # activity_tagging[activity_pk-1] will return kc_id-1 for that activity
         self.activity_tagging = self.data['m_tagging'].stack().groupby(level=0).apply(lambda x: x[x==1].index[0][1])
 
         # prepare dataframes
@@ -366,7 +366,7 @@ class RealInitializer(BaseInitializer):
         ])
         # add in knowledge component tagging
         for idx in self.activity_tagging:
-            activities[idx].knowledge_components.add(self.activity_tagging[idx])
+            activities[idx].knowledge_components.add(self.activity_tagging[idx]+1)
 
     def initialize_prereqs(self):
         """
