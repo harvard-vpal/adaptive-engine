@@ -12,8 +12,8 @@ In this repo:
 
 ## Running the engine application locally
 
-You may want to set up a virtual environment / [conda environment](https://conda.io/docs/user-guide/tasks/manage-environments.html) beforehand.
 
+Download the code:
 ```
 # clone the repo locally
 git clone https://github.com/harvard-vpal/adaptive-engine
@@ -22,10 +22,14 @@ git clone https://github.com/harvard-vpal/adaptive-engine
 cd app
 ```
 
-Run directly:
+Run directly - You will likely want to set up a python virtual environment beforehand. See [conda](https://conda.io/docs/user-guide/tasks/manage-environments.html) or [virtualenv](https://virtualenv.pypa.io/en/stable/userguide/) for details.
+
 ```
 # install dependencies
 pip install -r requirements.py
+
+# run database migrations
+python manage.py makemigrations
 
 # start the app
 python manage.py runserver
@@ -36,7 +40,7 @@ Or you can use docker:
 docker-compose -f docker-compose_local.yaml up
 ```
 
-The engine should now be available at localhost:8000
+The engine should now be available at localhost:8000. Try opening localhost:8000/engine/api in a web browser.
 
 ## Running tests
 [Django unit tests](https://docs.djangoproject.com/en/1.11/topics/testing/overview/) in `app/tests` can be run using
