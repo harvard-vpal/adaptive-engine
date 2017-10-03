@@ -232,12 +232,12 @@ class AdaptiveEngine(object):
             + self.settings.W_r * R
             + self.settings.W_d * D
             + self.settings.W_c * C
-        )]          
+        )]
         
         return next_item
 
 
-def update_model(eta=0.0, M=0.0):
+def update_model(eta=0.0, M=20.0):
     """
     Updates initial mastery and tranit/guess/slip matrices
 

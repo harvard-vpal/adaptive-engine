@@ -106,7 +106,7 @@ class Score(models.Model):
 
     def __unicode__(self):
         return "Learner {} - Activity {} = {}".format(
-            self.learner.pk, self.activity.pk, self.value)
+            self.learner.pk, self.activity.pk, self.score)
 
 
 class Transit(models.Model):

@@ -35,15 +35,15 @@ class BaseInitializer(object):
         default_params = dict(
             L_star = 2.2,
             r_star = 0.0,
-            W_p = 5.0,
-            W_d = 0.5
+            W_p = 1.0,  # readiness
+            W_d = 0.5  # difficulty
         )
         engine_settings = dict(
             A = EngineSettings(
                 pk=1,
                 name="Engine A",
-                W_r=2.0,
-                W_c=1.0,
+                W_r=2.0,  # demand
+                W_c=1.0,  # continuity
                 **default_params
             ),
             B = EngineSettings(
@@ -366,8 +366,8 @@ class RealInitializer(BaseInitializer):
             ) for row in self.df_activities.itertuples()
         ])
         # add in knowledge component tagging
-        for idx in self.activity_tagging:
-            activities[idx].knowledge_components.add(self.activity_tagging[idx]+1)
+        for activity_idx, kc_idx in self.activity_tagging.iteritems():
+            activities[activity_idx].knowledge_components.add(kc_idx+1)
 
     def initialize_prereqs(self):
         """
