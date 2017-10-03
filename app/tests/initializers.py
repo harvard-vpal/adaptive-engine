@@ -2,7 +2,7 @@
 Utilities for initializing engine application data
 """
 from engine.models import *
-from .utils import reset_database
+from .utils import reset_database, inverse_odds
 from engine import utils
 import numpy as np
 import os
@@ -254,7 +254,8 @@ class RealInitializer(BaseInitializer):
                 name = "Adapt {}".format(item_id),
                 collection_id = self.activity_collections[idx]+1,
                 include_adaptive=True,
-                difficulty=self.data['difficulty'][idx],
+                # difficulty defined as odds in this file - convert back to between 0 and 1
+                difficulty = np.round(inverse_odds(self.data['difficulty'][idx]),2),
             ) for idx, item_id in self.data['items'].iteritems()
             ])
         )
