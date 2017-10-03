@@ -3,6 +3,7 @@
 n.users<<-10
 n.los<<-8
 n.probs<<-40
+n.modules=2
 
 slip.probability=0.15
 guess.probability=0.1
@@ -21,6 +22,7 @@ V.a<<-1 ##Importance of appropriate difficulty in recommending the next item
 V.c<<-1 ##Importance of continuity in recommending the next item
 
 
+options(stringsAsFactors = FALSE)
 
 
 
@@ -33,11 +35,11 @@ probs=data.frame("id"=paste0("p",1:n.probs),"name"=paste0("problem ",1:n.probs))
 probs$id=as.character(probs$id)
 
 #Let problems be divided into several modules of adaptivity. In each module, only the items from that scope are used.
-##Proposed code: 
-# -1 - is not among the adaptively served ones
-# 0 - problem can be served in any module
-# n=1,2,3,...  - problem can be served in the module n
-scope<<-rep(1, n.probs)
+
+scope<<-matrix(FALSE,nrow=n.probs, ncol=n.modules)
+scope[,1]=TRUE
+rownames(scope)=probs$id
+
 
 
 ##List which items should be used for training the BKT
@@ -73,8 +75,11 @@ for(i in 1:nrow(m.w)){
 
 
 ##Define the vector of difficulties ####
-difficulty<<-rep(1,n.probs);
+difficulty<<-rep(0.5,n.probs);
 names(difficulty)=probs$id
+
+difficulty=pmin(pmax(difficulty,epsilon),1-epsilon)
+difficulty=log(difficulty/(1-difficulty))
 
 ##
 
