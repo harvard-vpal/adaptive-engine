@@ -1,6 +1,6 @@
 from django.test import TestCase
 from .simulators import EngineSimulator
-from .initializers import RealInitializer
+from .initializers import RealInitializer, RealInitializerFromSmeFiles
 import numpy as np
 from engine.models import *
 from .api import EngineApiTestClient
@@ -50,9 +50,12 @@ class ApiTest(TestCase):
     Test cases using the engine API
     """
     def setUp(self):
-        RealInitializer()
-        self.engine = EngineApiTestClient(token=create_token())
+        RealInitializerFromSmeFiles().initialize()
+        # self.engine = EngineApiTestClient(token=create_token())
         
+    def test_test(self):
+        self.assertTrue(True)
+
     def test_recommend_activity(self):
         """
         Check that we can get a recommendation via the engine API
@@ -82,7 +85,7 @@ class AdaptiveLearnerSequence(TestCase):
     Test cases simulating a sequence of problems
     """
     def setUp(self):
-        RealInitializer(groups=['A'])
+        RealInitializerFromSmeFiles(groups=['A'])
         self.engine = EngineSimulator()
 
     def simulate_learner_sequence(self, learner_id=None, collection_id=None, num_trials=30):

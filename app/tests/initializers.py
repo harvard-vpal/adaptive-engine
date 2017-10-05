@@ -2,11 +2,12 @@
 Utilities for initializing engine application data
 """
 from engine.models import *
-from .utils import reset_database, inverse_odds
-from engine import utils
+from utils import reset_database, inverse_odds, map_column, replace_nan_none
+from engine.utils import odds
 import numpy as np
 import os
 import pandas as pd
+
 
 def create_and_initialize_learner(learner_id, experimental_group_id=None):
     """
@@ -149,7 +150,7 @@ class FakeInitializer(BaseInitializer):
         return KnowledgeComponent.objects.bulk_create([KnowledgeComponent(
             pk=pk,
             name="KnowledgeComponent {}".format(pk),
-            mastery_prior = utils.odds(prior_knowledge_probability)
+            mastery_prior = odds(prior_knowledge_probability)
         ) for pk in range(1,self.num_kcs+1)])
 
 
@@ -176,7 +177,7 @@ class FakeInitializer(BaseInitializer):
                     model(
                         activity_id=q,
                         knowledge_component_id=k,
-                        value=utils.odds(value)
+                        value=odds(value)
                     )
                 )
         return model.objects.bulk_create(objs_to_create)
@@ -232,10 +233,6 @@ class RealInitializer(BaseInitializer):
         """
         Make dataframe with collection data
         """
-        df_collections = pd.DataFrame({'collection_id':range(1,8),'name':[
-            'Module 1','Module 2','Module 3','Module 4','Module 5',
-            'Pretest','Final'
-        ]})
 
         df_collections = pd.DataFrame([
             dict(name='Pre-test', collection_id=1, max_problems=64),
@@ -485,7 +482,6 @@ class RealAdaptiveNonadaptiveInitializer(RealInitializer):
         self.df_activities = self.make_activity_df()
 
 
-        
     def initialize_activities(self):
         """
         Create activity objects in database
@@ -510,5 +506,313 @@ class RealAdaptiveNonadaptiveInitializer(RealInitializer):
             activities[idx].knowledge_components.add(self.activity_tagging[idx])
 
 
+class RealInitializerFromSmeFiles(BaseInitializer):
+    """
+    Initialize engine data from .csv files in data/SME_spreadsheets
+    """
+    def __init__(self, repo_path=None, groups=['A','B']):
+        # initialize experimental groups and engine settings using base class
+        super(self.__class__, self).__init__(groups=groups)
+
+        self.prior_knowledge_probability = 0.2 # convert to odds on load
+        self.prereq_weight_code = {
+            'Weak':0.33,
+            'Moderate':0.66,
+            'Strong':1.0,
+            'default':1.0,
+        }
+        self.guess_code={
+            'Low':0.08,
+            'Moderate':0.12,
+            'High':0.20,
+            'default':0.1,
+        }
+        self.slip_code={
+            'Low':0.1,
+            'Moderate':0.15,
+            'High':0.20,
+            'default':0.15
+        }
+        self.trans_code={
+            'Low':0.08,
+            'Moderate':0.12,
+            'High':0.15,
+            'default':0.1
+        }
+        self.difficulty_code={
+            'Easy':0.3,
+            'Reg':0.5,
+            'Difficult':0.8,
+            'default':0.5,
+        }
+        self.collection_code = {
+            'pre-test fixed':1,
+            'pre-test adpt':1,
+            'Module 1':2,
+            'Module 2':3,
+            'Module 3':4,
+            'Module 4':5,
+            'Module 5':6,
+            'post-test fixed':7,
+            'post-test adpt':7,
+        }
+        if not repo_path:
+            repo_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        data_folder = repo_path + "/data/SME_spreadsheets"
+
+        self.filename_items = data_folder+"/Adaptive Engine Data - Essential Stats - Items.csv"
+        self.filename_items_kc = data_folder+"/Adaptive Engine Data - Essential Stats - Items-KC.csv"
+        self.filename_kc_kc = data_folder+"/Adaptive Engine Data - Essential Stats - KC-KC.csv"
+        self.filename_kc = data_folder+"/Adaptive Engine Data - Essential Stats - KC.csv"
+
+
+    def initialize(self):
+        self.make_data()
+        self.load_db()
+
+    def make_data(self):
+        """
+        Make clean dataframe tables with foreign key mappings
+        """
+        self.df_items = self.get_df_items()
+        self.df_items_kc  = self.get_df_items_kc()
+        self.df_kc_kc = self.get_df_kc_kc()
+        self.df_kc = self.get_df_kc()
+        
+        self.df_collection = self.make_df_collection()
+        self.df_activity = self.make_df_activity()
+        self.df_prereq = self.make_df_prereq()
+        self.m_slip, self.m_guess, self.m_trans = self.make_m_params()
+
+
+    def load_db(self):
+        """
+        Use tables to load to database
+        """
+        self.initialize_collections()
+        self.initialize_knowledge_components()
+        self.initialize_activities()
+        # self.initialize_prereqs()        
+        # self.initialize_params()
+
+
+    def get_df_items(self):
+        """
+        Load spreadsheet of item info from file
+        """
+        df_items = pd.read_csv(
+            self.filename_items, 
+            names=[
+                'item_id','section','subsection','unit','category','item_name','item_description','difficulty',
+                'xblock_url','old_module','module','present_module','notes'
+            ],
+            skiprows=1
+        )
+        return df_items
+
+    def get_df_items_kc(self):
+        """
+        Load spreadsheet of item tagging from file
+        """
+        df_items_kc = pd.read_csv(
+            self.filename_items_kc,
+            names=[
+                'item_id', 'category','item_name','kc_name','kc_description','relevance',
+                'guess','trans', 'module_old'
+            ],
+            skiprows=1
+        ).assign(guess=lambda x: x.guess.str.strip())
+        return df_items_kc
+
+    def get_df_kc(self):
+        """
+        Load spreadsheet of KC info from file
+        """
+        df_kc = pd.read_csv(
+            self.filename_kc,
+            names = ['kc_id', 'kc_name','kc_description'],
+            skiprows=1,
+        )
+        return df_kc
+
+    def get_df_kc_kc(self):
+        """
+        Load spreadsheet of KC prereqs from file
+        """
+        df_kc_kc = pd.read_csv(
+            self.filename_kc_kc,
+            names=[
+              'postreq_kc_name','postreq_kc_description','prereq_kc_name',
+              'prereq_kc_description','connection_strength'
+            ],
+            skiprows=1
+        )
+        return df_kc_kc
+
+    def make_df_collection(self):
+        """
+        Make dataframe of collection info
+        """
+        df_collection = pd.DataFrame([
+            dict(name='Pre-test', collection_id=1, max_problems=64),
+            dict(name='Module 1', collection_id=2, max_problems=15),
+            dict(name='Module 2', collection_id=3, max_problems=22),
+            dict(name='Module 3', collection_id=4, max_problems=28),
+            dict(name='Module 4', collection_id=5, max_problems=18),
+            dict(name='Module 5', collection_id=6, max_problems=50),
+            dict(name='Post-test', collection_id=7, max_problems=108),
+        ])
+        return df_collection
+
+
+    def make_df_activity(self):
+        """
+        Make dataframe of activity info
+        """
+        df_activity=(self.df_items
+             .merge(self.df_items_kc,on='item_id',suffixes=('', '_y'))
+            .merge(self.df_kc.assign(knowledge_component_id=lambda x: x.kc_id),on='kc_name',suffixes=('_x',''))
+        )
+        # ids where an order value should be assigned within the section
+        fixed_modules = ['post-test fixed','pre-test fixed']
+
+        preadaptive_order = (df_activity
+                             .sort_values('item_id')
+                             .assign(order=None)
+                             .query('module in @fixed_modules')
+                             .groupby('module')
+                             .order
+                             .transform(lambda x: range(1,len(x)+1))
+                            )
+        df_activity=(df_activity
+            .assign(difficulty = lambda x: map_column(x.difficulty, self.difficulty_code))
+            .assign(activity_id=lambda x: x.item_id)
+            .assign(name = lambda x: x.item_name)
+            .assign(preadaptive_order=preadaptive_order)
+            .assign(collection_id=lambda x: map_column(x.module, self.collection_code))
+            .sort_values('item_id').reset_index(drop=True)
+            [['activity_id','name','difficulty','preadaptive_order','collection_id','knowledge_component_id',
+              'unit','item_description','kc_description']]
+        )
+
+        return df_activity
+
+    def make_df_prereq(self):
+        """
+        Make dataframe with prereq relation info
+        """
+        kc_mapping = self.df_kc.set_index('kc_name').kc_id
+        df_prereq = (self.df_kc_kc
+            .assign(connection_strength=lambda x: map_column(x.connection_strength, self.prereq_weight_code))
+            .assign(prereq_kc_id = lambda x: map_column(x.postreq_kc_name, kc_mapping))
+            .assign(postreq_kc_id = lambda x: map_column(x.postreq_kc_name, kc_mapping))
+        )
+        return df_prereq
+
+
+    def make_m_params(self):
+        """
+        Make np matrices for guess, slip, trans
+        """
+        param_values = (self.df_items_kc
+             .assign(guess=lambda x: odds(map_column(x.guess, self.guess_code)))
+             .assign(trans=lambda x: odds(map_column(x.trans, self.trans_code)))
+             .assign(slip=lambda x: odds(self.slip_code['default']))
+             .merge(self.df_kc,  on='kc_name')
+             [['item_id','kc_id','guess','trans','slip']]
+        )
+
+        n_kcs = self.df_kc.shape[0]
+        n_activities = self.df_activity.shape[0]
+
+        m_slip = np.ones([n_activities,n_kcs])
+        m_guess = np.ones([n_activities,n_kcs])
+        m_trans = np.zeros([n_activities,n_kcs])
+
+        for param in param_values.itertuples():
+            m_slip[param.item_id-1][param.kc_id-1] = param.slip
+            m_guess[param.item_id-1][param.kc_id-1] = param.guess
+            m_trans[param.item_id-1][param.kc_id-1] = param.trans
+    
+        return m_slip, m_guess, m_trans
+
+
+    def initialize_collections(self):
+        """
+        Populate Collection model instances in database
+        """
+        Collection.objects.bulk_create([
+            Collection(
+                pk = row.collection_id,
+                name = row.name,
+                max_problems = row.max_problems,
+            ) for row in self.df_collection.itertuples()
+        ])
+
+    def initialize_knowledge_components(self):
+        """
+        Populate KnowledgeComponent model instances in database
+        """
+        KnowledgeComponent.objects.bulk_create([
+            KnowledgeComponent(
+                pk = kc.kc_id,
+                name = kc.kc_name,
+                #TODO remove odds normalization when engine updated
+                mastery_prior = odds(self.prior_knowledge_probability) 
+            ) for kc in self.df_kc.itertuples()
+        ])
+
+    def initialize_activities(self):
+        """
+        Populate Activity model instances in database
+        """
+        activities = Activity.objects.bulk_create([
+            Activity(
+                pk = row.activity_id,
+                collection_id = row.collection_id,
+                name = row.name,
+                difficulty = row.difficulty,
+                preadaptive_order = replace_nan_none(row.preadaptive_order),
+            ) for row in self.df_activity.itertuples()
+        ])
+        # add in knowledge component tagging
+        for idx, activity in self.df_activity.iterrows():
+            # not sure why this is throwing a Unicode error for pk=128
+            # doesn't seem to affect db loading
+            activities[idx].knowledge_components.add(activity.knowledge_component_id)
+
+    def initialize_prereqs(self):
+        """
+        Populate PrerequisiteRelation model intstances in database
+        """
+
+        PrerequisiteRelation.objects.bulk_create([
+            PrerequisiteRelation(
+                prerequisite_id = relation.prereq_kc_id,
+                knowledge_component_id = relation.postreq_kc_id,
+                value = relation.connection_strength
+            ) for relation in self.df_prereq.itertuples()
+        ])
+
+    def initialize_params(self):
+        """
+        Populate Guess/Slip/Trans model instances in database
+        """
+
+        params = {
+            Guess: self.m_guess,
+            Slip: self.m_slip,
+            Transit: self.m_trans,
+        }
+        for param_model in params:
+            objs = []
+            for x, row in enumerate(params[param_model]):
+                for y, value in enumerate(row):
+                    objs.append(param_model(
+                        activity_id = x+1,
+                        knowledge_component_id = y+1,
+                        value = value
+                    ))
+            param_model.objects.bulk_create(objs)
 
 

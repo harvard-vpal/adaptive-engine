@@ -35,10 +35,10 @@ class EngineSimulator(object):
             learner (int): learner id
             collection (int): collection id
         """
-        collection = Collection.objects.get(pk=collection)
-        learner, created = Learner.objects.get_or_create(pk=learner)
+        collection_obj = Collection.objects.get(pk=collection)
+        learner_obj, created = Learner.objects.get_or_create(pk=learner)
         if created:
-            initialize_learner(learner)
-        engine = get_engine(learner)
-        activity_recommendation = engine.recommend(learner, collection)
+            initialize_learner(learner_obj)
+        engine = get_engine(learner_obj)
+        activity_recommendation = engine.recommend(learner_obj, collection_obj)
         return activity_recommendation.pk if activity_recommendation else None
