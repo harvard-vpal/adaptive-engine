@@ -1,10 +1,9 @@
 Post-req LO short name,Post-req LO Description,Pre-req LO short name,Pre-req LO Description,Connection strength
 Histograms and Skewness,Types of Histograms and Skewness,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
-Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Data types,Types of Data,Moderate
+Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Types of Data,Types of Data,Moderate
 CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
 Boxplot,Boxplot Definition and for Comparing Multiple Populations,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Moderate
 Charts,Understanding charts,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
-Pareto,#N/A,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
 Law of Complements,Law of Complements,Probability overview,Introduction to Probability,Strong
 Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Probability overview,Introduction to Probability,Moderate
 Independent Events,Independent Events,Mutually Exclusive Events,Mutually Exclusive Events and Finding Prob (A or B),Strong
