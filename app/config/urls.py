@@ -5,5 +5,5 @@ from . import views
 urlpatterns = [
     url(r'^engine/', include('engine.urls', namespace="engine")),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$',views.health),
+    url(r'^health/',views.health),
 ]
