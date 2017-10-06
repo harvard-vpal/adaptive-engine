@@ -28,6 +28,8 @@ class BaseInitializer(object):
         A / B are adaptive groups, C is nonadaptive
         """
         self.groups = groups
+
+    def initialize(self):
         reset_database('engine')
         self.initialize_engine_settings()
         self.initialize_experimental_groups()
@@ -106,6 +108,14 @@ class FakeInitializer(BaseInitializer):
         self.num_collections = num_collections
         self.num_kcs = num_kcs
 
+
+    def initialize(self):
+        """
+        Create db models
+        """
+        # initialize engine settings and experimental groups
+        super(self.__class__,self).initialize()
+        # initializer-specific initialization
         self.initialize_collections()
         self.initialize_knowledge_components(prior_knowledge_probability)
         self.initialize_prereqs()
@@ -117,8 +127,6 @@ class FakeInitializer(BaseInitializer):
 
     # collections
     def initialize_collections(self):
-        Collection.objects.all().delete()
-
         Collection.objects.bulk_create([Collection(
             pk=pk,
             name="Collection {}".format(pk)
@@ -129,33 +137,35 @@ class FakeInitializer(BaseInitializer):
         """
         initialize QxK matrices guess/slip/transit
         """
-        model = PrerequisiteRelation
-        model.objects.all().delete()
         objs_to_create = []
         for k1 in range(1,self.num_kcs+1):
             for k2 in range(1,self.num_kcs+1):
                 objs_to_create.append(
-                    model(
+                    PrerequisiteRelation(
                         prerequisite_id=k1,
                         knowledge_component_id=k2,
                         value = np.random.uniform()
                     )
                 )
-        return model.objects.bulk_create(objs_to_create)
+        return PrerequisiteRelation.objects.bulk_create(objs_to_create)
 
     def initialize_knowledge_components(self, prior_knowledge_probability):
         """
         Initialize knowledge components
         """
-        return KnowledgeComponent.objects.bulk_create([KnowledgeComponent(
-            pk=pk,
-            name="KnowledgeComponent {}".format(pk),
-            mastery_prior = odds(prior_knowledge_probability)
-        ) for pk in range(1,self.num_kcs+1)])
+        return KnowledgeComponent.objects.bulk_create([
+            KnowledgeComponent(
+                pk=pk,
+                name="KnowledgeComponent {}".format(pk),
+                mastery_prior = odds(prior_knowledge_probability)
+            ) for pk in range(1,self.num_kcs+1)
+        ])
 
 
     def initialize_activities(self):
-
+        """
+        Load activities into database
+        """
         activities = Activity.objects.bulk_create([Activity(
             pk=pk,
             name="Activity {}".format(pk),
@@ -194,16 +204,23 @@ class RealInitializer(BaseInitializer):
             repo_path: path to the github repo, e.g. /Users/me/github/adaptive-engine
             groups: list of group codes
         """
-        # initialize experimental groups and engine settings
+        # call init method on BaseInitializer
         super(self.__class__, self).__init__(groups=groups)
 
-        
         # this is path to the github repository on your machine
         if repo_path:
             self.repo_path = repo_path
         else:
             self.repo_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+    def initialize(self):
+        """
+        Create database models
+        """
+        # wipe database, create experimental group, config etc
+        super(self.__class__,self).initialize()
+
+        # data loading
         self.initialization_prep()
         self.initialize_collections()
         self.initialize_knowledge_components()
@@ -211,7 +228,7 @@ class RealInitializer(BaseInitializer):
         self.initialize_activities()
         self.initialize_param_matrices()
 
-        
+
     def load_tagging_data(self):
 
         def load_data(name):
@@ -564,11 +581,7 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         self.filename_items_kc = data_folder+"/Adaptive Engine Data - Essential Stats - Items-KC.csv"
         self.filename_kc_kc = data_folder+"/Adaptive Engine Data - Essential Stats - KC-KC.csv"
         self.filename_kc = data_folder+"/Adaptive Engine Data - Essential Stats - KC.csv"
-
-
-    def initialize(self):
         self.make_data()
-        self.load_db()
 
     def make_data(self):
         """
@@ -584,17 +597,15 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         self.df_prereq = self.make_df_prereq()
         self.m_slip, self.m_guess, self.m_trans = self.make_m_params()
 
-
-    def load_db(self):
+    def initialize(self):
         """
-        Use tables to load to database
+        Create database models
         """
         self.initialize_collections()
         self.initialize_knowledge_components()
         self.initialize_activities()
-        # self.initialize_prereqs()        
-        # self.initialize_params()
-
+        self.initialize_prereqs()
+        self.initialize_params()
 
     def get_df_items(self):
         """
