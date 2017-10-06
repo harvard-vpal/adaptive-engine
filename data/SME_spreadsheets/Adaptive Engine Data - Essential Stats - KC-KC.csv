@@ -1,6 +1,6 @@
 Post-req LO short name,Post-req LO Description,Pre-req LO short name,Pre-req LO Description,Connection strength
 Histograms and Skewness,Types of Histograms and Skewness,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
-Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Types of Data,Types of Data,Moderate
+Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Data types,Types of Data,Moderate
 CAGR,Geometric Mean and Compound Annual Growth Rate (CAGR),Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
 Boxplot,Boxplot Definition and for Comparing Multiple Populations,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Moderate
 Charts,Understanding charts,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Weak
@@ -42,4 +42,4 @@ T-Test Paired Two Sample for Means,T-Test Paired Two Sample for Means,Hypothesis
 Chi Square,Computation of Chi Squared Statistic,P-Values,"Critical Region, P-Values,  and T.INVERSE Function",Strong
 Chi Square,Computation of Chi Squared Statistic,Descriptive Stats,"Computing Mean, Median, Variance, and Standard Deviation, Outliers",Strong
 Chi Square,Computation of Chi Squared Statistic,Hypothesis Testing,"Defining Hypothesis Testing - Null and Alternative Hypotheses, Critical regions, & Errors",Moderate
-Chi Square,Computation of Chi Squared Statistic,Types of Data,Types of Data,Moderate
+Chi Square,Computation of Chi Squared Statistic,Data types,Types of Data,Moderate
