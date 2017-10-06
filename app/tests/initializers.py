@@ -595,12 +595,16 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         self.df_collection = self.make_df_collection()
         self.df_activity = self.make_df_activity()
         self.df_prereq = self.make_df_prereq()
+        self.m_prereq = self.make_m_prereq()
         self.m_slip, self.m_guess, self.m_trans = self.make_m_params()
 
     def initialize(self):
         """
         Create database models
         """
+        # wipe database, create experimental group, config etc
+        super(self.__class__,self).initialize()
+        # create rest of database models
         self.initialize_collections()
         self.initialize_knowledge_components()
         self.initialize_activities()
@@ -715,11 +719,20 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         kc_mapping = self.df_kc.set_index('kc_name').kc_id
         df_prereq = (self.df_kc_kc
             .assign(connection_strength=lambda x: map_column(x.connection_strength, self.prereq_weight_code))
-            .assign(prereq_kc_id = lambda x: map_column(x.postreq_kc_name, kc_mapping))
+            .assign(prereq_kc_id = lambda x: map_column(x.prereq_kc_name, kc_mapping))
             .assign(postreq_kc_id = lambda x: map_column(x.postreq_kc_name, kc_mapping))
         )
         return df_prereq
 
+    def make_m_prereq(self):
+        """
+        Make sparse matrix with kc-kc relation values
+        """
+        num_kcs = self.df_kc.shape[0]
+        m_prereq = np.zeros((num_kcs,num_kcs))
+        for relation in self.df_prereq.itertuples():
+            m_prereq[relation.prereq_kc_id-1][relation.postreq_kc_id-1] = relation.connection_strength
+        return m_prereq
 
     def make_m_params(self):
         """
@@ -796,14 +809,15 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         """
         Populate PrerequisiteRelation model intstances in database
         """
-
-        PrerequisiteRelation.objects.bulk_create([
-            PrerequisiteRelation(
-                prerequisite_id = relation.prereq_kc_id,
-                knowledge_component_id = relation.postreq_kc_id,
-                value = relation.connection_strength
-            ) for relation in self.df_prereq.itertuples()
-        ])
+        objs = []
+        for x, row in enumerate(self.m_prereq):
+            for y, value in enumerate(row):
+                objs.append(PrerequisiteRelation(
+                    prerequisite_id = x+1,
+                    knowledge_component_id = y+1,
+                    value = value
+                ))
+        PrerequisiteRelation.objects.bulk_create(objs)
 
     def initialize_params(self):
         """

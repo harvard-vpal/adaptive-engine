@@ -12,30 +12,30 @@ class DataLoading(TestCase):
     Verify the number of objects created during data initialization
     """
     def setUp(self):
-        RealInitializer()
+        RealInitializerFromSmeFiles().initialize()
         # target values
-        self.test_num_collections = 7
+        self.num_collections = 7
         self.num_activities = 435
-        self.num_kcs = 37
+        self.num_kcs = 35
 
     def test_num_collections(self):
         """
         Check that the number of Collections initialized is 7
         """
-        self.assertEqual(Collection.objects.count(),7)
+        self.assertEqual(Collection.objects.count(),self.num_collections)
 
     def test_num_activities(self):
         """
         Check that the number of Activities initialized is 435
         """
-        self.assertEqual(Activity.objects.count(),435)
+        self.assertEqual(Activity.objects.count(),self.num_activities)
 
     def test_num_knowledge_components(self):
         """
         Check that the number of KnowledgeComponents initialized
         is 37
         """
-        self.assertEqual(KnowledgeComponent.objects.count(),37)
+        self.assertEqual(KnowledgeComponent.objects.count(),self.num_kcs)
 
     def test_num_guess(self):
         """
@@ -51,10 +51,7 @@ class ApiTest(TestCase):
     """
     def setUp(self):
         RealInitializerFromSmeFiles().initialize()
-        # self.engine = EngineApiTestClient(token=create_token())
-        
-    def test_test(self):
-        self.assertTrue(True)
+        self.engine = EngineApiTestClient(token=create_token())
 
     def test_recommend_activity(self):
         """
@@ -85,7 +82,7 @@ class AdaptiveLearnerSequence(TestCase):
     Test cases simulating a sequence of problems
     """
     def setUp(self):
-        RealInitializerFromSmeFiles(groups=['A'])
+        RealInitializerFromSmeFiles(groups=['A']).initialize()
         self.engine = EngineSimulator()
 
     def simulate_learner_sequence(self, learner_id=None, collection_id=None, num_trials=30):
