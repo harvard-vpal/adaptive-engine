@@ -807,7 +807,7 @@ class RealInitializerFromSmeFiles(BaseInitializer):
 
     def initialize_prereqs(self):
         """
-        Populate PrerequisiteRelation model intstances in database
+        Populate PrerequisiteRelation model instances in database
         """
         objs = []
         for x, row in enumerate(self.m_prereq):
