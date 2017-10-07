@@ -132,6 +132,20 @@ def difficulty(activities=None):
     return log_odds(difficulty_raw, clean=True)
 
 
+def get_matrix_index_for_activity_pks(activity_pks):
+    """
+    Convert list of activity pks to matrix index (0-indexed)
+    Arguments:
+        activity_pks (list-like): list of activity pks to convert to 0-indexed matrix position
+    """
+    # sorted list of all activity pks
+    activity_pks_all = Activity.objects.order_by('pk').values_list('pk',flat=True) 
+    # key = activity pk, value = 0-based index corresponding to position in data matrix
+    activity_pk_idx_map = {pk:i for i,pk in enumerate(activity_pks_all)}
+    activity_idxs = [activity_pk_idx_map[pk] for pk in activity_pks]
+    return activity_idxs
+
+
 def knowledge(scores):
     """
     ##This function finds the empirical knowledge of a single user given a 
@@ -141,9 +155,8 @@ def knowledge(scores):
     - used in estimate: u_knowledge=knowledge(self, temp.problem_id, temp.score)
     """
 
-    # get map of activity objects to matrix index
-    activity_map = {a:i for i,a in enumerate(Activity.objects.all())}
-    activity_idxs = [activity_map[s.activity] for s in scores]
+    # list of matrix 0-based indices for activities associated with scores
+    activity_idxs = get_matrix_index_for_activity_pks(scores.values_list('activity',flat=True))
 
     m_guess_u = -np.log(Matrix(Guess).values())[activity_idxs,]
     m_slip_u = -np.log(Matrix(Slip).values())[activity_idxs,]
@@ -186,7 +199,7 @@ def knowledge(scores):
     return knowl
 
 
-def estimate(relevance_threshold=0.01,information_threshold=20, remove_degeneracy=True):
+def estimate(relevance_threshold=0.01, information_threshold=20, remove_degeneracy=True):
     """
     This function estimates the BKT model using empirical probabilities
     To account for the fact that NaN and Inf elements of the estimated 
@@ -197,19 +210,21 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
     values and should be used to simply replace the current BKT parameter 
     matrices.
     """   
+
+    learners = Learner.objects.all()
+
     n_items = Activity.objects.count()
     n_los = KnowledgeComponent.objects.count()
-    learners = Learner.objects.all()
     n_users = learners.count()
 
-    trans=np.zeros((n_items,n_los))
-    trans_denom=trans.copy()
-    guess=trans.copy()
-    guess_denom=trans.copy()
-    slip=trans.copy()
-    slip_denom=trans.copy()
-    p_i=np.repeat(0.,n_los)
-    p_i_denom=p_i.copy()
+    trans = np.zeros((n_items,n_los))
+    trans_denom = trans.copy()
+    guess = trans.copy()
+    guess_denom = trans.copy()
+    slip = trans.copy()
+    slip_denom = trans.copy()
+    p_i = np.repeat(0.,n_los)
+    p_i_denom = p_i.copy()
 
     # full QxK relevance matrix
     m_k = relevance(Matrix(Guess).values(),Matrix(Slip).values())
@@ -218,32 +233,33 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
     scores = Score.objects.order_by('timestamp').filter(activity__include_adaptive=True)
     activities = Activity.objects.all()
 
-    # get map of activity objects to matrix index
-    # key = activity object, value = index corresponding to position in data matrix
-    activity_map = {a:i for i,a in enumerate(activities)}
-
     # for u in training_set:
     for learner in learners:
 
         ## user_scores is a queryset of scores for a particular user u, arranged in chronological order. 
         user_scores = Score.objects.filter(learner=learner).order_by('timestamp')
-        ## score_values is a list of problems in chronological order.
+        ## score_values is a list of score values for a learner in chronological order.
         score_values = np.array([s.score for s in user_scores])
+
+        #TODO is it okay to have multiple attempts?
 
         # Number of items submitted by the learner
         J = user_scores.count()
+
         if J > 0:
 
-            # get column of activity matrix index values
-            activity_idxs = [activity_map[s.activity] for s in user_scores]
+            # get column of activity matrix 0-based index values
+            activity_idxs = get_matrix_index_for_activity_pks(user_scores.values_list('activity',flat=True))
+            
+            # relevance values for each activity attempted
             m_k_u = m_k[activity_idxs,]
             
-            #Calculate the sum of relevances of user's experience for a each learning objective
-            u_R=np.sum(m_k_u,axis=0)
+            #Calculate the sum of relevances of user's experience for each learning objective
+            u_R = np.sum(m_k_u,axis=0)
                           
             ##Implement the relevance threshold: zero-out what is not above it, set the rest to 1
-            u_R=(u_R>relevance_threshold) 
-            m_k_u=(m_k_u>relevance_threshold)
+            u_R = (u_R > relevance_threshold) 
+            m_k_u = (m_k_u > relevance_threshold)
 
             # calculate knowledge based on user scores
             u_knowledge = knowledge(user_scores)
@@ -251,8 +267,8 @@ def estimate(relevance_threshold=0.01,information_threshold=20, remove_degenerac
             ## Now prepare the matrix by replicating the correctness column for each LO.
 
             # Contribute to the averaged initial knowledge.
-            p_i+=u_knowledge[0,]*u_R
-            p_i_denom+=u_R
+            p_i += u_knowledge[0,]*u_R
+            p_i_denom += u_R
                         
             ##Contribute to the trans, guess and slip probabilities 
             ## (numerators and denominators separately).
