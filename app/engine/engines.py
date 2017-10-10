@@ -172,7 +172,7 @@ class AdaptiveEngine(object):
         """
         # enforce max problems limit for collection
         if collection.max_problems:
-            if utils.get_activities(learner, collection, seen=True).count() > collection.max_problems:
+            if utils.get_activities(learner, collection, seen=True).count() >= collection.max_problems:
                 return None
 
         # get unseen activities within module that are valid to serve to adaptive group
@@ -233,7 +233,7 @@ class AdaptiveEngine(object):
             + self.settings.W_d * D
             + self.settings.W_c * C
         )]
-        
+
         return next_item
 
 
