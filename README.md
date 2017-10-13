@@ -6,8 +6,10 @@ This repository contains the adaptive engine to be used in a Microsoft EdX cours
 In this repo:
 * `app/` - Adaptive engine web application (python/django) code
 * `data/` - data for engine initialization and data processing/transform scripts
+* `monitoring/` - terraform files for setting up cloudwatch alarms on an elastic beanstalk deployment
 * `python_prototype/` - python prototype for adaptive engine
 * `r_prototype/` - R prototype for adaptive engine
+* `tests/` - Testing scripts, including load testing with Locust
 * `writeup/` - Writeup and LaTeX files to generate the document
 
 ## Running the engine application locally
