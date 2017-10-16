@@ -541,7 +541,7 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         self.guess_code={
             'Low':0.08,
             'Moderate':0.12,
-            'High':0.20,
+            'High':0.15,
             'default':0.1,
         }
         self.slip_code={
