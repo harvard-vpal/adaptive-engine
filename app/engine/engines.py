@@ -245,12 +245,13 @@ def update_model(eta=0.0, M=20.0):
         eta (float): Relevance threshold used in the BKT optimization procedure
         M (float): Information threshold user in the BKT optimization procedure
     """
+    print "Starting update_model()..."
     est = utils.estimate(eta, M)
-
+    print "Saving L_i ..."
     # save L_i
     L_i = Vector(KnowledgeComponent.objects.all(),value_field='mastery_prior')
     L_i.update(1.0*est['L_i'])
-    
+    print "Saving matrices..."
     # save param matrices
     Matrix(Transit).update(1.0*est['trans'])
     Matrix(Guess).update(1.0*est['guess'])
