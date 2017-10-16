@@ -155,9 +155,11 @@ def knowledge(scores):
     - used in estimate: u_knowledge=knowledge(self, temp.problem_id, temp.score)
     """
 
+    # TODO can be optimized by caching mapping and using for all learners
     # list of matrix 0-based indices for activities associated with scores
     activity_idxs = get_matrix_index_for_activity_pks(scores.values_list('activity',flat=True))
 
+    # TODO could cache full Guess/Slip matrices
     m_guess_u = -np.log(Matrix(Guess).values())[activity_idxs,]
     m_slip_u = -np.log(Matrix(Slip).values())[activity_idxs,]
 
