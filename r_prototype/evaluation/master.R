@@ -7,18 +7,20 @@ taggingBy="SME"
 options(stringsAsFactors = FALSE)
 
 
-##Point to these scripts if not in these places
-source("../propagator.R")
-source("../optimizer.R")
-source("../derivedData.R")
+##Point to where the scripts propagator, optimizer and derivedData are:
+dir_scripts='..'
+# dir_scripts='../multiplicative formulation'
+
 ###Point to the place where SMEs tables are:
 datadir='../SME_data'
 ##Where to write matrices (will create directory if missing; if NULL, will not write anywhere)
 writedir=NULL
 
-# source("../multiplicative formulation/propagator.R")
-# source("../multiplicative formulation/optimizer.R")
-# source("../multiplicative formulation/derivedData.R")
+source(file.path(dir_scripts,"propagator.R"))
+source(file.path(dir_scripts,"optimizer.R"))
+source(file.path(dir_scripts,"derivedData.R"))
+
+
 
 
 

@@ -13,4 +13,4 @@ m.trans=est$trans
 m.guess=est$guess
 m.slip=est$slip
 
-source("../derivedData.R")
+source(file.path(dir_scripts,"derivedData.R"))
