@@ -7,10 +7,14 @@ taggingBy="SME"
 options(stringsAsFactors = FALSE)
 
 
-
+##Point to these scripts if not in these places
 source("../propagator.R")
 source("../optimizer.R")
 source("../derivedData.R")
+# source("../multiplicative formulation/propagator.R")
+# source("../multiplicative formulation/optimizer.R")
+# source("../multiplicative formulation/derivedData.R")
+
 
 
 ######Load the transaction log data (This needs to be changed according to your data situation)#######
@@ -36,8 +40,10 @@ LogData$problem_id=sample(probs$id,nrow(LogData),replace=TRUE)
 
 
 
-
-
+###Point to the place where SMEs tables are:
+datadir='../SME_data'
+##Where to write matrices (will create directory if missing; if NULL, will not write anywhere)
+writedir=NULL
 
 
 

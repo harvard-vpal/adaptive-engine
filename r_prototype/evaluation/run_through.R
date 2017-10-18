@@ -1,8 +1,5 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
-# source("../multiplicative formulation/propagator.R")
-# source("../multiplicative formulation/optimizer.R")
-# source("../multiplicative formulation/derivedData.R")
 source("clean_slate.R")
 
 time.start=proc.time()[3];

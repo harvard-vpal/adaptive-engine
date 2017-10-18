@@ -1,7 +1,7 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
-datadir='/Users/ilr548/Dropbox/AdaptiveEngine/SME_interfacing'
-##Where to write matrices (will create directory if missing; if NULL, will not write anywhere)
-writedir='/Users/ilr548/Dropbox/AdaptiveEngine/SME_interfacing/tagging_data'
+# datadir='/Users/ilr548/Dropbox/AdaptiveEngine/SME_data'
+# ##Where to write matrices (will create directory if missing; if NULL, will not write anywhere)
+# writedir='/Users/ilr548/Dropbox/AdaptiveEngine/SME_data/tagging_data'
 
 
 #Codes for converting categorical to numerical data
