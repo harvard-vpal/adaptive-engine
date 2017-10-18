@@ -85,12 +85,12 @@ return(knowledge)
 
 
 
-estimate=function(relevance.threshold=0.01, information.threshold=20,remove.degeneracy=TRUE, training.set=NULL){
+estimate=function(relevance.threshold=0, information.threshold=20,remove.degeneracy=TRUE, training.set=NULL){
   
 ##This function estimates the matrices of the BKT parameters from the user interaction data.
 ##To account for the fact that NaN and Inf elements of the estimated matrices should not be used as updates, this function replaces such elements with the corresponding elements of the current BKT parameter matrices.
 ##Thus, the outputs of this function do not contain any non-numeric values and should be used to simply replace the current BKT parameter matrices.
-
+  
 trans=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 trans.denom=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
 guess=matrix(0,nrow=n.probs,ncol=n.los,dimnames=list(probs$id,los$id))
@@ -107,8 +107,8 @@ training.set=users$id
 for (u in training.set){
   
   ##List problems that the user tried, in chronological order
-  
-  temp=subset(transactions,(transactions$user_id==u)&(transactions$problem_id %in% useForTraining))
+  # temp=subset(transactions,(transactions$user_id==u)&(transactions$problem_id %in% useForTraining))
+  temp=subset(transactions,(transactions$user_id==u))
   temp=temp[order(temp$time),]
   
   J=length(temp$problem_id)
