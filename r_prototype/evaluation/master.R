@@ -11,6 +11,11 @@ options(stringsAsFactors = FALSE)
 source("../propagator.R")
 source("../optimizer.R")
 source("../derivedData.R")
+###Point to the place where SMEs tables are:
+datadir='../SME_data'
+##Where to write matrices (will create directory if missing; if NULL, will not write anywhere)
+writedir=NULL
+
 # source("../multiplicative formulation/propagator.R")
 # source("../multiplicative formulation/optimizer.R")
 # source("../multiplicative formulation/derivedData.R")
@@ -38,12 +43,6 @@ LogData=LogData[1:2000,]
 LogData$problem_id=sample(probs$id,nrow(LogData),replace=TRUE)
 #########################################################
 
-
-
-###Point to the place where SMEs tables are:
-datadir='../SME_data'
-##Where to write matrices (will create directory if missing; if NULL, will not write anywhere)
-writedir=NULL
 
 
 
