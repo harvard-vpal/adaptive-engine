@@ -12,3 +12,5 @@ m.L=replace(m.L,ind.pristine,m.L.i[ind.pristine])
 m.trans=est$trans
 m.guess=est$guess
 m.slip=est$slip
+
+source("../derivedData.R")
