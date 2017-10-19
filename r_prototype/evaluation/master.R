@@ -9,7 +9,7 @@ options(stringsAsFactors = FALSE)
 
 ##Point to where the scripts propagator, optimizer and derivedData are:
 dir_scripts='..'
-# dir_scripts='../multiplicative formulation'
+dir_scripts='../multiplicative formulation'
 
 ###Point to the place where SMEs tables are:
 datadir='../SME_data'
@@ -18,7 +18,6 @@ writedir=NULL
 
 source(file.path(dir_scripts,"propagator.R"))
 source(file.path(dir_scripts,"optimizer.R"))
-source(file.path(dir_scripts,"derivedData.R"))
 
 
 
@@ -42,14 +41,14 @@ LogData=subset(LogData,!(username %in% staff$username))
 LogData=plyr::rename(LogData,c('username'='user_id'))
 
 LogData=LogData[1:2000,]
-LogData$problem_id=sample(probs$id,nrow(LogData),replace=TRUE)
+LogData$problem_id=sample(as.character(1:435),nrow(LogData),replace=TRUE)
 #########################################################
 
 
 
 
 source("data_load.R")
-
+source(file.path(dir_scripts,"derivedData.R"))
 x.c.all=NULL
 x.p.all=NULL
 x.p.chance.all=NULL
@@ -88,7 +87,7 @@ for (fold in 1:K){
     training.set=users$id
   }
   before.optimizing=TRUE
-  source('run_through.R')
+  source('clean_slate.R')
   source('update_model.R')
   before.optimizing=FALSE
   source('run_through.R')
