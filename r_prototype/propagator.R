@@ -1,17 +1,20 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
-bayesUpdate=function(u, problem, score=1, time=1, attempts="all"){
+bayesUpdate=function(u, problem, score=1, time=1, attempts="all", write=TRUE){
   
-  last.seen[u]<<-problem
+  options(stringsAsFactors = FALSE)
   
+  last.seen[u]=problem
 
   if(m.unseen[u,problem]){
-    m.unseen[u,problem]<<-FALSE
-    m.exposure[u,]<<-m.exposure[u,]+m.tagging[problem,]
-    m.confidence[u,]<<-m.confidence[u,]+m.k[problem,]
+    m.unseen[u,problem]=FALSE
+    m.exposure[u,]=m.exposure[u,]+m.tagging[problem,]
+    m.confidence[u,]=m.confidence[u,]+m.k[problem,]
     
     if(attempts=="first"){
-      # transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+      if(write){
+        transactions=rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+      }
       x=m.x0[problem,]*((m.x10[problem,])^score)
       L=m.L[u,]*x
       
@@ -23,7 +26,9 @@ bayesUpdate=function(u, problem, score=1, time=1, attempts="all"){
   }
   
   if(attempts!="first"){
-    # transactions<<-rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+    if(write){
+      transactions=rbind(transactions,data.frame(user_id=u,problem_id=problem,time=time,score=score))
+    }
     x=m.x0[problem,]*((m.x10[problem,])^score)
    L=m.L[u,]*x
   
@@ -38,7 +43,7 @@ bayesUpdate=function(u, problem, score=1, time=1, attempts="all"){
   L[which(is.infinite(L))]=inv.epsilon
   L[which(L==0)]=epsilon
   m.L[u,]<<-L
-
+  # options(stringsAsFactors = TRUE)
 }
 
 predictCorrectness=function(u, problem){
@@ -63,11 +68,13 @@ predictCorrectness=function(u, problem){
 }
 
 
-recommend=function(u, module=1, stopOnMastery=TRUE,normalize=FALSE){
+recommend=function(u, module=1, stopOnMastery=FALSE,normalize=FALSE){
   
   ##This function returns the id of the next recommended problem. If none is recommended (list of problems exhausted or the user has reached mastery) it returns NULL.
   
-  ind.unseen=which(m.unseen[u,] & ((scope==module)|(scope==0)))
+  ind.unseen=which(m.unseen[u,] & scope[,module])
+  
+  # ind.unseen=which(m.unseen[u,] & ((scope==module)|(scope==0)))
   L=log(m.L[u,])
   
   if (stopOnMastery){
@@ -110,12 +117,23 @@ recommend=function(u, module=1, stopOnMastery=TRUE,normalize=FALSE){
       if(!is.infinite(temp)){C=C*temp}
     }
         
-      next.prob.id=rownames(R)[which.max(V.r*R+V.d*D+V.a*A+V.c*C)]
+      next.prob.id=names(ind.unseen)[which.max(V.r*R+V.d*D+V.a*A+V.c*C)]
       
       
       
      
   }
+  
+  # print('Readiness: ')
+  # print(R)
+  # print('Demand:')
+  # print(D)
+  # print('Difficulty:')
+  # print(A)
+  # print('Continuity:')
+  # print(C)
+  # print('Combination:')
+  # print(V.r*R+V.d*D+V.a*A+V.c*C)
   return(next.prob.id)
   
 }

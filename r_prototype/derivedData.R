@@ -26,14 +26,6 @@ m.x10<<-m.x1/m.x0
 
 
 
- ##Normalize and prepare difficulty vector:
- 
- # if (diff(range(difficulty))!=0){
- #   difficulty=(difficulty-min(difficulty))/(diff(range(difficulty)))
- # }
-
- difficulty=pmin(pmax(difficulty,epsilon),1-epsilon)
- difficulty=log(difficulty/(1-difficulty))
 
  ##Define a matrix of problem difficulties clones for all LOs (used in recommendation)
  m.difficulty<<-matrix(rep(difficulty,n.los),ncol=n.los, byrow = FALSE)
