@@ -49,3 +49,9 @@ The engine should now be available at localhost:8000. Try opening localhost:8000
 ```
 python manage.py test
 ```
+
+## Running model update
+There is a custom django-admin command to update the engine model. One approach for automating the model update is to set up a cron job - for example (update model every 2 hours):
+```
+0 */2 * * * docker run app python manage.py update_model --eta=0.0 --M=20.0 --settings=config.settings.eb_prod
+```
