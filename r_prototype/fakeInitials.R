@@ -1,6 +1,6 @@
 ##Author: Ilia Rushkin, VPAL Research, Harvard University, Cambridge, MA, USA
 
-n.users<<-10
+n.users<<-1
 n.los<<-8
 n.probs<<-40
 n.modules=2
@@ -9,6 +9,7 @@ slip.probability=0.15
 guess.probability=0.1
 trans.probability=0.1
 prior.knowledge=0.2
+forgetting=exp(-1)
 
 ####Global variables####
 epsilon<<-1e-10 # a regularization cutoff, the smallest value of a mastery probability
@@ -16,14 +17,24 @@ eta=0 ##Relevance threshold used in the BKT optimization procedure
 M=20 ##Information threshold user in the BKT optimization procedure
 L.star<<- 3 #Threshold odds. If mastery odds are >= than L.star, the LO is considered mastered
 r.star<<- 0 #Threshold for forgiving lower odds of mastering pre-requisite LOs.
-V.r<<-5 ##Importance of readiness in recommending the next item
-V.d<<-3 ##Importance of demand in recommending the next item
-V.a<<-1 ##Importance of appropriate difficulty in recommending the next item
-V.c<<-1 ##Importance of continuity in recommending the next item
+
+##Substrategy weights
+
+W<<-c(  
+  'remediation'=3
+  ,'continuity'=0.5
+  ,'readiness'=1
+  ,'difficulty'=1
+  ,'memory'=1
+  ,'suggested'=1
+      )
+
+##List of substrategies:
+strategy<<-rep(list(NULL),length(W))
+names(strategy)=names(W)
 
 
 options(stringsAsFactors = FALSE)
-
 
 
 users=data.frame("id"=paste0("u",1:n.users),"name"=paste0("user ",1:n.users), "group"=1)
@@ -33,6 +44,14 @@ los=data.frame("id"=paste0("l",1:n.los),"name"=paste0("LO ",1:n.los))
 los$id=as.character(los$id)
 probs=data.frame("id"=paste0("p",1:n.probs),"name"=paste0("problem ",1:n.probs))
 probs$id=as.character(probs$id)
+
+probs$required.next.id=''
+probs$suggested.next.id=''
+# probs$required.next.id[2]=c(probs$id[1])
+probs$suggested.next.id=c(probs$id[-1],'')
+
+probs$maxsubmits.for.serving=c(NA,rep(1,nrow(probs)-1))
+
 
 #Let problems be divided into several modules of adaptivity. In each module, only the items from that scope are used.
 
@@ -130,27 +149,23 @@ colnames(m.confidence)=los$id
 row.confidence<<- m.confidence[1,]
 
 ##Define the matrix of "user has seen a problem or not": rownames are problems. ####
-m.unseen<<-matrix(TRUE,nrow=n.users, ncol=n.probs);
-rownames(m.unseen)=users$id
-colnames(m.unseen)=probs$id
-row.unseen<<-m.unseen[1,]
+m.times.submitted<<-matrix(0,nrow=n.users, ncol=n.probs);
+rownames(m.times.submitted)=users$id
+colnames(m.times.submitted)=probs$id
+row.times.submitted<<-m.times.submitted[1,]
 ##
 
+##Define the matrix of item forgetting parameters
+m.forgetting<<-matrix(forgetting,nrow=nrow(users),ncol=nrow(probs))
+rownames(m.forgetting)=users$id
+colnames(m.forgetting)=probs$id
+
+m.item.memory<<-matrix(0,nrow=nrow(users),ncol=nrow(probs))
+rownames(m.item.memory)=users$id
+colnames(m.item.memory)=probs$id
 
 ##Define the data frame of interaction records
 transactions<<-data.frame()
-
-# ##Define the matrix of results of user interactions with problems.####
-# m.correctness<<-matrix(NA,nrow=n.users, ncol=n.probs);
-# rownames(m.correctness)=users$id
-# colnames(m.correctness)=probs$id
-# row.correctness<<-m.correctness[1,]
-# 
-# ##Define the matrix of time stamps of results of user interactions with problems.####
-# m.timestamp<<-matrix(NA,nrow=n.users, ncol=n.probs);
-# rownames(m.timestamp)=users$id
-# colnames(m.timestamp)=probs$id
-# row.timestamp<<-m.timestamp[1,]
 
 ##Define vector that will store the latest item seen by a user
 
