@@ -6,6 +6,7 @@ recommend=function(u, module=1, stopOnMastery=FALSE,maxitems=1){
   ind.pool=which(((m.times.submitted[u,]<probs$maxsubmits.for.serving)|(is.na(probs$maxsubmits.for.serving))) & scope[,module])
   
   #Check for the presence of a required next id. If yes, and if it is in the pool, return it and the recommendation is over.
+  
   if(last.seen[u]!=''){
     next.prob.id=probs$required.next.id[match(last.seen[u],probs$id)]
     if(next.prob.id %in% names(ind.pool)){
@@ -58,8 +59,11 @@ recommend=function(u, module=1, stopOnMastery=FALSE,maxitems=1){
     strategy$memory=(-m.item.memory[u,ind.pool]*scaling.factors)*W['memory']
     
     #Next suggested item substrategy
-    strategy$suggested=(names(ind.pool)==probs$suggested.next.id[match(last.seen[u],probs$id)])*scaling.factors*W['suggested']
-    
+    if(last.seen[u]!=''){
+      strategy$suggested=(names(ind.pool)==probs$suggested.next.id[match(last.seen[u],probs$id)])*scaling.factors*W['suggested']
+    }else{
+      strategy$suggested=0*scaling.factors*W['suggested']
+    }
      
     
     
