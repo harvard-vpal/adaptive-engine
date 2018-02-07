@@ -1,6 +1,6 @@
 recommend=function(u, module=1, stopOnMastery=FALSE,maxitems=1){
   
-  ##This function returns the id of the next recommended problem. If none is recommended (list of problems exhausted or the user has reached mastery) it returns NULL.
+  ##This function returns the id(s) of the next recommended problem(s). If none is recommended it returns NULL.
   
   ##Exclude from the pool items that have been submitted too many times and which do not belong to the scope
   ind.pool=which(((m.times.submitted[u,]<probs$maxsubmits.for.serving)|(is.na(probs$maxsubmits.for.serving))) & scope[,module])
