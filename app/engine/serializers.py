@@ -43,20 +43,15 @@ class CollectionSerializer(serializers.ModelSerializer):
 
 
 class ActivitySerializer(serializers.ModelSerializer):
-    collection = CreatablePrimaryKeyRelatedField(
-        queryset = Collection.objects.all(),
-    )
-    id = serializers.IntegerField(read_only=False)
     class Meta:
         model = Activity 
-        fields = ('collection','id','name','difficulty','tags')
-        read_only_fields = ()
+        fields = ('collection','url','name','difficulty','tags')
 
 
 class ActivityRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
-        fields = ('collection','id')
+        fields = ('collection','url')
 
 
 class ScoreSerializer(serializers.ModelSerializer):
