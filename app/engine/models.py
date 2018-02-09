@@ -44,7 +44,7 @@ class Activity(models.Model):
     """
     url = models.CharField(max_length=500, default='')
     name = models.CharField(max_length=200, default='')
-    collection = models.ForeignKey(Collection,blank=True)
+    collections = models.ManyToManyField(Collection,blank=True)
     knowledge_components = models.ManyToManyField(KnowledgeComponent,blank=True)
     difficulty = models.FloatField(null=True,blank=True)
     tags = models.TextField(default='')
