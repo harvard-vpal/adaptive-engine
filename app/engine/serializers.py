@@ -45,13 +45,13 @@ class CollectionSerializer(serializers.ModelSerializer):
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity 
-        fields = ('collection','url','name','difficulty','tags')
+        fields = ('collections','url','name','difficulty','tags')
 
 
 class ActivityRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
-        fields = ('collection','url')
+        fields = ('url')
 
 
 class ScoreSerializer(serializers.ModelSerializer):
