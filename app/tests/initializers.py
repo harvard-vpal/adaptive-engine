@@ -166,13 +166,15 @@ class FakeInitializer(BaseInitializer):
         """
         Load activities into database
         """
-        activities = Activity.objects.bulk_create([Activity(
-            pk=pk,
-            name="Activity {}".format(pk),
-            difficulty = np.random.uniform(),
-            collection_id = np.random.randint(1,self.num_activities+1),
-            knowledge_components = [np.random.randint(1,self.num_kcs+1)]
-        ) for pk in range(1,self.num_activities+1)])
+        for pk in range(1,self.num_activities+1):
+            activity = Activity(
+                pk=pk,
+                name="Activity {}".format(pk),
+                difficulty = np.random.uniform(),
+            )
+            activity.save()
+            activity.collections.set([np.random.randint(1,self.num_activities+1)])
+            activity.knowledge_components.set([np.random.randint(1,self.num_kcs+1)])
 
 
     def initialize_param_matrix(self, model, value):
@@ -369,16 +371,17 @@ class RealInitializer(BaseInitializer):
         # create activities from df
 
         # create activities
-        activities = Activity.objects.bulk_create([
-            Activity(
+        for row in self.df_activities.itertuples():
+            activity = Activity(
                 pk = row.pk,
-                collection_id = row.collection_id,
                 name = row.name,
                 difficulty = row.difficulty,
                 include_adaptive = self.replace_nan_none(row.include_adaptive),
                 preadaptive_order = self.replace_nan_none(row.preadaptive_order),
-            ) for row in self.df_activities.itertuples()
-        ])
+            )
+            activity.save()
+            activity.collections.set([row.collection_id])
+
         # add in knowledge component tagging
         for activity_idx, kc_idx in self.activity_tagging.iteritems():
             activities[activity_idx].knowledge_components.add(kc_idx+1)
@@ -504,20 +507,19 @@ class RealAdaptiveNonadaptiveInitializer(RealInitializer):
         Create activity objects in database
         """
 
-        # create activities from df
-
         # create activities
-        activities = Activity.objects.bulk_create([
-            Activity(
+        for row in self.df_activities.itertuples():
+            activity = Activity(
                 pk = row.pk,
-                collection_id = row.collection_id,
                 name = row.name,
                 difficulty = row.difficulty,
                 include_adaptive = self.replace_nan_none(row.include_adaptive),
                 nonadaptive_order = self.replace_nan_none(row.nonadaptive_order),
                 preadaptive_order = self.replace_nan_none(row.preadaptive_order),
-            ) for row in self.df_activities.itertuples()
-        ])
+            )
+            activity.save()
+            activity.collections.set([row.collection_id])
+
         # add in knowledge component tagging
         for idx in self.activity_tagging:
             activities[idx].knowledge_components.add(self.activity_tagging[idx])
@@ -790,15 +792,16 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         """
         Populate Activity model instances in database
         """
-        activities = Activity.objects.bulk_create([
-            Activity(
+        for row in self.df_activity.itertuples():
+            activity =  Activity(
                 pk = row.activity_id,
-                collection_id = row.collection_id,
                 name = row.name,
                 difficulty = row.difficulty,
                 preadaptive_order = replace_nan_none(row.preadaptive_order),
-            ) for row in self.df_activity.itertuples()
-        ])
+            )
+            activity.save()
+            activity.collections.set([row.collection_id])
+
         # add in knowledge component tagging
         for idx, activity in self.df_activity.iterrows():
             # not sure why this is throwing a Unicode error for pk=128

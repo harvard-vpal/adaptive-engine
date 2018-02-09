@@ -50,7 +50,6 @@ class ActivityViewSet(viewsets.ModelViewSet):
         else:
             # engine indicates learner is done with sequence
             recommendation_data = dict(
-                collection=collection,
                 id=None,
                 complete=True,
             )

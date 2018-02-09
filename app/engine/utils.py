@@ -41,7 +41,7 @@ def get_activities(learner, collection=None, seen=False):
         activities = activities.filter(score__in=learner_scores)
 
     if collection:
-        activities = activities.filter(collection=collection)
+        activities = activities.filter(collections=collection)
 
         # filtering based on whether learner should be seeing adaptive
         # vs non-adaptive problems
