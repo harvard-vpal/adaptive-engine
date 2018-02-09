@@ -42,6 +42,7 @@ class Activity(models.Model):
     """
     Activity model
     """
+    url = models.CharField(max_length=500, default='')
     name = models.CharField(max_length=200, default='')
     collection = models.ForeignKey(Collection,blank=True)
     knowledge_components = models.ManyToManyField(KnowledgeComponent,blank=True)
