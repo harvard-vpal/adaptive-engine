@@ -41,6 +41,49 @@ class CollectionSerializer(serializers.ModelSerializer):
         model = Collection 
         fields = '__all__'
 
+class CollectionActivityListSerializer(serializers.ListSerializer):
+
+    def update(self, instance, validated_data):
+        """
+        Assumes collection instance or id is passed into serializer context at initializtion,
+        and is available at self.instance.context
+        Adds activities to the collection if they are not already in collection,
+        and create new activities or updates fields of existing activities if needed.
+        "instance" argument is the queryset of activities currently in the collection
+        """
+        # Maps for id->instance and id->data item.
+        activity_mapping = {activity.url: activity for activity in instance}
+        data_mapping = {item['url']: item for item in validated_data}
+
+        # Perform creations, updates and additions to collection
+        results = []
+        for activity_url, data in data_mapping.items():
+            # check if activity with url id exists anywhere
+            activity, created = Activity.objects.update_or_create(data, url=activity_url)
+            # make sure it is added to collection if within collection context
+            activity.collections.add(self.context['collection'])
+            results.append(activity)
+
+        # Perform removals from collection.
+        for activity_url, activity in activity_mapping.items():
+            if activity_url not in data_mapping:
+                activity.remove(self.context['collection'])
+
+        return results
+
+
+class CollectionActivitySerializer(serializers.ModelSerializer):
+    """
+    Represents activity in the context of a collection
+    Separate serializers so that additon/deletion to collection doesn't affect
+    membership of activity in other collections
+    TODO probably override init to get collection id in
+    """
+    class Meta:
+        model = Activity
+        fields = ('url','name','difficulty','tags')
+        list_serializer_class = CollectionActivityListSerializer
+
 
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
