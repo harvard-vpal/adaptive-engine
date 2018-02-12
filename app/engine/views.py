@@ -79,8 +79,13 @@ class CollectionViewSet(viewsets.ModelViewSet):
     @detail_route()
     def grade(self, request, pk=None):
         collection = self.get_object()
-        grade = collection.grade()
-        return Response({'grade':grade})
+        try:
+            learner_id = int(request.GET.get('learner',None))
+        except:
+            msg = "Learner id not provided, or not valid"
+            return Response({'message':msg}, status=status.HTTP_400_BAD_REQUEST)
+        grade = collection.grade(learner_id)
+        return Response({'grade':grade, 'learner':learner_id})
 
 
 def is_valid_except_learner_not_found(serializer):

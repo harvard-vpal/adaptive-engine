@@ -14,9 +14,10 @@ class Collection(models.Model):
     def __unicode__(self):
         return "{} - {}".format(self.pk, self.name)
 
-    def grade(self):
+    def grade(self, learner):
         """
-        Generate grade based on masteries that bridge can query
+        Generate learner grade based on masteries that bridge can query
+        as a grading policy option. 
         Just uses a placeholder value for now
         """
         return 0.5
