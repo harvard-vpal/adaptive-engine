@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework.response import Response
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework import status
 from django.http import HttpResponse
 from .serializers import *
@@ -62,6 +62,20 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
 
+    @detail_route(methods=['get','post'])
+    def activities(self, request, pk=None):
+        collection = self.get_object()
+        activities = collection.activity_set.all()
+        if request.method == 'POST':
+            serializer = CollectionActivitySerializer(activities, data=request.data, many=True, context={'collection':collection})
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer = CollectionActivitySerializer(activities, many=True, context={'collection':collection})
+        return Response(serializer.data)
+
 
 def is_valid_except_learner_not_found(serializer):
         """
@@ -111,4 +125,3 @@ class ScoreViewSet(viewsets.ModelViewSet):
         
         return Response(serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
-
