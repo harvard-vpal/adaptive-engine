@@ -76,6 +76,12 @@ class CollectionViewSet(viewsets.ModelViewSet):
             serializer = CollectionActivitySerializer(activities, many=True, context={'collection':collection})
         return Response(serializer.data)
 
+    @detail_route()
+    def grade(self, request, pk=None):
+        collection = self.get_object()
+        grade = collection.grade()
+        return Response({'grade':grade})
+
 
 def is_valid_except_learner_not_found(serializer):
         """
