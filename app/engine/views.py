@@ -65,12 +65,14 @@ class CollectionViewSet(viewsets.ModelViewSet):
     def activities(self, request, pk=None):
         collection = self.get_object()
         activities = collection.activity_set.all()
-        serializer = CollectionActivitySerializer(activities, data=request.data, many=True, context={'collection':collection})
         if request.method == 'POST':
+            serializer = CollectionActivitySerializer(activities, data=request.data, many=True, context={'collection':collection})
             if serializer.is_valid():
                 serializer.save()
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer = CollectionActivitySerializer(activities, many=True, context={'collection':collection})
         return Response(serializer.data)
 
 

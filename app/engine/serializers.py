@@ -67,7 +67,7 @@ class CollectionActivityListSerializer(serializers.ListSerializer):
         # Perform removals from collection.
         for activity_url, activity in activity_mapping.items():
             if activity_url not in data_mapping:
-                activity.remove(self.context['collection'])
+                activity.collections.remove(self.context['collection'])
 
         return results
 
