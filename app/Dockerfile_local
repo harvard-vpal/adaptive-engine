@@ -4,7 +4,8 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /app
 WORKDIR /app
 ADD ./requirements.txt /app/
-RUN pip install -r requirements.txt
+ADD ./requirements_local.txt /app/
+RUN pip install -r requirements_local.txt
 ADD . /app/
 
 EXPOSE 8000
