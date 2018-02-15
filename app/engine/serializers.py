@@ -94,7 +94,7 @@ class ActivitySerializer(serializers.ModelSerializer):
 class ActivityRecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
-        fields = ('url')
+        fields = ('url',)
 
 
 class ScoreSerializer(serializers.ModelSerializer):

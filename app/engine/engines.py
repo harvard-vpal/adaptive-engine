@@ -4,17 +4,23 @@ from .models import *
 from . import utils
 
 
-def initialize_learner(learner, experimental_group_id=None):
+def assign_experimental_group(learner, experimental_group_id=None):
     """
     Initializes learner by assigning an experimental group (can be specified manually)
     """
+    # If experimental groups not created yet, don't try to assign
+    if not ExperimentalGroup.objects.exists():
+        return
+
+    # For assigning learner to specific group
     if experimental_group_id:
         learner.experimental_group = ExperimentalGroup.objects.get(pk=experimental_group_id)
+    # Assign randomly if no group specified
     else:
         learner.experimental_group = utils.pick_experimental_group()
     learner.save()
+    # call engine-specific initialize learner method
     engine = get_engine(learner)
-    # engine-specific initialize learner method
     engine.initialize_learner(learner)
 
 
@@ -23,16 +29,22 @@ def get_engine(learner):
     Get relevant engine for learner based on their experimental group
     Also assigns experimental group if none assigned
     """
-    experimental_group = learner.experimental_group
-    if not experimental_group:
-        initialize_learner(learner)
-    engine_settings = learner.experimental_group.engine_settings
-    # engine settings will exist if experimental group is adaptive
-    if engine_settings:
+    if learner.experimental_group:
+        engine_settings = learner.experimental_group.engine_settings
         return AdaptiveEngine(engine_settings)
-    # otherwise they will have non-adaptive behavior
     else:
         return NonAdaptiveEngine()
+
+    # experimental_group = learner.experimental_group
+    # if not experimental_group:
+    #     initialize_learner(learner)
+    # engine_settings = learner.experimental_group.engine_settings
+    # # engine settings will exist if experimental group is adaptive
+    # if engine_settings:
+    #     return AdaptiveEngine(engine_settings)
+    # # otherwise they will have non-adaptive behavior
+    # else:
+    #     return NonAdaptiveEngine()
 
 
 class NonAdaptiveEngine(object):
@@ -55,11 +67,15 @@ class NonAdaptiveEngine(object):
         """
         score.save()
 
-    def recommend(self, learner, collection):
+    def recommend(self, learner, collection, history=None):
         """
         Recommend activity according to 'nonadaptive_order' field
         """
-        utils.get_activities(learner, collection, seen=False).order_by('nonadaptive_order').first()
+        for sequence_item in history:
+            activity_urls = [item['activity'] for item in history]
+        candidate_activities = collection.activity_set.exclude(url__in=activity_urls)
+        print candidate_activities
+        return candidate_activities.first()
 
 
 class AdaptiveEngine(object):
