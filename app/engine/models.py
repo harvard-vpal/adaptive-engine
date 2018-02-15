@@ -14,6 +14,14 @@ class Collection(models.Model):
     def __unicode__(self):
         return "{} - {}".format(self.pk, self.name)
 
+    def grade(self, learner):
+        """
+        Generate learner grade based on masteries that bridge can query
+        as a grading policy option. 
+        Just uses a placeholder value for now
+        """
+        return 0.5
+
 
 class KnowledgeComponent(models.Model):
     name = models.CharField(max_length=200)
