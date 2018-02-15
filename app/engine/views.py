@@ -8,7 +8,7 @@ from rest_framework import status
 from django.http import HttpResponse
 from .serializers import *
 from .models import *
-from .engines import get_engine, initialize_learner
+from .engines import get_engine, assign_experimental_group
 from django.shortcuts import get_object_or_404
 
 
@@ -17,10 +17,11 @@ class ActivityViewSet(viewsets.ModelViewSet):
     serializer_class = ActivitySerializer
 
     # "recommend activity" endpoint
-    @list_route()
+    @list_route(methods=['post'])
     def recommend(self, request):
-        collection_id = request.GET.get('collection',None)
-        learner_id = request.GET.get('learner',None)
+        collection_id = request.data.get('collection',None)
+        learner_id = request.data.get('learner',None)
+        sequence = request.data.get('sequence',None)
 
         # throw error if arguments not found
         if not collection_id and learner_id:
@@ -36,14 +37,14 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
         if created:
             # if new learner, assign experimental group, initialize learner params
-            initialize_learner(learner)
+            assign_experimental_group(learner)
 
         # retrieve relevant engine instance for A/B testing
         engine = get_engine(learner)
 
         # get recommendation from engine
-        activity = engine.recommend(learner, collection)
-        
+        activity = engine.recommend(learner, collection, sequence)
+
         if activity:
             recommendation_data = ActivityRecommendationSerializer(activity).data
             recommendation_data['complete'] = False
@@ -120,7 +121,7 @@ class ScoreViewSet(viewsets.ModelViewSet):
 
             if created:
                 # assign experimental group
-                initialize_learner(learner)
+                assign_experimental_group(learner)
                 # reset serializer to recognize newly created learner
                 serializer = ScoreSerializer(data=request.data)
             
