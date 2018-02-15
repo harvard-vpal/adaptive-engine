@@ -1,13 +1,24 @@
 version: '2'
 services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
   engine:
-    container_name: engine
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile_local
+    command: bash -c "sleep 5 && python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - .:/bridge_adaptivity
+      - .:/app
     ports:
       - "8000:8000"
-    stdin_open: true
-    tty: true
+    links:
+      - postgres
+
+volumes:
+  pgdata:
