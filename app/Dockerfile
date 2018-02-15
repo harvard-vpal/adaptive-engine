@@ -7,9 +7,4 @@ ADD ./requirements.txt /app/
 RUN pip install -r requirements.txt
 ADD . /app/
 
-# Make sure entrypoint script is executable
-RUN ["chmod", "+x", "run_container.sh"]
-
 EXPOSE 8000
-
-CMD ["./run_container.sh"]
