@@ -77,11 +77,11 @@ class CollectionViewSet(viewsets.ModelViewSet):
             serializer = CollectionActivitySerializer(activities, many=True, context={'collection':collection})
         return Response(serializer.data)
 
-    @detail_route()
+    @detail_route(methods=['post'])
     def grade(self, request, pk=None):
         collection = self.get_object()
         try:
-            learner_id = int(request.GET.get('learner',None))
+            learner_id = int(request.data.get('learner',None))
         except:
             msg = "Learner id not provided, or not valid"
             return Response({'message':msg}, status=status.HTTP_400_BAD_REQUEST)
