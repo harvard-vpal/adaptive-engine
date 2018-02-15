@@ -65,7 +65,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get','post'])
     def activities(self, request, pk=None):
-        collection = self.get_object()
+        collection, created = Collection.objects.get_or_create(pk=pk)
         activities = collection.activity_set.all()
         if request.method == 'POST':
             serializer = CollectionActivitySerializer(activities, data=request.data, many=True, context={'collection':collection})
