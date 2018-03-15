@@ -37,6 +37,7 @@ class CreatablePrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 class CollectionSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=False)
+
     class Meta:
         model = Collection 
         fields = '__all__'
@@ -79,22 +80,28 @@ class CollectionActivitySerializer(serializers.ModelSerializer):
     membership of activity in other collections
     TODO probably override init to get collection id in
     """
+    source_launch_url = serializers.CharField(source='url')
+
     class Meta:
         model = Activity
-        fields = ('url','name','difficulty','tags')
+        fields = ('source_launch_url','name','difficulty','tags')
         list_serializer_class = CollectionActivityListSerializer
 
 
 class ActivitySerializer(serializers.ModelSerializer):
+    source_launch_url = serializers.CharField(source='url')
+
     class Meta:
         model = Activity 
-        fields = ('collections','url','name','difficulty','tags')
+        fields = ('collections','source_launch_url','name','difficulty','tags')
 
 
 class ActivityRecommendationSerializer(serializers.ModelSerializer):
+    source_launch_url = serializers.CharField(source='url')
+
     class Meta:
         model = Activity
-        fields = ('url',)
+        fields = ('source_launch_url',)
 
 
 class ScoreSerializer(serializers.ModelSerializer):
