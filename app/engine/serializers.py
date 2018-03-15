@@ -81,6 +81,16 @@ class CollectionActivitySerializer(serializers.ModelSerializer):
     TODO probably override init to get collection id in
     """
     source_launch_url = serializers.CharField(source='url')
+    tags = serializers.CharField(allow_null=True,allow_blank=True,default='')
+
+    def validate_tags(self, value):
+        """
+        Convert null value into empty string
+        """
+        if value == None:
+            return ''
+        else:
+            return value
 
     class Meta:
         model = Activity
@@ -90,6 +100,16 @@ class CollectionActivitySerializer(serializers.ModelSerializer):
 
 class ActivitySerializer(serializers.ModelSerializer):
     source_launch_url = serializers.CharField(source='url')
+    tags = serializers.CharField(allow_null=True,allow_blank=True,default='')
+
+    def validate_tags(self, value):
+        """
+        Convert null value into empty string
+        """
+        if value == None:
+            return ''
+        else:
+            return value
 
     class Meta:
         model = Activity 
