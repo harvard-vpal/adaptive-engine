@@ -71,10 +71,8 @@ class NonAdaptiveEngine(object):
         """
         Recommend activity according to 'nonadaptive_order' field
         """
-        for sequence_item in history:
-            activity_urls = [item['activity'] for item in history]
+        activity_urls = [item['activity'] for item in history]
         candidate_activities = collection.activity_set.exclude(url__in=activity_urls)
-        print candidate_activities
         return candidate_activities.first()
 
 
