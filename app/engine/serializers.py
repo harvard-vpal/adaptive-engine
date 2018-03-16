@@ -125,6 +125,10 @@ class ActivityRecommendationSerializer(serializers.ModelSerializer):
 
 
 class ScoreSerializer(serializers.ModelSerializer):
+    activity = serializers.SlugRelatedField(
+        slug_field = 'url',
+        queryset = Activity.objects.all()
+    )
     class Meta:
         model = Score
         fields = ('id', 'learner', 'activity', 'score')
