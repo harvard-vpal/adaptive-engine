@@ -1,3 +1,5 @@
+# docker-compose file for local development
+
 version: '2'
 services:
   postgres:
@@ -12,11 +14,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: bash -c "sleep 5 && python manage.py runserver"
+    command: bash -c "sleep 5 && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
-      - "80:8000"
+      - "8000:8000"
     links:
       - postgres
 
