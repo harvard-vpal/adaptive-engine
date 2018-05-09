@@ -31,7 +31,7 @@ You'll need to subclass BaseAdaptiveEngine and implement all the empty methods. 
 
 ```
 import numpy as np
-from alosi import BaseAdaptiveEngine
+from alosi.engine import BaseAdaptiveEngine
 
 class LocalAdaptiveEngine(BaseAdaptiveEngine):
 
