@@ -1,4 +1,4 @@
-## ALOSI adaptive engine web application
+# ALOSI adaptive engine web application
 This repo subfolder contains a Django web application the runs the ALOSI adaptive engine.
 
 ## Running the engine application locally
@@ -40,7 +40,7 @@ python manage.py createsuperuser
 
 ```
 
-#### API Token generation
+### API Token generation
 1. Open admin panel (localhost:8000/admin) and log in with user credentials
 
 2. Create a new Token model associated with user (Token -> Add Token). An API token will be auto-generated in the 
