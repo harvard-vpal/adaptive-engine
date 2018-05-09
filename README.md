@@ -6,6 +6,7 @@ The ALOSI adaptive engine is a web application that powers the recommendation of
 This repository contains the Django web application code, and related documentation/writeups for the adaptive engine.
 
 Folder contents:
+* `alosi/` - Adaptive engine python library
 * `app/` - Adaptive engine web application (python/django) code
 * `data/` - data for engine initialization and data processing/transform scripts
 * `monitoring/` - terraform files for setting up cloudwatch alarms on an elastic beanstalk deployment
@@ -15,6 +16,6 @@ Folder contents:
 * `writeup/` - Writeup and LaTeX files to generate the document
 
 ## Getting started
-* [Python engine library folder and documentation](https://github.com/harvard-vpal/adaptive-engine/tree/master/alosi_engine)
+* [Python engine library folder and documentation](https://github.com/harvard-vpal/adaptive-engine/tree/master/alosi)
 * [Web application folder and documentation](https://github.com/harvard-vpal/adaptive-engine/tree/master/app)
 * [Theoretical overview of the recommendation engine algorithm](https://github.com/harvard-vpal/adaptive-engine/blob/master/writeup/writeup.pdf)

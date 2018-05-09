@@ -1,17 +1,17 @@
-## alosi_engine python package
+## alosi python library
 
 ### Setup
 
 Install from github:
 ```
-pip install git+https://github.com/harvard-vpal/adaptive-engine#subdirectory=alosi_engine
+pip install git+https://github.com/harvard-vpal/adaptive-engine#subdirectory=alosi
 ```
 
 Or use a requirements file:
 
 In `requirements.txt`:
 ```
-git+https://github.com/harvard-vpal/adaptive-engine#subdirectory=alosi_engine
+git+https://github.com/harvard-vpal/adaptive-engine#subdirectory=alosi
 # ... other libraries ...
 ```
 Then run `pip install -r requirements.txt`
@@ -19,7 +19,7 @@ Then run `pip install -r requirements.txt`
 Or to install as an editable project (i.e. if you want to modify the underlying algorithm):
 ```
 git clone https://github.com/harvard-vpal/adaptive-engine
-pip install -e ./adaptive-engine/alosi_engine
+pip install -e ./adaptive-engine/alosi
 ```
 
  
@@ -31,7 +31,7 @@ You'll need to subclass BaseAdaptiveEngine and implement all the empty methods. 
 
 ```
 import numpy as np
-from alosi_engine import BaseAdaptiveEngine
+from alosi import BaseAdaptiveEngine
 
 class LocalAdaptiveEngine(BaseAdaptiveEngine):
 
