@@ -246,7 +246,6 @@ class BaseAdaptiveEngine:
     def update_from_score(self, learner_id, activity_id, score):
         """
         Action to take on new score information
-
         :param score:
         :return:
         """
@@ -370,7 +369,6 @@ def recommendation_score_P(guess, slip, learner_mastery, prereqs, r_star, L_star
 def recommendation_score_R(guess, slip, learner_mastery, L_star):
     """
     Computes a recommendation score for each activity according to substrategy R
-
     :param guess:
     :param slip:
     :param learner_mastery:
@@ -411,7 +409,6 @@ def recommendation_score_D(guess, slip, learner_mastery, difficulty):
     Substrategy D
     learner_mastery: vector of mastery values for learner (1xK)
     difficulty: vector of item difficulties (Qx1)
-
     :param guess:
     :param slip:
     :param learner_mastery:
@@ -465,10 +462,8 @@ def knowledge(scores, guess, slip):
     """
     ##This function finds the empirical knowledge of a single user given a
     chronologically ordered sequence of items submitted.
-
     Notes:
     - used in estimate: u_knowledge=knowledge(self, temp.problem_id, temp.score)
-
     :param scores: ?x3 np.array of score information for single learner
         col 1: learner (should be all same)
         col 2: activity

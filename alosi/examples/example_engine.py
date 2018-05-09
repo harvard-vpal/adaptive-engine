@@ -1,5 +1,5 @@
 import numpy as np
-from alosi_engine import BaseAdaptiveEngine
+from alosi.engine import BaseAdaptiveEngine
 
 
 class LocalAdaptiveEngine(BaseAdaptiveEngine):
