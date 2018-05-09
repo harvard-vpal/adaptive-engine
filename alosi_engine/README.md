@@ -16,7 +16,7 @@ git+https://github.com/harvard-vpal/adaptive-engine#subdirectory=alosi_engine
 ```
 Then run `pip install -r requirements.txt`
 
-To install as an editable project (i.e. if you want to modify the underlying algorithm):
+Or to install as an editable project (i.e. if you want to modify the underlying algorithm):
 ```
 git clone https://github.com/harvard-vpal/adaptive-engine
 pip install -e ./adaptive-engine/alosi_engine
