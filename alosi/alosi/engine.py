@@ -115,7 +115,7 @@ class BaseAdaptiveEngine:
         """
         Get value of W_d
         :param learner_id:
-        :return:
+        :return: float
         """
         raise NotImplementedError
 
@@ -123,7 +123,7 @@ class BaseAdaptiveEngine:
         """
         Get value of W_c
         :param learner_id:
-        :return:
+        :return: float
         """
         raise NotImplementedError
 
@@ -137,9 +137,9 @@ class BaseAdaptiveEngine:
     def save_score(self, learner_id, activity_id, score):
         """
         Save score (e.g. to database, or to a matrix)
-        :param learner_id:
-        :param activity_id:
-        :param score:
+        :param learner_id: learner id
+        :param activity_id: activity id
+        :param score: float
         """
         raise NotImplementedError
 
@@ -153,29 +153,29 @@ class BaseAdaptiveEngine:
 
     def update_guess(self, new_guess):
         """
-        Update entire guess matrix
+        Update entire guess parameter matrix
         :param new_guess:
         """
         raise NotImplementedError
 
     def update_slip(self, new_slip):
         """
-        Update entire slip matrix
-        :param new_slip:
+        Update entire slip parameter matrix
+        :param new_slip: (# activities) x (# LOs) np.array containing new values for slip parameters
         """
         raise NotImplementedError
 
     def update_transit(self, new_transit):
         """
         Update entire transit matrix
-        :param new_transit:
+        :param new_transit: (# activities) x (# LOs) np.array containing new values for transit parameters
         """
         raise NotImplementedError
 
     def update_prior_mastery(self, new_prior_mastery):
         """
         Update prior mastery values for LOs
-        :param new_prior_mastery: 1 x (# LOs)
+        :param new_prior_mastery: 1 x (# LOs) np.array vector of new mastery values for all LOs
         """
 
     def get_recommend_params(self, learner_id, scope=None):
@@ -245,7 +245,7 @@ class BaseAdaptiveEngine:
 
     def update_from_score(self, learner_id, activity_id, score):
         """
-        Action to take on new score information
+        Action to take when new score information is received
         :param score:
         :return:
         """
@@ -262,6 +262,9 @@ class BaseAdaptiveEngine:
     def train(self, relevance_threshold=0.01, information_threshold=20, remove_degeneracy=True):
         """
         Estimates the BKT model using empirical probabilities
+        :param relevance_threshold: TODO
+        :param information_threshold: TODO
+        :param remove_degeneracy: TODO
         :return:
         """
         mastery_prior = self.get_mastery_prior()
@@ -272,18 +275,18 @@ class BaseAdaptiveEngine:
         new_params = estimate(scores, guess, slip, transit, mastery_prior, relevance_threshold, information_threshold,
                               remove_degeneracy)
         # save param matrices
-        # self.update_transit(new_params['trans'])
-        # self.update_guess(new_params['guess'])
-        # self.update_slip(new_params['slip'])
+        self.update_transit(new_params['trans'])
+        self.update_guess(new_params['guess'])
+        self.update_slip(new_params['slip'])
         return new_params
 
 
 def x0_mult(guess, slip):
     """
     Compute x0_mult element-wise
-    Arguments:
-        guess (np.array)
-        slip (np.array)
+    :param guess: guess (np.array)
+    :param slip: slip (np.array)
+    :return: np.array
     """
     return slip*(1.0+guess)/(1.0+slip)
 
@@ -291,9 +294,9 @@ def x0_mult(guess, slip):
 def x1_0_mult(guess, slip):
     """
     Compute x1_0 element-wise
-    Arguments:
-        guess (np.array)
-        slip (np.array)
+    :param guess: (np.array)
+    :param slip: (np.array)
+    :return: np.array
     """
     return ((1.0+guess)/(guess*(1.0+slip)))/x0_mult(guess,slip)
 
@@ -301,12 +304,12 @@ def x1_0_mult(guess, slip):
 def calculate_mastery_update(mastery, score, guess, slip, transit, epsilon):
     """
     Calculate bayesian update of learner mastery based on new score information
-    :param mastery:
-    :param score:
-    :param guess:
-    :param slip:
-    :param transit:
-    :param epsilon:
+    :param mastery: 1xL np.array vector of current mastery parameters for learner
+    :param score: float, score value for activity
+    :param guess: 1xL np.array vector of guess parameters for activity
+    :param slip: 1xL np.array vector of slip parameters for activity
+    :param transit: 1xL np.array vector of transit parameters for activity
+    :param epsilon: smallest value of mastery probability to allow
     :return: 1xL np.array vector of new masteries for learner
     """
     # The increment of odds due to evidence of the problem, but before the transfer
@@ -329,12 +332,20 @@ def recommendation_score(guess, slip, learner_mastery, prereqs, r_star, L_star, 
         R: Remediation / demand
         D: Appropirate Difficulty
         C: Continuity
-    Args:
-        guess: QxK matrix of item-KC guess parameters
-        slip: QxK matrix of item-KC slip parameters
-        learner_mastery: 1xK vector of learner mastery values
-        L_star: Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
-        r_star: Threshold for forgiving lower odds of mastering pre-requisite LOs.
+    :param guess: QxK matrix of item-KC guess parameters
+    :param slip: QxK matrix of item-KC slip parameters
+    :param learner_mastery: 1xK vector of learner mastery values
+    :param prereqs:
+    :param r_star: Threshold for forgiving lower odds of mastering pre-requisite LOs.
+    :param L_star: Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
+    :param difficulty:
+    :param W_p:
+    :param W_r:
+    :param W_d:
+    :param W_c:
+    :param last_attempted_guess:
+    :param last_attempted_slip:
+    :return:
     """
     P = recommendation_score_P(guess, slip, learner_mastery, prereqs, r_star, L_star)
     R = recommendation_score_R(guess, slip, learner_mastery, L_star)
@@ -369,11 +380,11 @@ def recommendation_score_P(guess, slip, learner_mastery, prereqs, r_star, L_star
 def recommendation_score_R(guess, slip, learner_mastery, L_star):
     """
     Computes a recommendation score for each activity according to substrategy R
-    :param guess:
-    :param slip:
+    :param guess: (# activities) x (# LOs) np.array of guess parameter values for activities
+    :param slip: (# activities) x (# LOs) np.array of slip parameter values for activities
     :param learner_mastery:
     :param L_star:
-    :return: Array of activity scores
+    :return: 1 x (# activities) vector of recommendation score values
     """
     L = learner_mastery
     relevance = calculate_relevance(guess, slip)
@@ -384,11 +395,11 @@ def recommendation_score_R(guess, slip, learner_mastery, L_star):
 def recommendation_score_C(guess, slip, last_attempted_guess=None, last_attempted_slip=None):
     """
     Compute scores according to Substrategy C
-    :param guess:
-    :param slip:
-    :param last_attempted_guess:
-    :param last_attempted_slip:
-    :return: 1 x (# activities
+    :param guess: (# activities) x (# LOs) np.array of guess parameter values for activities
+    :param slip: (# activities) x (# LOs) np.array of slip parameter values for activities
+    :param last_attempted_guess: 1 x (# LOs) np.array vector of guess parameter values for last attempted activity
+    :param last_attempted_slip: 1 x (# LOs) np.array vector of slip parameter values for last attempted activity
+    :return: 1 x (# activities) vector of recommendation score values
     """
     # Q is number of activities
     Q = guess.shape[0]
@@ -413,7 +424,7 @@ def recommendation_score_D(guess, slip, learner_mastery, difficulty):
     :param slip:
     :param learner_mastery:
     :param difficulty:
-    :return: Array of activity scores
+    :return: 1 x (# activities) vector of recommendation score values
     """
     # number of learning objectives
     Q = len(difficulty)
