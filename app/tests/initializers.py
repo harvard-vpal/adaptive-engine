@@ -107,6 +107,10 @@ class FakeInitializer(BaseInitializer):
         self.num_activities = num_activities
         self.num_collections = num_collections
         self.num_kcs = num_kcs
+        self.slip_probability = slip_probability
+        self.guess_probability = guess_probability
+        self.trans_probability = trans_probability
+        self.prior_knowledge_probability = prior_knowledge_probability
 
 
     def initialize(self):
@@ -117,12 +121,12 @@ class FakeInitializer(BaseInitializer):
         super(self.__class__,self).initialize()
         # initializer-specific initialization
         self.initialize_collections()
-        self.initialize_knowledge_components(prior_knowledge_probability)
+        self.initialize_knowledge_components(self.prior_knowledge_probability)
         self.initialize_prereqs()
         self.initialize_activities()
-        self.initialize_param_matrix(Guess,guess_probability)
-        self.initialize_param_matrix(Slip,slip_probability)
-        self.initialize_param_matrix(Transit,trans_probability)
+        self.initialize_param_matrix(Guess,self.guess_probability)
+        self.initialize_param_matrix(Slip,self.slip_probability)
+        self.initialize_param_matrix(Transit,self.trans_probability)
 
 
     # collections
@@ -173,7 +177,7 @@ class FakeInitializer(BaseInitializer):
                 difficulty = np.random.uniform(),
             )
             activity.save()
-            activity.collections.set([np.random.randint(1,self.num_activities+1)])
+            activity.collections.set([np.random.randint(1,self.num_collections+1)])
             activity.knowledge_components.set([np.random.randint(1,self.num_kcs+1)])
 
 
