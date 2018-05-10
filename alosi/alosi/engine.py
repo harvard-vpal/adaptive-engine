@@ -246,7 +246,9 @@ class BaseAdaptiveEngine:
     def update_from_score(self, learner_id, activity_id, score):
         """
         Action to take when new score information is received
-        :param score:
+        :param learner_id: learner id used as input to get_learner_mastery(), update_learner_mastery(), save_score()
+        :param activity_id: activity id used as input to get_guess(), get_slip(), get_transit()
+        :param score: float
         :return:
         """
         mastery = self.get_learner_mastery(learner_id)
@@ -483,11 +485,9 @@ def knowledge(scores, guess, slip):
     :param slip: full slip param matrix
     """
 
-    # TODO can be optimized by caching mapping and using for all learners
     # list of matrix 0-based indices for activities associated with scores
     activity_idxs = scores[:, 1].astype(int)
 
-    # TODO could cache full Guess/Slip matrices
     m_guess_u = -np.log(guess[activity_idxs, ])
     m_slip_u = -np.log(slip[activity_idxs, ])
 
