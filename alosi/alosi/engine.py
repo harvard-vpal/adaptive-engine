@@ -215,7 +215,7 @@ class BaseAdaptiveEngine:
             'learner_mastery': self.get_learner_mastery(learner_id),
         }
 
-    def recommend(self, learner_id, collection=None):
+    def recommend(self, learner_id):
         """
         Workflow:
             get valid activities
@@ -393,7 +393,7 @@ def recommendation_score_C(guess, slip, last_attempted_guess=None, last_attempte
     # Q is number of activities
     Q = guess.shape[0]
     relevance = calculate_relevance(guess, slip)
-    if last_attempted_guess is not None and last_attempted_slip is not None:
+    if last_attempted_guess is None or last_attempted_slip is None:
         C = np.repeat(0.0, Q)
     else:
         relevance_last_attempted = calculate_relevance(
