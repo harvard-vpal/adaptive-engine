@@ -165,7 +165,6 @@ class FakeInitializer(BaseInitializer):
             ) for pk in range(1,self.num_kcs+1)
         ])
 
-
     def initialize_activities(self):
         """
         Load activities into database
@@ -174,6 +173,7 @@ class FakeInitializer(BaseInitializer):
             activity = Activity(
                 pk=pk,
                 name="Activity {}".format(pk),
+                url="https://example.com/{}".format(pk),
                 difficulty = np.random.uniform(),
             )
             activity.save()
