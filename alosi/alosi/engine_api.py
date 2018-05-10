@@ -21,10 +21,10 @@ class EngineApi(object):
             json=kwargs
         )
 
-    def recommend(self, learner=None, collection=None):
-        return self.client.get(
+    def recommend(self, learner=None, collection=None, sequence=None):
+        return self.client.post(
             self.base_url + '/activity/recommend',
-            params=dict(learner=learner, collection=collection)
+            json=dict(learner=learner, collection=collection, sequence=sequence)
         )
 
     def submit_score(self, learner=None, activity=None, score=None):
