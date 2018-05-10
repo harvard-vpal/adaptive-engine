@@ -1,4 +1,3 @@
-from builtins import super
 import numpy as np
 from .data_structures import Matrix
 from .models import *
