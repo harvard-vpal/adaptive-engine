@@ -86,4 +86,4 @@ class DjangoAdaptiveEngine(BaseAdaptiveEngine):
 
     def update_learner_mastery(self, learner_id, new_mastery):
         learner = Learner.objects.get(pk=learner_id)
-        Matrix(Mastery)[learner_id, ].update(new_mastery)
+        Matrix(Mastery)[learner, ].update(new_mastery)
