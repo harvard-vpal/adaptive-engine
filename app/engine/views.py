@@ -12,10 +12,10 @@ class ActivityViewSet(viewsets.ModelViewSet):
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
 
-    # "recommend activity" endpoint
     @list_route(methods=['post'])
     def recommend(self, request):
         """
+        API endpoint: Recommend activity
         /engine/api/activity/recommend
         Body:
             learner: int, learner id  #TODO generalize to string ids?
@@ -77,6 +77,26 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get', 'post'])
     def activities(self, request, pk=None):
+        """
+        API endpoints:
+            Get activities in collection
+                GET /engine/api/<collection_id>
+
+            Update activities in collection
+                POST /engine/api/<collection_id>
+                Body: json list of activities that exist in collection
+                    [
+                        {
+                            name: <str>,
+                            tags: <str, str, str>,
+                            type: <str>,
+                            difficulty: <float>,
+                            source_launch_url: <https://example.com/1>,
+                        },
+                        ...
+                    ]
+
+        """
         collection, created = Collection.objects.get_or_create(pk=pk)
         activities = collection.activity_set.all()
         if request.method == 'POST':
@@ -84,7 +104,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
                 activities,
                 data=request.data,
                 many=True,
-                context={'collection':collection}
+                context={'collection': collection}
             )
             if serializer.is_valid():
                 serializer.save()
@@ -94,7 +114,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             serializer = CollectionActivitySerializer(
                 activities,
                 many=True,
-                context={'collection':collection}
+                context={'collection': collection}
             )
         return Response(serializer.data)
 
@@ -135,11 +155,13 @@ class ScoreViewSet(viewsets.ModelViewSet):
     # override create behavior
     def create(self, request):
         """
+        Submit new score
         POST /engine/api/score
-        body:
-            learner
-            activity: activity url (see serializer)
-            score
+        Saves score and triggers engine update
+        Body:
+            learner: <int>
+            activity: <activity url (see serializer)>
+            score: <float>
         """
         serializer = ScoreSerializer(data=request.data)
         # run validation, catching exception where learner is not found
