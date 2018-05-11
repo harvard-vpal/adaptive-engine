@@ -70,12 +70,12 @@ class Activity(models.Model):
 
 class EngineSettings(models.Model):
     name = models.CharField(max_length=200, default='')
-    r_star = models.FloatField() #Threshold for forgiving lower odds of mastering pre-requisite LOs.
-    L_star = models.FloatField() #Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
-    W_p = models.FloatField() #Importance of readiness in recommending the next item
-    W_r = models.FloatField() #Importance of demand in recommending the next item
-    W_c = models.FloatField() #Importance of continuity in recommending the next item
-    W_d = models.FloatField() #Importance of appropriate difficulty in recommending the next item
+    r_star = models.FloatField()  # Threshold for forgiving lower odds of mastering pre-requisite LOs.
+    L_star = models.FloatField()  # Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
+    W_p = models.FloatField()  # Importance of readiness in recommending the next item
+    W_r = models.FloatField()  # Importance of demand in recommending the next item
+    W_c = models.FloatField()  # Importance of continuity in recommending the next item
+    W_d = models.FloatField()  # Importance of appropriate difficulty in recommending the next item
 
     def __unicode__(self):
         return "{} - {}".format(self.pk, self.name)
