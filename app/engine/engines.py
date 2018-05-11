@@ -249,26 +249,10 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         :param learner: Learner model instance
         :param collection: Collection model instance
         :param sequence: list of activity dicts, learner's sequence history
-        :return: Activity object instance
+        :return: Activity model instance
         """
-        # # get relevant model parameters
-        # params = self.get_recommend_params(learner)
-        #
-        # scores = recommendation_score(
-        #     params['guess'],
-        #     params['slip'],
-        #     params['learner_mastery'],
-        #     params['prereqs'],
-        #     params['r_star'],
-        #     params['L_star'],
-        #     params['difficulty'],
-        #     params['W_p'],
-        #     params['W_r'],
-        #     params['W_d'],
-        #     params['W_c'],
-        #     params['last_attempted_guess'],
-        #     params['last_attempted_slip']
-        # )
-        # return np.argmax(scores)
-
-        return super().recommend(learner)
+        # convert matrix idx output from recommend() to corresponding Activity model instance
+        activity_idx = super().recommend(learner)
+        pks = list(Activity.objects.values_list('pk', flat=True))
+        activity_pk = pks[activity_idx]
+        return Activity.objects.get(pk=activity_pk)

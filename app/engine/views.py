@@ -54,8 +54,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         engine = get_engine()
 
         # get recommendation from engine
-        activity_pk = engine.recommend(learner, collection, sequence)
-        activity = Activity.objects.get(pk=activity_pk)
+        activity = engine.recommend(learner, collection, sequence)
 
         # construct response data
         if activity:
