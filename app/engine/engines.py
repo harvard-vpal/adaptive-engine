@@ -1,13 +1,14 @@
 import numpy as np
 from .data_structures import Matrix
 from .models import *
-from alosi.engine import BaseAdaptiveEngine
+from alosi.engine import BaseAdaptiveEngine, recommendation_score
 
 
 def get_engine(engine_settings=None):
     """
     Get relevant engine for learner based on their experimental group
     Also assigns experimental group if none assigned
+    :param engine_settings: EngineSettings model instance
     """
     if engine_settings is None:
         engine_settings = EngineSettings(
@@ -201,7 +202,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             ) for kc in knowledge_components
         ])
 
-    def get_recommend_params(self, learner):
+    def get_recommend_params(self, learner, valid_activities):
         """
         Retrieve features/params needed for doing recommendation
         Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
@@ -223,9 +224,9 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             learner_mastery: 1xK vector of learner mastery values
         """
         return {
-            'guess': self.get_guess(),
-            'slip': self.get_slip(),
-            'difficulty': self.get_difficulty(),
+            'guess': self.get_guess(valid_activities),
+            'slip': self.get_slip(valid_activities),
+            'difficulty': self.get_difficulty(valid_activities),
             'prereqs': self.get_prereqs(),
             'last_attempted_guess': self.get_last_attempted_guess(learner),
             'last_attempted_slip': self.get_last_attempted_slip(learner),
@@ -238,21 +239,44 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             'W_c': self.engine_settings.W_c,
         }
 
-    def recommend(self, learner, collection=None, sequence=None):
+    def recommend(self, learner, collection, sequence):
         """
         Workflow:
-            get valid activities
-            subset parameter matrices by relevance to valid activities
-            compute scores for activities using subsetted matrices
-            filter items based on scope
-            return 1 (or n) top items
+            get valid activities (i.e. activities in collection)
+            retrieve parameters (relevant to valid activities where applicable)
+            compute scores for valid activities using parameters
+            return top item by computed recommendation score
         :param learner: Learner model instance
         :param collection: Collection model instance
         :param sequence: list of activity dicts, learner's sequence history
         :return: Activity model instance
         """
-        # convert matrix idx output from recommend() to corresponding Activity model instance
-        activity_idx = super().recommend(learner)
-        pks = list(Activity.objects.values_list('pk', flat=True))
-        activity_pk = pks[activity_idx]
-        return Activity.objects.get(pk=activity_pk)
+        # determine valid activities that recommendation can output
+        # recommendation activity scores will only be computed for valid activities
+        valid_activities = collection.activity_set.all()
+
+        # get relevant model parameters (limited to valid activities where applicable)
+        params = self.get_recommend_params(learner, valid_activities)
+
+        # compute recommendation scores for activities
+        scores = recommendation_score(
+            params['guess'],
+            params['slip'],
+            params['learner_mastery'],
+            params['prereqs'],
+            params['r_star'],
+            params['L_star'],
+            params['difficulty'],
+            params['W_p'],
+            params['W_r'],
+            params['W_d'],
+            params['W_c'],
+            params['last_attempted_guess'],
+            params['last_attempted_slip']
+        )
+        # get the index corresponding to the activity with the highest computed score
+        activity_idx = np.argmax(scores)
+
+        # convert matrix 0-idx to activity.pk / activity
+        pks = list(valid_activities.values_list('pk', flat=True))
+        return Activity.objects.get(pk=pks[activity_idx])
