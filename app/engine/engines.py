@@ -1,50 +1,25 @@
 import numpy as np
-from .data_structures import Matrix, Vector
-from .models import * 
-from . import utils
+from .data_structures import Matrix
+from .models import *
+from alosi.engine import BaseAdaptiveEngine, recommendation_score
 
 
-def assign_experimental_group(learner, experimental_group_id=None):
-    """
-    Initializes learner by assigning an experimental group (can be specified manually)
-    """
-    # If experimental groups not created yet, don't try to assign
-    if not ExperimentalGroup.objects.exists():
-        return
-
-    # For assigning learner to specific group
-    if experimental_group_id:
-        learner.experimental_group = ExperimentalGroup.objects.get(pk=experimental_group_id)
-    # Assign randomly if no group specified
-    else:
-        learner.experimental_group = utils.pick_experimental_group()
-    learner.save()
-    # call engine-specific initialize learner method
-    engine = get_engine(learner)
-    engine.initialize_learner(learner)
-
-
-def get_engine(learner):
+def get_engine(engine_settings=None):
     """
     Get relevant engine for learner based on their experimental group
     Also assigns experimental group if none assigned
+    :param engine_settings: EngineSettings model instance
     """
-    if learner.experimental_group:
-        engine_settings = learner.experimental_group.engine_settings
-        return AdaptiveEngine(engine_settings)
-    else:
-        return NonAdaptiveEngine()
-
-    # experimental_group = learner.experimental_group
-    # if not experimental_group:
-    #     initialize_learner(learner)
-    # engine_settings = learner.experimental_group.engine_settings
-    # # engine settings will exist if experimental group is adaptive
-    # if engine_settings:
-    #     return AdaptiveEngine(engine_settings)
-    # # otherwise they will have non-adaptive behavior
-    # else:
-    #     return NonAdaptiveEngine()
+    if engine_settings is None:
+        engine_settings = EngineSettings(
+            L_star=2.2,
+            r_star=0.0,
+            W_r=2.0,  # demand
+            W_c=1.0,  # continuity
+            W_p=1.0,  # readiness
+            W_d=0.5,  # difficulty
+        )
+    return AdaptiveEngine(engine_settings)
 
 
 class NonAdaptiveEngine(object):
@@ -58,52 +33,163 @@ class NonAdaptiveEngine(object):
     def initialize_learner(self, learner):
         """
         Don't need to initialize additional data for non-adaptive case
+        :param learner: not used, kept in definition for api consistency
         """
         pass
 
-    def update(self, score):
+    def update_from_score(self, learner, activity, score):
         """
-        No additional action needed
+        Saves score, no additional param initialization needed
+        :param learner: Learner model instance
+        :param activity: Learner model instance
+        :param score: float, score value
+        :return: n/a
         """
-        score.save()
+        Score.objects.create(learner=learner, activity=activity, score=score)
 
-    def recommend(self, learner, collection, history=None):
+    def recommend(self, learner, collection, sequence=None):
         """
         Recommend activity according to 'nonadaptive_order' field
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity dicts, learner's sequence history
+        :return: n/a
         """
-        activity_urls = [item['activity'] for item in history]
+
+        activity_urls = [item['activity'] for item in sequence]
         candidate_activities = collection.activity_set.exclude(url__in=activity_urls)
         return candidate_activities.first()
 
 
-class AdaptiveEngine(object):
-    """
-    Adaptive engine class that does internal parameter updates (Mastery, 
-    Guess, Slip, etc) and recommends activities according to adaptive 
-    algorithm
-    """
+class AdaptiveEngine(BaseAdaptiveEngine):
+
     def __init__(self, engine_settings):
+        self.engine_settings = engine_settings
+
+    def get_guess(self, activity=None):
         """
-        Arguments:
-            engine_settings (EngineSettings): EngineSettings model instance containing parameter settings
+        Get guess matrix, or row(s) of guess matrix if activity specified
+        :param activity: Activity model instance or queryset
+        :return:
         """
-        if isinstance(engine_settings,EngineSettings):
-            self.settings = engine_settings
+        if activity is not None:
+            return Matrix(Guess)[activity, ].values()
         else:
-            raise ValueError
-        
+            return Matrix(Guess).values()
+
+    def get_slip(self, activity=None):
+        """
+        Get slip matrix, or row(s) of slip matrix if activity specified
+        :param activity: Activity model instance or queryset
+        :return:
+        """
+        if activity is not None:
+            return Matrix(Slip)[activity, ].values()
+        else:
+            return Matrix(Slip).values()
+
+    def get_transit(self, activity=None):
+        """
+        Get transit matrix, or row(s) of transit matrix if activity specified
+        :param activity: Activity model instance or queryset
+        :return: len(activity) x (# LOs) np.array
+        """
+        if activity is not None:
+            return Matrix(Transit)[activity, ].values()
+        else:
+            return Matrix(Transit).values()
+
+    def get_difficulty(self, activity=None):
+        """
+        Get activity difficulty values
+        :param activity: Activity queryset
+        :return: 1 x len(activity) np.array vector
+        """
+        if activity is not None:
+            return np.array(activity.values_list('difficulty', flat=True))
+        else:
+            return np.array(Activity.objects.values_list('difficulty', flat=True))
+
+    def get_prereqs(self):
+        """
+        Get Prerequisite matrix
+        :return: (# LOs) x (# LOs) np.array matrix
+        """
+        return Matrix(PrerequisiteRelation).values()
+
+    def get_last_attempted_guess(self, learner):
+        """
+        :param learner: Learner object instance
+        :return: 1 x (# LOs) np.array vector
+        """
+        user_scores = Score.objects.filter(learner=learner)
+        if user_scores:
+            last_attempted = user_scores.latest('timestamp').activity
+            return Matrix(Guess)[last_attempted, ].values()
+        else:
+            return None
+
+    def get_last_attempted_slip(self, learner):
+        """
+        :param learner: Learner object instance
+        :return: 1 x (# LOs) np.array vector
+        """
+        user_scores = Score.objects.filter(learner=learner)
+        if user_scores:
+            last_attempted = user_scores.latest('timestamp').activity
+            return Matrix(Slip)[last_attempted, ].values()
+        else:
+            return None
+
+    def get_learner_mastery(self, learner):
+        """
+        :param learner: Learner model instance
+        :return: 1 x (# LOs) np.array vector
+        """
+        return Matrix(Mastery)[learner, ].values()
+
+    def get_mastery_prior(self):
+        """
+        Get mastery prior values for learning objectives
+        :return: 1 x (#LOs) np.array vector
+        """
+        knowledge_components = KnowledgeComponent.objects.all()
+        return np.array([kc.mastery_prior for kc in knowledge_components])
+
+    def get_scores(self):
+        """
+        The second column in this matrix should be the row index (0-indexed) of the activity's position
+        in the Guess/Slip/Transit matrices
+        :return: ? x 3 np.array
+        """
+        score_records = Score.objects.values_list('learner_id', 'activity_id', 'score')
+        # convert activity pk to 0-indexed id, taking into account possible non-consecutive pks
+        pks = Activity.objects.values_list('pk', flat=True)
+        # map from pk to 0-index
+        idx = {pk: i for i, pk in enumerate(pks)}
+        for i, r in enumerate(score_records):
+            score_records[i][1] = idx[r[1]]
+        return np.asarray(score_records)
+
+    def save_score(self, learner, activity, score):
+        """
+        :param learner: Learner model instance
+        :param activity: Activity model instance
+        :param score: float, score value
+        """
+        Score.objects.create(learner=learner, activity=activity, score=score)
+
+    def update_learner_mastery(self, learner, new_mastery):
+        """
+        :param learner_id: int, learner pk
+        :param new_mastery: 1 x (# LOs) np.array vector of new mastery values
+        """
+        Matrix(Mastery)[learner, ].update(new_mastery)
 
     def initialize_learner(self, learner):
         """
-        Arguments:
-            learner (Learner): new learner model instance
-            experimental_group (ExperimentalGroup): optional experimental group to assign
-
-        This method is called right after a new learner is created in db
-        Creates placeholder values in data matrices
-            - populates learner's Mastery values using current KC priors
-        This method is under the Engine class in case engine instance attributes 
-        are needed for setting initial values in the future
+        Action to take when new learner is created
+        :param learner: Learner model instance
         """
         knowledge_components = KnowledgeComponent.objects.all()
 
@@ -115,158 +201,82 @@ class AdaptiveEngine(object):
                 value=kc.mastery_prior,
             ) for kc in knowledge_components
         ])
-        # add confidence row
-        Confidence.objects.bulk_create([
-            Confidence(
-                learner=learner,
-                knowledge_component=kc,
-                value=0,
-            ) for kc in knowledge_components
-        ])
 
-
-    # TODO: how about updates when a new knowledge component is added?
-
-
-    #### engine functionality ####
-
-    def update(self, score):
+    def get_recommend_params(self, learner, valid_activities):
         """
-        Arguments:
-            learner (Learner django model instance)
-            activity (Activity django model instance)
-            score (Score django model instance)
-
-        Updates:
-            - row of L/Mastery
-            - row of Confidence
-
-        Note: use of {last_seen, m_unseen, transactions} replaced by Score database table
-        Note: saving score to database is handled outside this function
+        Retrieve features/params needed for doing recommendation
+        Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
+        TODO: could subset params based on activities in collection scope, to reduce unneeded computation
+        :param learner: Learner model instance
+        :return: dictionary with following keys:
+            guess: QxK np.array, guess parameter values for activities
+            slip: QxK np.array, slip parameter values for activities
+            difficulty: 1xQ np.array, difficulty values for activities
+            prereqs: QxQ np.array, prerequisite matrix
+            r_star: float, Threshold for forgiving lower odds of mastering pre-requisite LOs.
+            L_star: float, Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
+            W_p: (float), weight on substrategy P
+            W_r: (float), weight on substrategy R
+            W_d: (float), weight on substrategy D
+            W_c: (float), weight on substrategy C
+            last_attempted_guess: 1xK vector of guess parameters for activity
+            last_attempted_slip: 1xK vector of slip parameters for activity
+            learner_mastery: 1xK vector of learner mastery values
         """
+        return {
+            'guess': self.get_guess(valid_activities),
+            'slip': self.get_slip(valid_activities),
+            'difficulty': self.get_difficulty(valid_activities),
+            'prereqs': self.get_prereqs(),
+            'last_attempted_guess': self.get_last_attempted_guess(learner),
+            'last_attempted_slip': self.get_last_attempted_slip(learner),
+            'learner_mastery': self.get_learner_mastery(learner),
+            'r_star': self.engine_settings.r_star,
+            'L_star': self.engine_settings.L_star,
+            'W_p': self.engine_settings.W_p,
+            'W_r': self.engine_settings.W_r,
+            'W_d': self.engine_settings.W_d,
+            'W_c': self.engine_settings.W_c,
+        }
 
-        activity = score.activity
-        learner = score.learner
-        score_value = score.score
-        
-        # vector of values, corresponding to row of guess and slip matrices for single activity
-        guess = Matrix(Guess)[activity,].values() # nparray [1 x # KCs]
-        slip = Matrix(Slip)[activity,].values() # nparray vector [1 x # KCs]
-
-        ## If this is the first time learner sees/does the problem...
-        ## e.g. is there a score for the activity in the learner's transaction history
-        if not Score.objects.filter(learner=learner,activity=activity).exists():
-            # update row of confidence matrix
-            relevance = utils.relevance(guess,slip)
-            confidence = Matrix(Confidence)[learner,] # vector
-            confidence.update(confidence.values() + relevance) # update database values
-
-        # row of mastery table for learner
-        mastery = Matrix(Mastery)[learner,]
-        # The increment of odds due to evidence of the problem, but before the transfer
-        x = utils.x0_mult(guess,slip) * np.power(utils.x1_0_mult(guess,slip), score_value)
-        L = mastery.values() * x
-        # Add the transferred knowledge
-        L += Matrix(Transit)[activity,].values() * (L+1)
-        # Clean up invalid values
-        L[np.where(np.isposinf(L))] = 1.0/utils.epsilon
-        L[np.where(L==0.0)] = utils.epsilon
-
-        # update row of mastery values in database
-        mastery.update(L)
-
-        # save score to database
-        score.save()
-
-
-    def recommend(self, learner, collection):
+    def recommend(self, learner, collection, sequence):
         """
-        This function returns the id of the next recommended problem in an adaptive module. 
-        If none is recommended (list of problems exhausted or the user has reached mastery) it returns None.
+        Workflow:
+            get valid activities (i.e. activities in collection)
+            retrieve parameters (relevant to valid activities where applicable)
+            compute scores for valid activities using parameters
+            return top item by computed recommendation score
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity dicts, learner's sequence history
+        :return: Activity model instance
         """
-        # enforce max problems limit for collection
-        if collection.max_problems:
-            if utils.get_activities(learner, collection, seen=True).count() >= collection.max_problems:
-                return None
+        # determine valid activities that recommendation can output
+        # recommendation activity scores will only be computed for valid activities
+        valid_activities = collection.activity_set.all()
 
-        # get unseen activities within module that are valid to serve to adaptive group
-        valid_activities = utils.get_activities(learner, collection, seen=False)
+        # get relevant model parameters (limited to valid activities where applicable)
+        params = self.get_recommend_params(learner, valid_activities)
 
-        # check if we still have available problems
-        if not valid_activities.exists():
-            # return next_item = None if no items left to serve
-            return None 
+        # compute recommendation scores for activities
+        scores = recommendation_score(
+            params['guess'],
+            params['slip'],
+            params['learner_mastery'],
+            params['prereqs'],
+            params['r_star'],
+            params['L_star'],
+            params['difficulty'],
+            params['W_p'],
+            params['W_r'],
+            params['W_d'],
+            params['W_c'],
+            params['last_attempted_guess'],
+            params['last_attempted_slip']
+        )
+        # get the index corresponding to the activity with the highest computed score
+        activity_idx = np.argmax(scores)
 
-        # check for preadaptive activities
-        valid_preadaptive_activities = valid_activities.filter(preadaptive_order__isnull=False)
-        if valid_preadaptive_activities.exists():
-            return valid_preadaptive_activities.order_by('preadaptive_order').first()
-
-        # row of mastery values matrix
-        L = np.log(Matrix(Mastery)[learner,].values())
-
-        # N is number of available problems
-        N = valid_activities.count()
-
-        # check if we still have available problems
-        if N == 0:
-            return None
-
-        #Calculate the user readiness for LOs
-        m_w = Matrix(PrerequisiteRelation).values()
-        m_r = np.dot(np.minimum(L-self.settings.L_star,0), m_w)
-
-        guess = Matrix(Guess)[valid_activities,].values()
-        slip = Matrix(Slip)[valid_activities,].values()
-        # m_k is matrix of relevance (derived from guess/slip)
-        relevance_unseen = utils.relevance(guess,slip)
-
-        P = np.dot(relevance_unseen, np.minimum((m_r+self.settings.r_star),0))
-        R = np.dot(relevance_unseen, np.maximum((self.settings.L_star-L),0))
-
-        if not Score.objects.filter(learner=learner).exists():
-            C = np.repeat(0.0,N)
-        else:
-            last_seen = Score.objects.filter(learner=learner).latest('timestamp').activity
-            relevance_lastseen = utils.relevance(
-                Matrix(Guess)[last_seen,].values(),
-                Matrix(Slip)[last_seen,].values()
-            )
-            C = np.sqrt(np.dot(relevance_unseen, relevance_lastseen))
-        # vector of difficulties for valid activities
-        difficulty = utils.difficulty(valid_activities)
-        # number of learning objectives
-        K = KnowledgeComponent.objects.count()
-        d_temp = np.tile(difficulty,(K,1)) # repeated column vector
-        L_temp = np.tile(L,(N,1)).T # repeated column vector
-        D =- np.diag(np.dot(relevance_unseen,np.abs(L_temp-d_temp)))
-                
-        next_item = valid_activities[np.argmax(
-            self.settings.W_p * P 
-            + self.settings.W_r * R
-            + self.settings.W_d * D
-            + self.settings.W_c * C
-        )]
-
-        return next_item
-
-
-def update_model(eta=0.0, M=20.0):
-    """
-    Updates initial mastery and tranit/guess/slip matrices
-
-    Arguments:
-        eta (float): Relevance threshold used in the BKT optimization procedure
-        M (float): Information threshold user in the BKT optimization procedure
-    """
-    print "Starting update_model()..."
-    est = utils.estimate(eta, M)
-    print "Saving L_i ..."
-    # save L_i
-    L_i = Vector(KnowledgeComponent.objects.all(),value_field='mastery_prior')
-    L_i.update(1.0*est['L_i'])
-    print "Saving matrices..."
-    # save param matrices
-    Matrix(Transit).update(1.0*est['trans'])
-    Matrix(Guess).update(1.0*est['guess'])
-    Matrix(Slip).update(1.0*est['slip'])
+        # convert matrix 0-idx to activity.pk / activity
+        pks = list(valid_activities.values_list('pk', flat=True))
+        return Activity.objects.get(pk=pks[activity_idx])

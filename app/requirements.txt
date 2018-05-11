@@ -4,3 +4,4 @@ numpy==1.14.0
 requests==2.18.4
 gunicorn==19.7.1
 psycopg2==2.7.4
+git+https://github.com/harvard-vpal/adaptive-engine#subdirectory=alosi

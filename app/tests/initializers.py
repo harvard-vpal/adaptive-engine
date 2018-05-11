@@ -107,7 +107,10 @@ class FakeInitializer(BaseInitializer):
         self.num_activities = num_activities
         self.num_collections = num_collections
         self.num_kcs = num_kcs
-
+        self.slip_probability = slip_probability
+        self.guess_probability = guess_probability
+        self.trans_probability = trans_probability
+        self.prior_knowledge_probability = prior_knowledge_probability
 
     def initialize(self):
         """
@@ -117,21 +120,18 @@ class FakeInitializer(BaseInitializer):
         super(self.__class__,self).initialize()
         # initializer-specific initialization
         self.initialize_collections()
-        self.initialize_knowledge_components(prior_knowledge_probability)
+        self.initialize_knowledge_components(self.prior_knowledge_probability)
         self.initialize_prereqs()
         self.initialize_activities()
-        self.initialize_param_matrix(Guess,guess_probability)
-        self.initialize_param_matrix(Slip,slip_probability)
-        self.initialize_param_matrix(Transit,trans_probability)
+        self.initialize_param_matrix(Guess,self.guess_probability)
+        self.initialize_param_matrix(Slip,self.slip_probability)
+        self.initialize_param_matrix(Transit,self.trans_probability)
 
-
-    # collections
     def initialize_collections(self):
         Collection.objects.bulk_create([Collection(
             pk=pk,
             name="Collection {}".format(pk)
     ) for pk in range(1,self.num_collections+1)])
-
 
     def initialize_prereqs(self):
         """
@@ -161,7 +161,6 @@ class FakeInitializer(BaseInitializer):
             ) for pk in range(1,self.num_kcs+1)
         ])
 
-
     def initialize_activities(self):
         """
         Load activities into database
@@ -170,12 +169,12 @@ class FakeInitializer(BaseInitializer):
             activity = Activity(
                 pk=pk,
                 name="Activity {}".format(pk),
+                url="https://example.com/{}".format(pk),
                 difficulty = np.random.uniform(),
             )
             activity.save()
-            activity.collections.set([np.random.randint(1,self.num_activities+1)])
+            activity.collections.set([np.random.randint(1,self.num_collections+1)])
             activity.knowledge_components.set([np.random.randint(1,self.num_kcs+1)])
-
 
     def initialize_param_matrix(self, model, value):
         """
@@ -193,6 +192,7 @@ class FakeInitializer(BaseInitializer):
                     )
                 )
         return model.objects.bulk_create(objs_to_create)
+
 
 class RealInitializer(BaseInitializer):
     """
@@ -230,7 +230,6 @@ class RealInitializer(BaseInitializer):
         self.initialize_activities()
         self.initialize_param_matrices()
 
-
     def load_tagging_data(self):
 
         def load_data(name):
@@ -252,7 +251,6 @@ class RealInitializer(BaseInitializer):
         """
         Make dataframe with collection data
         """
-
         df_collections = pd.DataFrame([
             dict(name='Pre-test', collection_id=1, max_problems=64),
             dict(name='Module 1', collection_id=2, max_problems=15),
@@ -303,13 +301,11 @@ class RealInitializer(BaseInitializer):
         df_adaptive_items['collection_id'] = df_adaptive_items.collection_id.apply(lambda x: collection_id_mapping[x])
         return df_adaptive_items
 
-
     def make_activity_df(self):
         """
         Can combine non-adpative and adaptive here in subclass
         """
         return self.df_adaptive_items.assign(pk=lambda x: x.index+1)
-
 
     def initialization_prep(self):
         """
@@ -329,7 +325,6 @@ class RealInitializer(BaseInitializer):
 
         self.df_adaptive_items = self.make_adaptive_item_df()
         self.df_activities = self.make_activity_df()
-
 
     def initialize_collections(self):
         """
@@ -424,7 +419,6 @@ class RealInitializer(BaseInitializer):
             model.objects.bulk_create(objs)
 
 
-
 class RealAdaptiveNonadaptiveInitializer(RealInitializer):
     """
     Initialize with realistic data for adaptive study
@@ -438,7 +432,6 @@ class RealAdaptiveNonadaptiveInitializer(RealInitializer):
         """
         # initialize experimental groups and engine settings
         super(self.__class__, self).__init__(repo_path=repo_path, groups=groups)
-
 
     def make_nonadaptive_item_df(self):
         """
@@ -467,7 +460,6 @@ class RealAdaptiveNonadaptiveInitializer(RealInitializer):
         )
         return df_nonadaptive_items
 
-
     def make_activity_df(self):
         """
         create activity table by combining adaptive item table and non-adaptive item table
@@ -480,7 +472,6 @@ class RealAdaptiveNonadaptiveInitializer(RealInitializer):
         )
         df_activities['include_adaptive'].fillna(False,inplace=True)
         return df_activities
-
 
     def initialization_prep(self):
         """
@@ -500,7 +491,6 @@ class RealAdaptiveNonadaptiveInitializer(RealInitializer):
         self.df_nonadaptive_items = self.make_nonadaptive_item_df()
         self.df_adaptive_items = self.make_adaptive_item_df()
         self.df_activities = self.make_activity_df()
-
 
     def initialize_activities(self):
         """
@@ -681,7 +671,6 @@ class RealInitializerFromSmeFiles(BaseInitializer):
         ])
         return df_collection
 
-
     def make_df_activity(self):
         """
         Make dataframe of activity info
@@ -762,7 +751,6 @@ class RealInitializerFromSmeFiles(BaseInitializer):
     
         return m_slip, m_guess, m_trans
 
-
     def initialize_collections(self):
         """
         Populate Collection model instances in database
@@ -842,5 +830,3 @@ class RealInitializerFromSmeFiles(BaseInitializer):
                         value = value
                     ))
             param_model.objects.bulk_create(objs)
-
-
