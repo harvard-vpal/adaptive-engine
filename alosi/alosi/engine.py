@@ -12,8 +12,8 @@ class BaseAdaptiveEngine:
     def get_guess(self, activity=None):
         """
         Get guess parameters for activity/activities
-        :param activity_id: activity to get parameters for
-            If None, returns full Guess matrix by default
+        :param activity: activity/activities to get parameters for
+            If None, returns full matrix by default
         :return: (# activities) x (# LOs) np.array matrix of guess parameter values
             or 1 x (# LOs) np.array vector of guess parameter values if activity_id is specified
         """
@@ -22,8 +22,8 @@ class BaseAdaptiveEngine:
     def get_slip(self, activity=None):
         """
         Get slip parameters for activity/activities
-        :param activity_id: activity id to get guess parameters for.
-            If None, returns full Slip matrix by default
+        :param activity: activity/activities to get parameters for
+            If None, returns full matrix by default
         :return: (# activities) x (# LOs) np.array matrix of slip parameter values
             or 1 x (# LOs) np.array vector of slip parameter values if activity_id is specified
         """
@@ -32,8 +32,8 @@ class BaseAdaptiveEngine:
     def get_transit(self, activity=None):
         """
         Get transit parameters for activity/activities
-        :param activity_ids: activity id to get transit parameters for.
-            If None, returns full Slip matrix by default
+        :param activity: activity/activities to get parameters for
+            If None, returns full matrix by default
         :return: (# activities) x (# LOs) np.array matrix of transit parameter values
             or 1 x (# LOs) np.array vector of transit parameter values if activity_id is specified
         """
@@ -42,8 +42,8 @@ class BaseAdaptiveEngine:
     def get_difficulty(self, activity=None):
         """
         Get difficulty values for activity/activities
-        :param activity: activity/activities to get guess parameters for
-        :return: 1 x (# activities) np.array vector of transit parameter values
+        :param activity: activity/activities to get parameters for
+        :return: 1 x (# activities) np.array vector of difficulty parameter values
             or difficulty parameter value (float) if activity_id is specified
         """
         raise NotImplementedError
@@ -55,26 +55,26 @@ class BaseAdaptiveEngine:
         """
         raise NotImplementedError
 
-    def get_last_attempted_guess(self, learner_id):
+    def get_last_attempted_guess(self, learner):
         """
         Return guess parameter values for the activity last attempted by the specified learner
-        :param learner_id: learner id
+        :param learner: learner
         :return: 1x(# LOs) np.array vector of guess parameter values
         """
         raise NotImplementedError
 
-    def get_last_attempted_slip(self, learner_id):
+    def get_last_attempted_slip(self, learner):
         """
         Return slip parameter values for the activity last attempted by the specified learner
-        :param learner_id: learner id
+        :param learner: learner
         :return: 1x(#LOs) np.array vector of slip parameter values
         """
         raise NotImplementedError
 
-    def get_learner_mastery(self, learner_id):
+    def get_learner_mastery(self, learner):
         """
         Return mastery parameter values for learner
-        :param learner_id:
+        :param learner: learner
         :return: 1x(# LOs) np.array vector of mastery parameter values
         """
         raise NotImplementedError
@@ -178,7 +178,7 @@ class BaseAdaptiveEngine:
         Retrieve features/params needed for doing recommendation
         Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
         TODO: could subset params based on activities in collection scope, to reduce unneeded computation
-        :param learner_id:
+        :param learner:
         :return: dictionary with following keys:
             guess: QxK np.array, guess parameter values for activities
             slip: QxK np.array, slip parameter values for activities
