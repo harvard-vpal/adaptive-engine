@@ -9,10 +9,7 @@ def get_engine(engine_settings=None):
     Get relevant engine for learner based on their experimental group
     Also assigns experimental group if none assigned
     """
-    # if learner.experimental_group:
-    #     engine_settings = learner.experimental_group.engine_settings
-    #     return AdaptiveEngine(engine_settings)
-    if not engine_settings:
+    if engine_settings is None:
         engine_settings = EngineSettings(
             L_star=2.2,
             r_star=0.0,
@@ -32,23 +29,33 @@ class NonAdaptiveEngine(object):
     def __init__(self):
         pass
 
-    def initialize_learner(self, learner_id):
+    def initialize_learner(self, learner):
         """
         Don't need to initialize additional data for non-adaptive case
+        :param learner: not used, kept in definition for api consistency
         """
         pass
 
-    def update(self, score):
+    def update_from_score(self, learner, activity, score):
         """
-        No additional action needed
+        Saves score, no additional param initialization needed
+        :param learner: Learner model instance
+        :param activity: Learner model instance
+        :param score: float, score value
+        :return: n/a
         """
-        score.save()
+        Score.objects.create(learner=learner, activity=activity, score=score)
 
-    def recommend(self, learner, collection, history=None):
+    def recommend(self, learner, collection, sequence=None):
         """
         Recommend activity according to 'nonadaptive_order' field
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity dicts, learner's sequence history
+        :return: n/a
         """
-        activity_urls = [item['activity'] for item in history]
+
+        activity_urls = [item['activity'] for item in sequence]
         candidate_activities = collection.activity_set.exclude(url__in=activity_urls)
         return candidate_activities.first()
 
@@ -58,149 +65,95 @@ class AdaptiveEngine(BaseAdaptiveEngine):
     def __init__(self, engine_settings):
         self.engine_settings = engine_settings
 
-    def recommend(self, learner_id, collection_id, sequence):
+    def get_guess(self, activity=None):
         """
-
-        :param learner_id:
-        :param collection_id:
-        :param sequence: list of activities learner has previously completed in sequence context
+        Get guess matrix, or row(s) of guess matrix if activity specified
+        :param activity: Activity model instance or queryset
         :return:
         """
-        return super().recommend(learner_id)
-
-    def get_guess(self, activity_id=None):
-        """
-        Get guess matrix, or row of guess matrix if activity_id specified
-        :param activity_id: url id of activity
-        :return:
-        """
-        if activity_id is not None:
-            activity = Activity.objects.get(pk=activity_id)
+        if activity is not None:
             return Matrix(Guess)[activity, ].values()
         else:
             return Matrix(Guess).values()
 
-    def get_slip(self, activity_id=None):
+    def get_slip(self, activity=None):
         """
-        Get slip matrix, or row of slip matrix if activity_id specified
-        :param activity_id:
+        Get slip matrix, or row(s) of slip matrix if activity specified
+        :param activity: Activity model instance or queryset
         :return:
         """
-        if activity_id is not None:
-            activity = Activity.objects.get(pk=activity_id)
+        if activity is not None:
             return Matrix(Slip)[activity, ].values()
         else:
             return Matrix(Slip).values()
 
-    def get_transit(self, activity_id=None):
+    def get_transit(self, activity=None):
         """
-        Get transit matrix, or row of transit matrix if activity_id specified
-        :param activity_id:
-        :return:
+        Get transit matrix, or row(s) of transit matrix if activity specified
+        :param activity: Activity model instance or queryset
+        :return: len(activity) x (# LOs) np.array
         """
-        if activity_id is not None:
-            activity = Activity.objects.get(pk=activity_id)
+        if activity is not None:
             return Matrix(Transit)[activity, ].values()
         else:
             return Matrix(Transit).values()
 
-    def get_difficulty(self):
+    def get_difficulty(self, activity=None):
         """
         Get activity difficulty values
-        :return:
+        :param activity: Activity queryset
+        :return: 1 x len(activity) np.array vector
         """
-        return np.array(Activity.objects.values_list('difficulty', flat=True))
+        if activity is not None:
+            return np.array(activity.values_list('difficulty', flat=True))
+        else:
+            return np.array(Activity.objects.values_list('difficulty', flat=True))
 
     def get_prereqs(self):
         """
-        Get prereq matrix
-        :return:
+        Get Prerequisite matrix
+        :return: (# LOs) x (# LOs) np.array matrix
         """
         return Matrix(PrerequisiteRelation).values()
 
-    def get_r_star(self, learner_id=None):
+    def get_last_attempted_guess(self, learner):
         """
-        Get r_star parameter value for learner's experimental group engine settings
-        :param learner_id: int, learner pk
-        :return:
+        :param learner: Learner object instance
+        :return: 1 x (# LOs) np.array vector
         """
-        return self.engine_settings.r_star
-
-    def get_L_star(self, learner_id=None):
-        """
-        Get L_star parameter value for learner's experimental group engine settings
-        :param learner_id: int, learner pk
-        :return:
-        """
-        return self.engine_settings.L_star
-
-    def get_last_attempted_guess(self, learner_id):
-        """
-        :param learner_id: int, learner pk
-        :return:
-        """
-        user_scores = Score.objects.filter(learner_id=learner_id)
+        user_scores = Score.objects.filter(learner=learner)
         if user_scores:
             last_attempted = user_scores.latest('timestamp').activity
             return Matrix(Guess)[last_attempted, ].values()
         else:
             return None
 
-    def get_last_attempted_slip(self, learner_id):
+    def get_last_attempted_slip(self, learner):
         """
-        :param learner_id: int, learner pk
-        :return:
+        :param learner: Learner object instance
+        :return: 1 x (# LOs) np.array vector
         """
-        user_scores = Score.objects.filter(learner_id=learner_id)
+        user_scores = Score.objects.filter(learner=learner)
         if user_scores:
             last_attempted = user_scores.latest('timestamp').activity
             return Matrix(Slip)[last_attempted, ].values()
         else:
             return None
 
-    def get_learner_mastery(self, learner_id=None):
+    def get_learner_mastery(self, learner):
         """
-        :param learner_id: int, learner pk
-        :return:
+        :param learner: Learner model instance
+        :return: 1 x (# LOs) np.array vector
         """
-        learner = Learner.objects.get(pk=learner_id)
         return Matrix(Mastery)[learner, ].values()
 
     def get_mastery_prior(self):
         """
-        :return:
+        Get mastery prior values for learning objectives
+        :return: 1 x (#LOs) np.array vector
         """
         knowledge_components = KnowledgeComponent.objects.all()
         return np.array([kc.mastery_prior for kc in knowledge_components])
-
-    def get_W_p(self, learner_id):
-        """
-        Get W_p parameter value for learner's experimental group engine settings
-        :param learner_id: int, learner pk
-        :return:
-        """
-        return self.engine_settings.W_p
-
-    def get_W_r(self, learner_id):
-        """
-        :param learner_id: int, learner pk
-        :return:
-        """
-        return self.engine_settings.W_r
-
-    def get_W_d(self, learner_id):
-        """
-        :param learner_id: int, learner pk
-        :return:
-        """
-        return self.engine_settings.W_d
-
-    def get_W_c(self, learner_id):
-        """
-        :param learner_id: int, learner pk
-        :return:
-        """
-        return self.engine_settings.W_c
 
     def get_scores(self):
         """
@@ -217,29 +170,105 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             score_records[i][1] = idx[r[1]]
         return np.asarray(score_records)
 
-    def save_score(self, learner_id, activity_id, score):
-        activity = Activity.objects.get(pk=activity_id)
-        Score.objects.create(learner_id=learner_id, activity_id=activity.pk, score=score)
+    def save_score(self, learner, activity, score):
+        """
+        :param learner: Learner model instance
+        :param activity: Activity model instance
+        :param score: float, score value
+        """
+        Score.objects.create(learner=learner, activity=activity, score=score)
 
-    def update_learner_mastery(self, learner_id, new_mastery):
+    def update_learner_mastery(self, learner, new_mastery):
         """
         :param learner_id: int, learner pk
-        :param new_mastery: 1x(# LOs) np.array vector of new mastery values
+        :param new_mastery: 1 x (# LOs) np.array vector of new mastery values
         """
-        learner = Learner.objects.get(pk=learner_id)
         Matrix(Mastery)[learner, ].update(new_mastery)
 
-    def initialize_learner(self, learner_id):
+    def initialize_learner(self, learner):
         """
         Action to take when new learner is created
+        :param learner: Learner model instance
         """
         knowledge_components = KnowledgeComponent.objects.all()
 
         # add mastery row
         Mastery.objects.bulk_create([
             Mastery(
-                learner_id=learner_id,
+                learner=learner,
                 knowledge_component=kc,
                 value=kc.mastery_prior,
             ) for kc in knowledge_components
         ])
+
+    def get_recommend_params(self, learner):
+        """
+        Retrieve features/params needed for doing recommendation
+        Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
+        TODO: could subset params based on activities in collection scope, to reduce unneeded computation
+        :param learner: Learner model instance
+        :return: dictionary with following keys:
+            guess: QxK np.array, guess parameter values for activities
+            slip: QxK np.array, slip parameter values for activities
+            difficulty: 1xQ np.array, difficulty values for activities
+            prereqs: QxQ np.array, prerequisite matrix
+            r_star: float, Threshold for forgiving lower odds of mastering pre-requisite LOs.
+            L_star: float, Threshold logarithmic odds. If mastery logarithmic odds are >= than L_star, the LO is considered mastered
+            W_p: (float), weight on substrategy P
+            W_r: (float), weight on substrategy R
+            W_d: (float), weight on substrategy D
+            W_c: (float), weight on substrategy C
+            last_attempted_guess: 1xK vector of guess parameters for activity
+            last_attempted_slip: 1xK vector of slip parameters for activity
+            learner_mastery: 1xK vector of learner mastery values
+        """
+        return {
+            'guess': self.get_guess(),
+            'slip': self.get_slip(),
+            'difficulty': self.get_difficulty(),
+            'prereqs': self.get_prereqs(),
+            'last_attempted_guess': self.get_last_attempted_guess(learner),
+            'last_attempted_slip': self.get_last_attempted_slip(learner),
+            'learner_mastery': self.get_learner_mastery(learner),
+            'r_star': self.engine_settings.r_star,
+            'L_star': self.engine_settings.L_star,
+            'W_p': self.engine_settings.W_p,
+            'W_r': self.engine_settings.W_r,
+            'W_d': self.engine_settings.W_d,
+            'W_c': self.engine_settings.W_c,
+        }
+
+    def recommend(self, learner, collection=None, sequence=None):
+        """
+        Workflow:
+            get valid activities
+            subset parameter matrices by relevance to valid activities
+            compute scores for activities using subsetted matrices
+            filter items based on scope
+            return 1 (or n) top items
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity dicts, learner's sequence history
+        :return: Activity object instance
+        """
+        # # get relevant model parameters
+        # params = self.get_recommend_params(learner)
+        #
+        # scores = recommendation_score(
+        #     params['guess'],
+        #     params['slip'],
+        #     params['learner_mastery'],
+        #     params['prereqs'],
+        #     params['r_star'],
+        #     params['L_star'],
+        #     params['difficulty'],
+        #     params['W_p'],
+        #     params['W_r'],
+        #     params['W_d'],
+        #     params['W_c'],
+        #     params['last_attempted_guess'],
+        #     params['last_attempted_slip']
+        # )
+        # return np.argmax(scores)
+
+        return super().recommend(learner)

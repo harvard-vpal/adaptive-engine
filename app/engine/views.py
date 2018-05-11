@@ -47,14 +47,14 @@ class ActivityViewSet(viewsets.ModelViewSet):
         if created:
             # if new learner, initialize learner params
             engine = get_engine()
-            engine.initialize_learner(learner.pk)
+            engine.initialize_learner(learner)
             # assign_experimental_group(learner)
 
         # retrieve relevant engine instance for A/B testing
         engine = get_engine()
 
         # get recommendation from engine
-        activity_pk = engine.recommend(learner.pk, collection.pk, sequence)
+        activity_pk = engine.recommend(learner, collection, sequence)
         activity = Activity.objects.get(pk=activity_pk)
 
         # construct response data
@@ -152,7 +152,7 @@ class ScoreViewSet(viewsets.ModelViewSet):
             if created:
                 # initialize learner params
                 engine = get_engine()
-                engine.initialize_learner(learner.pk)
+                engine.initialize_learner(learner)
                 # reset serializer to recognize newly created learner
                 serializer = ScoreSerializer(data=request.data)
             
@@ -162,7 +162,7 @@ class ScoreViewSet(viewsets.ModelViewSet):
                 # make score object
                 score = Score(**serializer.validated_data)
                 # trigger update function for engine (bayes update if adaptive)
-                engine.update_from_score(score.learner_id, score.activity_id, score.score)
+                engine.update_from_score(score.learner, score.activity, score.score)
                 # return response with created score
                 return Response(serializer.data)
         
