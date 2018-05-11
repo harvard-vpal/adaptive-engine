@@ -42,6 +42,7 @@ class CollectionSerializer(serializers.ModelSerializer):
         model = Collection 
         fields = '__all__'
 
+
 class CollectionActivityListSerializer(serializers.ListSerializer):
 
     def update(self, instance, validated_data):
@@ -81,39 +82,39 @@ class CollectionActivitySerializer(serializers.ModelSerializer):
     TODO probably override init to get collection id in
     """
     source_launch_url = serializers.CharField(source='url')
-    tags = serializers.CharField(allow_null=True,allow_blank=True,default='')
+    tags = serializers.CharField(allow_null=True, allow_blank=True, default='')
 
     def validate_tags(self, value):
         """
         Convert null value into empty string
         """
-        if value == None:
+        if value is None:
             return ''
         else:
             return value
 
     class Meta:
         model = Activity
-        fields = ('source_launch_url','name','difficulty','tags')
+        fields = ('source_launch_url', 'name', 'difficulty', 'tags')
         list_serializer_class = CollectionActivityListSerializer
 
 
 class ActivitySerializer(serializers.ModelSerializer):
     source_launch_url = serializers.CharField(source='url')
-    tags = serializers.CharField(allow_null=True,allow_blank=True,default='')
+    tags = serializers.CharField(allow_null=True, allow_blank=True, default='')
 
     def validate_tags(self, value):
         """
         Convert null value into empty string
         """
-        if value == None:
+        if value is None:
             return ''
         else:
             return value
 
     class Meta:
         model = Activity 
-        fields = ('collections','source_launch_url','name','difficulty','tags')
+        fields = ('collections', 'source_launch_url', 'name', 'difficulty', 'tags')
 
 
 class ActivityRecommendationSerializer(serializers.ModelSerializer):
@@ -126,9 +127,10 @@ class ActivityRecommendationSerializer(serializers.ModelSerializer):
 
 class ScoreSerializer(serializers.ModelSerializer):
     activity = serializers.SlugRelatedField(
-        slug_field = 'url',
-        queryset = Activity.objects.all()
+        slug_field='url',
+        queryset=Activity.objects.all()
     )
+
     class Meta:
         model = Score
         fields = ('id', 'learner', 'activity', 'score')
