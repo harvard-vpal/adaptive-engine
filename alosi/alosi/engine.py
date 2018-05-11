@@ -9,17 +9,17 @@ class BaseAdaptiveEngine:
     def __init__(self):
         pass
 
-    def get_guess(self, activity_id=None):
+    def get_guess(self, activity=None):
         """
         Get guess parameters for activity/activities
-        :param activity_id: activity id to get parameters for
+        :param activity_id: activity to get parameters for
             If None, returns full Guess matrix by default
         :return: (# activities) x (# LOs) np.array matrix of guess parameter values
             or 1 x (# LOs) np.array vector of guess parameter values if activity_id is specified
         """
         raise NotImplementedError
 
-    def get_slip(self, activity_id=None):
+    def get_slip(self, activity=None):
         """
         Get slip parameters for activity/activities
         :param activity_id: activity id to get guess parameters for.
@@ -29,7 +29,7 @@ class BaseAdaptiveEngine:
         """
         raise NotImplementedError
 
-    def get_transit(self, activity_id=None):
+    def get_transit(self, activity=None):
         """
         Get transit parameters for activity/activities
         :param activity_ids: activity id to get transit parameters for.
@@ -39,10 +39,10 @@ class BaseAdaptiveEngine:
         """
         raise NotImplementedError
 
-    def get_difficulty(self, activity_id=None):
+    def get_difficulty(self, activity=None):
         """
         Get difficulty values for activity/activities
-        :param activity_id: activity id to get guess parameters for
+        :param activity: activity/activities to get guess parameters for
         :return: 1 x (# activities) np.array vector of transit parameter values
             or difficulty parameter value (float) if activity_id is specified
         """
@@ -52,22 +52,6 @@ class BaseAdaptiveEngine:
         """
         Get prerequisite weight values
         :return: (# LOs)x(# LOs) np.array matrix - full Prerequisite matrix
-        """
-        raise NotImplementedError
-
-    def get_r_star(self, learner_id=None):
-        """
-        Get r_star parameter value (possibly learner-specific)
-        :param learner_id: int, learner id
-        :return: float, r_star parameter value
-        """
-        raise NotImplementedError
-
-    def get_L_star(self, learner_id=None):
-        """
-        Get L_star parameter value (possibly learner-specific)
-        :param learner_id: int, learner id
-        :return: float, L_star parameter value
         """
         raise NotImplementedError
 
@@ -95,34 +79,44 @@ class BaseAdaptiveEngine:
         """
         raise NotImplementedError
 
+    def get_r_star(self):
+        """
+        Get r_star parameter value
+        :return: float, r_star parameter value
+        """
+        raise NotImplementedError
+
+    def get_L_star(self):
+        """
+        Get L_star parameter value
+        :return: float, L_star parameter value
+        """
+        raise NotImplementedError
+
     def get_W_p(self):
         """
         Get value of W_p
-        :param learner_id:
         :return: float
         """
         raise NotImplementedError
 
-    def get_W_r(self, learner_id):
+    def get_W_r(self):
         """
         Get value of W_p
-        :param learner_id:
         :return: float
         """
         raise NotImplementedError
 
-    def get_W_d(self, learner_id):
+    def get_W_d(self):
         """
         Get value of W_d
-        :param learner_id:
         :return: float
         """
         raise NotImplementedError
 
-    def get_W_c(self, learner_id):
+    def get_W_c(self):
         """
         Get value of W_c
-        :param learner_id:
         :return: float
         """
         raise NotImplementedError
@@ -130,23 +124,23 @@ class BaseAdaptiveEngine:
     def get_scores(self):
         """
         Get table of score records
-        :return: ?x3 np.array of score records with columns (learner_id, activity_id, score_value)
+        :return: ?x3 np.array of score records with columns (learner, activity, score)
         """
         raise NotImplementedError
 
-    def save_score(self, learner_id, activity_id, score):
+    def save_score(self, learner, activity, score):
         """
         Save score (e.g. to database, or to a matrix)
-        :param learner_id: learner id
-        :param activity_id: activity id
+        :param learner: learner id
+        :param activity: activity id
         :param score: float
         """
         raise NotImplementedError
 
-    def update_learner_mastery(self, learner_id, new_mastery):
+    def update_learner_mastery(self, learner, new_mastery):
         """
         Save new mastery parameter values for learner, replacing old values
-        :param learner_id: learner id to save parameter values for
+        :param learner: learner to save parameter values for
         :param new_mastery: New parameter values to save
         """
         raise NotImplementedError
@@ -177,8 +171,9 @@ class BaseAdaptiveEngine:
         Update prior mastery values for LOs
         :param new_prior_mastery: 1 x (# LOs) np.array vector of new mastery values for all LOs
         """
+        raise NotImplementedError
 
-    def get_recommend_params(self, learner_id, scope=None):
+    def get_recommend_params(self, learner):
         """
         Retrieve features/params needed for doing recommendation
         Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
@@ -204,18 +199,18 @@ class BaseAdaptiveEngine:
             'slip': self.get_slip(),
             'difficulty': self.get_difficulty(),
             'prereqs': self.get_prereqs(),
-            'r_star': self.get_r_star(learner_id),
-            'L_star': self.get_L_star(learner_id),
-            'W_p': self.get_W_p(learner_id),
-            'W_r': self.get_W_r(learner_id),
-            'W_d': self.get_W_d(learner_id),
-            'W_c': self.get_W_c(learner_id),
-            'last_attempted_guess': self.get_last_attempted_guess(learner_id),
-            'last_attempted_slip': self.get_last_attempted_slip(learner_id),
-            'learner_mastery': self.get_learner_mastery(learner_id),
+            'last_attempted_guess': self.get_last_attempted_guess(learner),
+            'last_attempted_slip': self.get_last_attempted_slip(learner),
+            'learner_mastery': self.get_learner_mastery(learner),
+            'r_star': self.get_r_star(),
+            'L_star': self.get_L_star(),
+            'W_p': self.get_W_p(),
+            'W_r': self.get_W_r(),
+            'W_d': self.get_W_d(),
+            'W_c': self.get_W_c(),
         }
 
-    def recommend(self, learner_id):
+    def recommend(self, learner):
         """
         Workflow:
             get valid activities
@@ -224,7 +219,7 @@ class BaseAdaptiveEngine:
             return 1 (or n) top items
         """
         # get relevant model parameters
-        params = self.get_recommend_params(learner_id)
+        params = self.get_recommend_params(learner)
 
         scores = recommendation_score(
             params['guess'],
@@ -243,23 +238,23 @@ class BaseAdaptiveEngine:
         )
         return np.argmax(scores)
 
-    def update_from_score(self, learner_id, activity_id, score):
+    def update_from_score(self, learner, activity, score):
         """
         Action to take when new score information is received
-        :param learner_id: learner id used as input to get_learner_mastery(), update_learner_mastery(), save_score()
-        :param activity_id: activity id used as input to get_guess(), get_slip(), get_transit()
+        :param learner: learner id used as input to get_learner_mastery(), update_learner_mastery(), save_score()
+        :param activity: activity id used as input to get_guess(), get_slip(), get_transit()
         :param score: float
         :return:
         """
-        mastery = self.get_learner_mastery(learner_id)
-        guess = self.get_guess(activity_id)
-        slip = self.get_slip(activity_id)
-        transit = self.get_transit(activity_id)
+        mastery = self.get_learner_mastery(learner)
+        guess = self.get_guess(activity)
+        slip = self.get_slip(activity)
+        transit = self.get_transit(activity)
         new_mastery = calculate_mastery_update(mastery, score, guess, slip, transit, EPSILON)
         # save new mastery values in mastery data store
-        self.update_learner_mastery(learner_id, new_mastery)
+        self.update_learner_mastery(learner, new_mastery)
         # save the new score in score data store
-        self.save_score(learner_id, activity_id, score)
+        self.save_score(learner, activity, score)
 
     def train(self, relevance_threshold=0.01, information_threshold=20, remove_degeneracy=True):
         """
