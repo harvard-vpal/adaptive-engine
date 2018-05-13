@@ -103,10 +103,11 @@ class Learner(models.Model):
     """
     User model for students
     """
+    lti_user_id = models.CharField(max_length=200, default='')
     experimental_group = models.ForeignKey(
-        ExperimentalGroup,
-        on_delete=models.SET_NULL,
-        null=True
+            ExperimentalGroup,
+            on_delete=models.SET_NULL,
+            null=True
     )
 
     def __unicode__(self):

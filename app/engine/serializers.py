@@ -134,3 +134,10 @@ class ScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Score
         fields = ('id', 'learner', 'activity', 'score')
+
+
+class LearnerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Learner
+        fields = ('id', 'lti_user_id')
