@@ -188,3 +188,8 @@ class ScoreViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MasteryViewSet(viewsets.ModelViewSet):
+    queryset = Mastery.objects.all()
+    serializer_class = MasterySerializer

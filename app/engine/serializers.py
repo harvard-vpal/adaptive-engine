@@ -141,3 +141,10 @@ class LearnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Learner
         fields = ('id', 'lti_user_id')
+
+
+class MasterySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mastery
+        fields = ('learner', 'knowledge_component', 'value')
