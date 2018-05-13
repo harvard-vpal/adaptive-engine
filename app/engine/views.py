@@ -131,20 +131,20 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
 
 def _is_valid_except_learner_not_found(serializer):
-        """
-        Not a view - method to determine whether to go ahead and get/create
-        learner based on serializer validity
-        """
-        if serializer.is_valid():
-            return True
-        else:
-            # check if learner is only field not validating
-            if list(serializer.errors.keys()) == ['learner']:
-                learner_id = serializer.data['learner']
-                # check data type
-                if isinstance(learner_id, int):
-                    return True
-            return False
+    """
+    Not a view - method to determine whether to go ahead and get/create
+    learner based on serializer validity
+    """
+    if serializer.is_valid():
+        return True
+    else:
+        # check if learner is only field not validating
+        if list(serializer.errors.keys()) == ['learner']:
+            learner_id = serializer.data['learner']
+            # check data type
+            if isinstance(learner_id, int):
+                return True
+        return False
 
 
 # "create transaction" endpoint
