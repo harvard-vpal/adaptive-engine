@@ -9,7 +9,7 @@ class Collection(models.Model):
     Collection consists of multiple activities
     """
     name = models.CharField(max_length=200)
-    max_problems = models.PositiveIntegerField(null=True,blank=True)
+    max_problems = models.PositiveIntegerField(null=True, blank=True)
 
     def __unicode__(self):
         return "{} - {}".format(self.pk, self.name)
@@ -25,17 +25,19 @@ class Collection(models.Model):
 
 class KnowledgeComponent(models.Model):
     name = models.CharField(max_length=200)
-    mastery_prior = models.FloatField(null=True,blank=True)
+    mastery_prior = models.FloatField(null=True, blank=True)
 
     def __unicode__(self):
         return "{} - {}".format(self.pk, self.name)
 
 
 class PrerequisiteRelation(models.Model):
-    prerequisite = models.ForeignKey(KnowledgeComponent, 
+    prerequisite = models.ForeignKey(
+        KnowledgeComponent,
+        on_delete=models.CASCADE,
         related_name="dependent_relation"
     )
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
     def __unicode__(self):
@@ -53,16 +55,16 @@ class Activity(models.Model):
     url = models.CharField(max_length=500, default='')
     name = models.CharField(max_length=200, default='')
     collections = models.ManyToManyField(Collection,blank=True)
-    knowledge_components = models.ManyToManyField(KnowledgeComponent,blank=True)
+    knowledge_components = models.ManyToManyField(KnowledgeComponent, blank=True)
     difficulty = models.FloatField(null=True,blank=True)
-    tags = models.TextField(default='',blank=True)
+    tags = models.TextField(default='', blank=True)
     type = models.CharField(max_length=200, default='')
     # whether to include as valid problem to recommend from adaptive engine
     include_adaptive = models.BooleanField(default=True)
     # order for non-adaptive problems
-    nonadaptive_order = models.PositiveIntegerField(null=True,blank=True)
+    nonadaptive_order = models.PositiveIntegerField(null=True, blank=True)
     # order for pre-adaptive problems
-    preadaptive_order = models.PositiveIntegerField(null=True,blank=True)
+    preadaptive_order = models.PositiveIntegerField(null=True, blank=True)
 
     def __unicode__(self):
         return "{} - {}".format(self.pk, self.name)
@@ -84,7 +86,12 @@ class EngineSettings(models.Model):
 class ExperimentalGroup(models.Model):
     name = models.CharField(max_length=200,default='')
     weight = models.FloatField(default=0)
-    engine_settings = models.ForeignKey(EngineSettings, blank=True, null=True)
+    engine_settings = models.ForeignKey(
+        EngineSettings,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True
+    )
 
     def __unicode__(self):
         return "{} - {}".format(self.pk, self.name) 
@@ -96,7 +103,11 @@ class Learner(models.Model):
     """
     User model for students
     """
-    experimental_group = models.ForeignKey(ExperimentalGroup, null=True)
+    experimental_group = models.ForeignKey(
+        ExperimentalGroup,
+        on_delete=models.SET_NULL,
+        null=True
+    )
 
     def __unicode__(self):
         return "{}".format(self.pk)
@@ -106,12 +117,12 @@ class Score(models.Model):
     """
     Score resulting from a learner's attempt on an activity
     """
-    learner = models.ForeignKey(Learner)
-    activity = models.ForeignKey(Activity)
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE)
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     # score value
     score = models.FloatField()
     # creation time
-    timestamp = models.DateTimeField(null=True,auto_now_add=True)
+    timestamp = models.DateTimeField(null=True, auto_now_add=True)
 
     def __unicode__(self):
         return "Learner {} - Activity {} = {}".format(
@@ -119,8 +130,8 @@ class Score(models.Model):
 
 
 class Transit(models.Model):
-    activity = models.ForeignKey(Activity)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
     def __unicode__(self):
@@ -129,8 +140,8 @@ class Transit(models.Model):
 
 
 class Guess(models.Model):
-    activity = models.ForeignKey(Activity)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
     def __unicode__(self):
@@ -139,8 +150,8 @@ class Guess(models.Model):
 
 
 class Slip(models.Model):
-    activity = models.ForeignKey(Activity)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
     def __unicode__(self):
@@ -149,8 +160,8 @@ class Slip(models.Model):
 
 
 class Mastery(models.Model):
-    learner = models.ForeignKey(Learner)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE)
+    knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
     def __unicode__(self):
@@ -159,8 +170,8 @@ class Mastery(models.Model):
 
 
 class Exposure(models.Model):
-    learner = models.ForeignKey(Learner)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE)
+    knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.IntegerField()
 
     def __unicode__(self):
@@ -169,8 +180,8 @@ class Exposure(models.Model):
 
 
 class Confidence(models.Model):
-    learner = models.ForeignKey(Learner)
-    knowledge_component = models.ForeignKey(KnowledgeComponent)
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE)
+    knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
     def __unicode__(self):

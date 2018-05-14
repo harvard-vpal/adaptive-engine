@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.decorators import list_route, detail_route
+from rest_framework.decorators import action
 from rest_framework import status
 from .serializers import *
 from .models import *
@@ -12,7 +12,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
 
-    @list_route(methods=['post'])
+    @action(methods=['post'], detail=False)
     def recommend(self, request):
         """
         API endpoint: Recommend activity
@@ -75,7 +75,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
 
-    @detail_route(methods=['get', 'post'])
+    @action(methods=['get', 'post'], detail=True)
     def activities(self, request, pk=None):
         """
         API endpoints:
@@ -118,7 +118,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             )
         return Response(serializer.data)
 
-    @detail_route(methods=['post'])
+    @action(methods=['post'], detail=True)
     def grade(self, request):
         collection = self.get_object()
         try:
@@ -131,20 +131,20 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
 
 def _is_valid_except_learner_not_found(serializer):
-        """
-        Not a view - method to determine whether to go ahead and get/create
-        learner based on serializer validity
-        """
-        if serializer.is_valid():
-            return True
-        else:
-            # check if learner is only field not validating
-            if list(serializer.errors.keys()) == ['learner']:
-                learner_id = serializer.data['learner']
-                # check data type
-                if isinstance(learner_id, int):
-                    return True
-            return False
+    """
+    Not a view - method to determine whether to go ahead and get/create
+    learner based on serializer validity
+    """
+    if serializer.is_valid():
+        return True
+    else:
+        # check if learner is only field not validating
+        if list(serializer.errors.keys()) == ['learner']:
+            learner_id = serializer.data['learner']
+            # check data type
+            if isinstance(learner_id, int):
+                return True
+        return False
 
 
 # "create transaction" endpoint
