@@ -17,7 +17,7 @@ class Collection(models.Model):
     def grade(self, learner):
         """
         Generate learner grade based on masteries that bridge can query
-        as a grading policy option. 
+        as a grading policy option.
         Just uses a placeholder value for now
         """
         return 0.5
@@ -94,9 +94,7 @@ class ExperimentalGroup(models.Model):
     )
 
     def __unicode__(self):
-        return "{} - {}".format(self.pk, self.name) 
-
-#TODO Course model?
+        return "{} - {}".format(self.pk, self.name)
 
 
 class Learner(models.Model):
@@ -108,7 +106,8 @@ class Learner(models.Model):
     experimental_group = models.ForeignKey(
         ExperimentalGroup,
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        blank=True,
     )
 
     class Meta:
