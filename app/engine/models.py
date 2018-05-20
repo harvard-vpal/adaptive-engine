@@ -11,7 +11,7 @@ class Collection(models.Model):
     name = models.CharField(max_length=200)
     max_problems = models.PositiveIntegerField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} - {}".format(self.pk, self.name)
 
     def grade(self, learner):
@@ -27,7 +27,7 @@ class KnowledgeComponent(models.Model):
     name = models.CharField(max_length=200)
     mastery_prior = models.FloatField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} - {}".format(self.pk, self.name)
 
 
@@ -40,7 +40,7 @@ class PrerequisiteRelation(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "KC {} -> KC {} = {}".format(
             self.prerequisite.pk,
             self.knowledge_component.pk,
@@ -66,7 +66,7 @@ class Activity(models.Model):
     # order for pre-adaptive problems
     preadaptive_order = models.PositiveIntegerField(null=True, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} - {}".format(self.pk, self.name)
 
 
@@ -79,7 +79,7 @@ class EngineSettings(models.Model):
     W_c = models.FloatField()  # Importance of continuity in recommending the next item
     W_d = models.FloatField()  # Importance of appropriate difficulty in recommending the next item
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} - {}".format(self.pk, self.name)
 
 
@@ -93,7 +93,7 @@ class ExperimentalGroup(models.Model):
         null=True
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} - {}".format(self.pk, self.name)
 
 
@@ -113,7 +113,7 @@ class Learner(models.Model):
     class Meta:
         unique_together = (('user_id', 'tool_consumer_instance_guid'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{}".format(self.pk)
 
 
@@ -128,7 +128,7 @@ class Score(models.Model):
     # creation time
     timestamp = models.DateTimeField(null=True, auto_now_add=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "Learner {} - Activity {} = {}".format(
             self.learner.pk, self.activity.pk, self.score)
 
@@ -138,7 +138,7 @@ class Transit(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "Activity {} - KC {} = {}".format(
             self.activity.pk, self.knowledge_component.pk, self.value)
 
@@ -148,7 +148,7 @@ class Guess(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "Activity {} - KC {} = {}".format(
             self.activity.pk, self.knowledge_component.pk, self.value)
 
@@ -158,7 +158,7 @@ class Slip(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "Activity {} - KC {} = {}".format(
             self.activity.pk, self.knowledge_component.pk, self.value)
 
@@ -168,7 +168,7 @@ class Mastery(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "Learner {} - KC {} = {}".format(
             self.learner.pk, self.knowledge_component.pk, self.value)
 
@@ -178,7 +178,7 @@ class Exposure(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.IntegerField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "Learner {} - KC {} = {}".format(
             self.learner.pk, self.knowledge_component.pk, self.value)
 
@@ -188,7 +188,7 @@ class Confidence(models.Model):
     knowledge_component = models.ForeignKey(KnowledgeComponent, on_delete=models.CASCADE)
     value = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "Learner {} - KC {} = {}".format(
             self.learner.pk, self.knowledge_component.pk, self.value)
 
