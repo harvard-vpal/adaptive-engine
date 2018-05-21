@@ -136,15 +136,50 @@ class ScoreSerializer(serializers.ModelSerializer):
         fields = ('id', 'learner', 'activity', 'score')
 
 
-class LearnerSerializer(serializers.ModelSerializer):
-
+class LearnerFieldSerializer(serializers.ModelSerializer):
+    """
+    Serializer to use as a compound lookup field in related serializer (e.g. mastery)
+    """
     class Meta:
         model = Learner
-        fields = ('id', 'lti_user_id')
+        fields = ('id', 'user_id', 'tool_consumer_instance_guid')
+        # don't enforce unique_together validator on learner user_id/tool_consumer_instance_guid
+        # this is so that mastery updates can specify an existing user_id/consumer_id pair
+        validators = []
+
+
+class KnowledgeComponentFieldSerializer(serializers.ModelSerializer):
+    """
+    Serializer to use in related model serializers (e.g. Mastery)
+    """
+    class Meta:
+        model = KnowledgeComponent
+        fields = ('name',)
 
 
 class MasterySerializer(serializers.ModelSerializer):
+    learner = LearnerFieldSerializer()
+    knowledge_component = KnowledgeComponentFieldSerializer()
 
     class Meta:
         model = Mastery
         fields = ('learner', 'knowledge_component', 'value')
+
+    def create(self, validated_data):
+        # create referenced learner if it doesn't exist already
+        learner_data = validated_data.pop('learner')
+        learner, created = Learner.objects.get_or_create(**learner_data)
+        # get referenced knowledge component
+        knowledge_component_data = validated_data.pop('knowledge_component')
+        knowledge_component = KnowledgeComponent.objects.get(**knowledge_component_data)
+        # create mastery, but act as an update if mastery object for learner/kc already exists
+        mastery, created = Mastery.objects.get_or_create(
+            learner=learner,
+            knowledge_component=knowledge_component,
+            defaults=validated_data
+        )
+        # update the value field if mastery object for learner/kc already exists
+        if not created:
+            mastery.value = validated_data['value']
+            mastery.save(update_fields=['value'])
+        return mastery
