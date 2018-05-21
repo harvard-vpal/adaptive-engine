@@ -8,6 +8,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register('activity', views.ActivityViewSet)
 router.register('collection', views.CollectionViewSet)
 router.register('score', views.ScoreViewSet)
+router.register('mastery', views.MasteryViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),

@@ -188,3 +188,24 @@ class ScoreViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MasteryViewSet(viewsets.ModelViewSet):
+    queryset = Mastery.objects.all()
+    serializer_class = MasterySerializer
+
+    @action(methods=['put'], detail=False)
+    def bulk_update(self, request):
+        """
+        Receive and create list of mastery objects
+        Update mastery value if value has changed
+        """
+        serializer = MasterySerializer(
+            data=request.data,
+            many=True,
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
