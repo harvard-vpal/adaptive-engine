@@ -1,4 +1,4 @@
-from base import *
+from .base import *
 
 # for health check
 # see https://gist.github.com/dryan/8271687
