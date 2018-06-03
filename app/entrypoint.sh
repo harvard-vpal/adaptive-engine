@@ -44,7 +44,7 @@ fi
 
 if [ "$1" = "web" ] || [ -z "$1" ]; then
     echo "Starting web container ..."
-    /usr/local/bin/gunicorn config.wsgi:application -w 2 -b :8000 --log-file=/dev/stdout --log-level=debug --access-logfile=/dev/stdout
+    /usr/local/bin/gunicorn config.wsgi:application -w 2 -b :8000 --log-level=debug --log-file - --access-logfile -
     echo "Command type not recognized"
     exit 1
 fi
