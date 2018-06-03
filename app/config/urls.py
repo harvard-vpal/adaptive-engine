@@ -1,6 +1,6 @@
 from django.urls import include, path
 from django.contrib import admin
-from . import views
+from config import views
 
 urlpatterns = [
     path('engine/', include('engine.urls', namespace="engine")),
