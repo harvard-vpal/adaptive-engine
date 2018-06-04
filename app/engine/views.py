@@ -209,3 +209,8 @@ class MasteryViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class KnowledgeComponentViewSet(viewsets.ModelViewSet):
+    queryset = KnowledgeComponent.objects.all()
+    serializer_class = KnowledgeComponentSerializer

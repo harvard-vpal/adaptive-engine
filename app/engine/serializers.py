@@ -193,3 +193,9 @@ class MasterySerializer(serializers.ModelSerializer):
             mastery.value = validated_data['value']
             mastery.save(update_fields=['value'])
         return mastery
+
+
+class KnowledgeComponentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KnowledgeComponent
+        fields = ('kc_id', 'name', 'mastery_prior')
