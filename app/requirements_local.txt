@@ -1,3 +1,0 @@
--r requirements.txt
-django_extensions==1.9.9
-pandas==0.22.0  # used for data loading in tests
