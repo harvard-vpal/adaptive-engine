@@ -38,13 +38,19 @@ else
 fi
 
 # Run launch command based on first argument:
-# "web" or no first argument: creates web container
+# "web" or no first argument: creates web container running with gunicorn
+# "runserver": creates web container running with 'python manage.py runserver'
+# If needed, can be extended to handle arguments like:
 # "worker": creates celery worker
 # "beat": creates celery beat scheduler
 
-if [ "$1" = "web" ] || [ -z "$1" ]; then
-    echo "Starting web container ..."
-    /usr/local/bin/gunicorn config.wsgi:application -w 2 -b :8000 --log-file=/dev/stdout --log-level=debug --access-logfile=/dev/stdout
+if [ "$1" = "web" ] || [ "$1" = "gunicorn" ] || [ -z "$1" ]; then
+    echo "Starting web container with gunicorn ..."
+    /usr/local/bin/gunicorn config.wsgi:application -w 2 -b :8000 --log-level=info --log-file - --access-logfile -
+elif [ "$1" = "runserver" ]; then
+    echo "Starting web container with python manage.py runserver ..."
+    python manage.py runserver 0.0.0.0:8000
+else
     echo "Command type not recognized"
     exit 1
 fi

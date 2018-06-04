@@ -10,11 +10,12 @@ services:
       - pgdata:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
-  engine:
+  web:
     build:
       context: .
-      dockerfile: Dockerfile_local
-    command: bash -c "sleep 5 && python manage.py runserver 0.0.0.0:8000"
+      dockerfile: Dockerfile
+    entrypoint: ./entrypoint.sh
+    command: gunicorn
     volumes:
       - .:/app
     ports:

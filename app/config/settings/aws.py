@@ -1,11 +1,11 @@
-from base import *
+from config.settings.base import *
 
 # for health check
 # see https://gist.github.com/dryan/8271687
 import requests
 EC2_PRIVATE_IP = None
 try:
-    EC2_PRIVATE_IP = requests.get('http://169.254.169.254/latest/meta-data/local-ipv4', timeout = 0.01).text
+    EC2_PRIVATE_IP = requests.get('http://169.254.169.254/latest/meta-data/local-ipv4', timeout=0.01).text
 except requests.exceptions.RequestException:
     pass
 
