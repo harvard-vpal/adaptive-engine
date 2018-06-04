@@ -24,6 +24,7 @@ class Collection(models.Model):
 
 
 class KnowledgeComponent(models.Model):
+    kc_id = models.CharField(max_length=200, unique=True)
     name = models.CharField(max_length=200)
     mastery_prior = models.FloatField(null=True, blank=True)
 

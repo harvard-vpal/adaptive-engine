@@ -152,9 +152,19 @@ class KnowledgeComponentFieldSerializer(serializers.ModelSerializer):
     """
     Serializer to use in related model serializers (e.g. Mastery)
     """
+    # override default serializer field used so that custom field validator can be defined,
+    # while ignoring default unique validator
+    kc_id = serializers.CharField()
+
     class Meta:
         model = KnowledgeComponent
-        fields = ('name',)
+        fields = ('kc_id',)
+
+    def validate_kc_id(self, value):
+        if KnowledgeComponent.objects.filter(kc_id=value).exists():
+            return value
+        else:
+            raise serializers.ValidationError("Knowledge component with specified kc_id does not exist")
 
 
 class MasterySerializer(serializers.ModelSerializer):
