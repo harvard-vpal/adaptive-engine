@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: bash -c "sleep 5 && python manage.py runserver 0.0.0.0:8000"
+    command: runserver
     volumes:
       - .:/app
     ports:
