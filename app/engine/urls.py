@@ -9,6 +9,7 @@ router.register('activity', views.ActivityViewSet)
 router.register('collection', views.CollectionViewSet)
 router.register('score', views.ScoreViewSet)
 router.register('mastery', views.MasteryViewSet)
+router.register('knowledge_component', views.KnowledgeComponentViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
