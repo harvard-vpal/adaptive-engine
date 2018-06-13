@@ -8,6 +8,7 @@ class Collection(models.Model):
     """
     Collection consists of multiple activities
     """
+    collection_id = models.CharField(max_length=200, unique=True)
     name = models.CharField(max_length=200)
     max_problems = models.PositiveIntegerField(null=True, blank=True)
 
