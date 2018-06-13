@@ -60,7 +60,7 @@ class Activity(models.Model):
     knowledge_components = models.ManyToManyField(KnowledgeComponent, blank=True)
     difficulty = models.FloatField(null=True,blank=True)
     tags = models.TextField(default='', blank=True)
-    type = models.CharField(max_length=200, default='')
+    type = models.CharField(max_length=200, default='', blank=True)
     # whether to include as valid problem to recommend from adaptive engine
     include_adaptive = models.BooleanField(default=True)
     # order for non-adaptive problems
