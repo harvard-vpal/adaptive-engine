@@ -26,7 +26,7 @@ class KnowledgeComponentFieldSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = KnowledgeComponent
-        fields = ('id', 'kc_id',)
+        fields = ('kc_id',)
 
     def validate_kc_id(self, value):
         if KnowledgeComponent.objects.filter(kc_id=value).exists():
@@ -89,7 +89,7 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
-        fields = ('id', 'collections', 'source_launch_url', 'name', 'difficulty', 'tags')
+        fields = ('id', 'collections', 'source_launch_url', 'name', 'difficulty', 'tags', 'knowledge_components')
 
 
 class MasterySerializer(serializers.ModelSerializer):
@@ -129,7 +129,7 @@ class KnowledgeComponentSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = KnowledgeComponent
-        fields = ('kc_id', 'name', 'mastery_prior')
+        fields = ('id', 'kc_id', 'name', 'mastery_prior')
 
 
 class ScoreSerializer(serializers.ModelSerializer):
