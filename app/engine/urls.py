@@ -18,5 +18,4 @@ router_v2.register('activity', api_v2.ActivityViewSet)
 urlpatterns = [
     path('engine/api/', include(router.urls)),
     path('api/v2/', include(router_v2.urls)),
-    # path('api/v2/test/', api_v2.TestRetrieveView.as_view()),
 ]
