@@ -1,41 +1,11 @@
 from rest_framework import serializers
 from .models import *
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils.encoding import smart_text
-
-
-class CreatableSlugRelatedField(serializers.SlugRelatedField):
-    """
-    Custom SlugRelatedField that creates the new object when one doesn't exist
-    https://stackoverflow.com/a/28011896/
-    """
-
-    def to_internal_value(self, data):
-        try:
-            return self.get_queryset().get_or_create(**{self.slug_field: data})[0]
-        except ObjectDoesNotExist:
-            self.fail('does_not_exist', slug_name=self.slug_field, value=smart_text(data))
-        except (TypeError, ValueError):
-            self.fail('invalid')
-
-
-class CreatablePrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    """
-    Custom PrimaryKeyRelatedField that creates the new object when one doesn't exist
-    """
-
-    def to_internal_value(self, data):
-        if self.pk_field is not None:
-            data = self.pk_field.to_internal_value(data)
-        try:
-            return self.get_queryset().get(pk=data)
-        except ObjectDoesNotExist:
-            return self.get_queryset().create(pk=data)
-        except (TypeError, ValueError):
-            self.fail('incorrect_type', data_type=type(data).__name__)
 
 
 class CollectionSerializer(serializers.ModelSerializer):
+    """
+    Collection model serializer
+    """
     id = serializers.IntegerField(read_only=False)
 
     class Meta:
@@ -77,7 +47,7 @@ class CollectionActivityListSerializer(serializers.ListSerializer):
 class CollectionActivitySerializer(serializers.ModelSerializer):
     """
     Represents activity in the context of a collection
-    Separate serializers so that additon/deletion to collection doesn't affect
+    Separate serializers so that addition/deletion to collection doesn't affect
     membership of activity in other collections
     TODO probably override init to get collection id in
     """
@@ -100,6 +70,9 @@ class CollectionActivitySerializer(serializers.ModelSerializer):
 
 
 class ActivitySerializer(serializers.ModelSerializer):
+    """
+    Activity model serializer
+    """
     source_launch_url = serializers.CharField(source='url')
     tags = serializers.CharField(allow_null=True, allow_blank=True, default='')
 
@@ -117,15 +90,10 @@ class ActivitySerializer(serializers.ModelSerializer):
         fields = ('collections', 'source_launch_url', 'name', 'difficulty', 'tags')
 
 
-class ActivityRecommendationSerializer(serializers.ModelSerializer):
-    source_launch_url = serializers.CharField(source='url')
-
-    class Meta:
-        model = Activity
-        fields = ('source_launch_url',)
-
-
 class ScoreSerializer(serializers.ModelSerializer):
+    """
+    Score model serializer
+    """
     activity = serializers.SlugRelatedField(
         slug_field='url',
         queryset=Activity.objects.all()
@@ -136,12 +104,25 @@ class ScoreSerializer(serializers.ModelSerializer):
         fields = ('id', 'learner', 'activity', 'score')
 
 
+class ActivityRecommendationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for recommendation response data
+    """
+    source_launch_url = serializers.CharField(source='url')
+
+    class Meta:
+        model = Activity
+        fields = ('source_launch_url',)
+
+
 class LearnerFieldSerializer(serializers.ModelSerializer):
     """
-    Serializer to use as a compound lookup field in related serializer (e.g. mastery)
+    Used as a nested serializer for learner foreign key field
+    Acts as a "compound lookup field"
     """
     class Meta:
         model = Learner
+        # TODO remove id field
         fields = ('id', 'user_id', 'tool_consumer_instance_guid')
         # don't enforce unique_together validator on learner user_id/tool_consumer_instance_guid
         # this is so that mastery updates can specify an existing user_id/consumer_id pair
@@ -150,7 +131,7 @@ class LearnerFieldSerializer(serializers.ModelSerializer):
 
 class KnowledgeComponentFieldSerializer(serializers.ModelSerializer):
     """
-    Serializer to use in related model serializers (e.g. Mastery)
+    Used as a nested serializer for knowledge_component foreign key field
     """
     # override default serializer field used so that custom field validator can be defined,
     # while ignoring default unique validator
@@ -168,6 +149,9 @@ class KnowledgeComponentFieldSerializer(serializers.ModelSerializer):
 
 
 class MasterySerializer(serializers.ModelSerializer):
+    """
+    Mastery model serializer
+    """
     learner = LearnerFieldSerializer()
     knowledge_component = KnowledgeComponentFieldSerializer()
 
@@ -196,6 +180,50 @@ class MasterySerializer(serializers.ModelSerializer):
 
 
 class KnowledgeComponentSerializer(serializers.ModelSerializer):
+    """
+    KnowledgeComponent model serializer
+    """
     class Meta:
         model = KnowledgeComponent
         fields = ('kc_id', 'name', 'mastery_prior')
+
+
+class SequenceActivitySerializer(serializers.Serializer):
+    """
+    Single activity in a activity sequence (provided with recommendation)
+    TODO implement this
+    """
+    pass
+
+
+class CollectionFieldSerializer(serializers.ModelSerializer):
+    """
+    Used as a nested serializer for collection foreign key field
+    """
+    # override default serializer field used so that custom field validator can be defined,
+    # while ignoring default unique validator
+    collection_id = serializers.CharField()
+
+    class Meta:
+        model = Collection
+        fields = ('collection_id',)
+
+    def validate_collection_id(self, value):
+        """
+        Specified collection must exist (create not supported with this serializer)
+        :param value:
+        :return:
+        """
+        if Collection.objects.filter(collection_id=value).exists():
+            return value
+        else:
+            raise serializers.ValidationError("object with specified id does not exist")
+
+
+class ActivityRecommendationRequestSerializer(serializers.Serializer):
+    """
+    Serializer for incoming activity recommendation request data
+    """
+    learner = LearnerFieldSerializer()
+    collection = CollectionFieldSerializer()
+    sequence = serializers.CharField()  # TODO this could be handled with serializer

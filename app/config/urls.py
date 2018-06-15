@@ -3,7 +3,7 @@ from django.contrib import admin
 from config import views
 
 urlpatterns = [
-    path('engine/', include('engine.urls', namespace="engine")),
     path('admin/', admin.site.urls),
     path('health/', views.health),
+    path('', include('engine.urls', namespace="engine")),
 ]
