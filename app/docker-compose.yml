@@ -11,6 +11,7 @@ services:
     ports:
       - "5432:5432"
   web:
+    image: engine_app
     build:
       context: .
       dockerfile: Dockerfile
