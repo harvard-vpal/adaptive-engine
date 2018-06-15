@@ -226,4 +226,4 @@ class ActivityRecommendationRequestSerializer(serializers.Serializer):
     """
     learner = LearnerFieldSerializer()
     collection = CollectionFieldSerializer()
-    sequence = serializers.CharField()  # TODO this could be handled with serializer
+    sequence = serializers.CharField(required=False)  # TODO this could be handled with serializer
