@@ -7,6 +7,8 @@ INSTALLED_APPS += [
     'tests',
 ]
 
+ALLOWED_HOSTS += ['localhost', 'engine']
+
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
