@@ -1,13 +1,99 @@
+import logging
 import numpy as np
-from .data_structures import Matrix, Vector, pk_index_map
+from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
 from .models import *
-from alosi.engine import BaseAdaptiveEngine, recommendation_score, calculate_mastery_update, EPSILON
+from alosi.engine import BaseAdaptiveEngine, recommendation_score, odds, EPSILON, \
+    recommendation_score_P, recommendation_score_R, recommendation_score_D, recommendation_score_C, \
+    calculate_relevance
+
+
+log = logging.getLogger(__name__)
+
+GUESS_DEFAULT = odds(0.1)
+SLIP_DEFAULT = odds(0.15)
+
+
+def replace_nan(x, fill_value=0.0, copy=False):
+    """
+    Replace np.nan values inplace
+    :param x: np.array
+    :return: 
+    """
+    a = x.copy() if copy else x
+    a[np.where(np.isnan(a))] = fill_value
+    if copy:
+        return a
+
+
+def inverse_odds(x):
+    return np.exp(x)/(1+np.exp(x))
+
+
+def get_tagging_matrix(activities=None, knowledge_components=None):
+    """
+    Create Q x K matrix, where element is 1 if item q is tagged with KC k, else 0
+    :param activities:
+    :param knowledge_components:
+    :return: QxK matrix
+    """
+    if activities is None:
+        activities = Activity.objects.order_by('pk')
+    if knowledge_components is None:
+        knowledge_components = KnowledgeComponent.objects.order_by('pk')
+    pk_tuples = activities.values_list('pk', 'knowledge_components')
+    idx = convert_pk_to_index(pk_tuples, [activities, knowledge_components])
+    output_matrix = np.full((activities.count(), knowledge_components.count()), 0.0)
+    # list(zip(*idx)) converts list of tuples to np-formatted array index
+    output_matrix[list(zip(*idx))] = 1.0
+    return output_matrix
+
+
+def recommendation_score_R(guess, slip, learner_mastery, L_star):
+    """
+    Computes a recommendation score for each activity according to substrategy R
+    :param guess: (# activities) x (# LOs) np.array of guess parameter values for activities
+    :param slip: (# activities) x (# LOs) np.array of slip parameter values for activities
+    :param learner_mastery:
+    :param L_star:
+    :return: 1 x (# activities) vector of recommendation score values
+    """
+    L = learner_mastery
+    relevance = calculate_relevance(guess, slip)
+
+    # replace np.nan's with 0.0
+    replace_nan(L)
+    replace_nan(relevance)
+
+    R = np.dot(relevance, np.maximum((L_star - L), 0))
+    return R
+
+
+def recommendation_score(guess, slip, learner_mastery, prereqs, r_star, L_star, difficulty, W_p, W_r, W_d, W_c,
+                         last_attempted_guess=None, last_attempted_slip=None):
+    """
+    Add logging to activity scores
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    P = recommendation_score_P(guess, slip, learner_mastery, prereqs, r_star, L_star)
+    R = recommendation_score_R(guess, slip, learner_mastery, L_star)
+    C = recommendation_score_C(guess, slip, last_attempted_guess, last_attempted_slip)
+    D = recommendation_score_D(guess, slip, learner_mastery, difficulty)
+
+    subscores = np.array([P, R, C, D])
+    for x in subscores:
+        replace_nan(x)
+        log.debug('subscore: {}'.format(x))
+    weights = np.array([W_p, W_r, W_d, W_c])
+    scores = np.dot(weights, subscores)
+    log.debug("Combined activity scores: {}".format(scores))
+    return scores
 
 
 def get_engine(engine_settings=None):
     """
     Get relevant engine for learner based on their experimental group
-    Also assigns experimental group if none assigned
     :param engine_settings: EngineSettings model instance
     """
     if engine_settings is None:
@@ -64,10 +150,14 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         :param knowledge_components: KnowledgeComponent model instance or queryset
         :return:
         """
+        tagging_matrix = get_tagging_matrix(activities, knowledge_components)
         if activities is not None:
-            return Matrix(Guess)[activities, knowledge_components].values()
+            output = Matrix(Guess)[activities, knowledge_components].values()
         else:
-            return Matrix(Guess).values()
+            output = Matrix(Guess).values()
+        # ensure item-kc relations have a default value
+        output[np.where(tagging_matrix == 1)] = GUESS_DEFAULT
+        return output
 
     @staticmethod
     def get_slip(activities=None, knowledge_components=None):
@@ -77,10 +167,14 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         :param knowledge_components: KnowledgeComponent model instance or queryset
         :return:
         """
+        tagging_matrix = get_tagging_matrix(activities, knowledge_components)
         if activities is not None:
-            return Matrix(Slip)[activities, knowledge_components].values()
+            output = Matrix(Slip)[activities, knowledge_components].values()
         else:
-            return Matrix(Slip).values()
+            output = Matrix(Slip).values()
+        # ensure item-kc relations have a default value
+        output[np.where(tagging_matrix == 1)] = GUESS_DEFAULT
+        return output
 
     @staticmethod
     def get_transit(activities=None, knowledge_components=None):
@@ -104,11 +198,11 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         :return: 1 x len(activity) np.array vector
         """
         if activities is not None:
-            output = np.array(activities.values_list('difficulty', flat=True))
+            output = activities.values_list('difficulty', flat=True)
         else:
-            output = np.array(Activity.objects.values_list('difficulty', flat=True))
+            output = Activity.objects.values_list('difficulty', flat=True)
         # convert None's to np.nan
-        output[np.where(output==None)] = np.nan
+        output = np.array([x if x is not None else np.nan for x in output])
         return output
 
     @staticmethod
@@ -151,7 +245,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
     @staticmethod
     def get_learner_mastery(learner, knowledge_components=None):
         """
-        Constructs a 1 x (# LOs) vector of mastery values for learner
+        Constructs a 1 x (# LOs) vector of mastery odds values for learner
         Optionally, subset and order can be defined using knowledge_components argument
         If mastery value for a KC does not exist, populates the corresponding array element with the prior mastery
         value of the KC
@@ -163,7 +257,8 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         matrix = Matrix(Mastery)[learner, knowledge_components]
         # fill unpopulated values with appropriate kc prior values, from mastery_prior field on KC object
         matrix_values = fill_nan_from_index_field(matrix, 'mastery_prior')
-        return matrix_values
+        # convert to odds
+        return odds(matrix_values)
 
     @staticmethod
     def get_mastery_prior(knowledge_components=None):
@@ -185,7 +280,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         score_records = Score.objects.values_list('learner_id', 'activity_id', 'score')
 
         # convert activity pk to 0-indexed id, taking into account possible non-consecutive pks
-        activity_pk_to_idx_map = pk_index_map(Activity.obejcts.order_by('pk'))  # map from pk to 0-index
+        activity_pk_to_idx_map = pk_index_map(Activity.objects.order_by('pk'))  # map from pk to 0-index
         for i, row in enumerate(score_records):
             score_records[i][1] = activity_pk_to_idx_map[row[1]]
 
@@ -226,11 +321,13 @@ class AdaptiveEngine(BaseAdaptiveEngine):
     @staticmethod
     def update_learner_mastery(learner, new_mastery, knowledge_components=None):
         """
+        Saves updated mastery values in database
+        Converts odds to normal probability
         :param learner: learner model instance
-        :param new_mastery: 1 x (# LOs) np.array vector of new mastery values
+        :param new_mastery: 1 x (# LOs) np.array vector of new odds mastery values
         :param knowledge_components: KnowledgeComponent queryset - KC's to update values for
         """
-        Matrix(Mastery)[learner, knowledge_components].update(new_mastery)
+        Matrix(Mastery)[learner, knowledge_components].update(inverse_odds(new_mastery))
 
     @staticmethod
     def initialize_learner(learner):
@@ -253,7 +350,6 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         """
         Retrieve features/params needed for doing recommendation
         Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
-        TODO: could subset params based on activities in collection scope, to reduce unneeded computation
         TODO: consider QuerySet.select_related() for optimization https://docs.djangoproject.com/en/2.0/ref/models/querysets/#select-related
         :param learner: Learner model instance
         :param valid_activities: Queryset of Activity objects
@@ -273,6 +369,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             last_attempted_slip: 1xK vector of slip parameters for activity
             learner_mastery: 1xK vector of learner mastery values
         """
+        # multiply qxk matrices by tagging matrix
         return {
             'guess': self.get_guess(valid_activities, valid_kcs),
             'slip': self.get_slip(valid_activities, valid_kcs),
@@ -305,8 +402,6 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         # recommendation activity scores will only be computed for valid activities
         valid_activities = collection.activity_set.all().order_by('pk')
         valid_kcs = get_kcs_in_activity_set(valid_activities).order_by('pk')
-
-        #TODO maybe generate other axes, e.g. relevant KCs from activity tagging
 
         # get relevant model parameters (limited to valid activities where applicable)
         params = self.get_recommend_params(learner, valid_activities, valid_kcs)

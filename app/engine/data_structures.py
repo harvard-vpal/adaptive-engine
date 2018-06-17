@@ -322,3 +322,24 @@ def pk_index_map(qset):
     :return: dict
     """
     return value_index_map(qset.values_list('pk', flat=True))
+
+
+def convert_pk_to_index(pk_tuples, indices):
+    """
+    For a list of tuples with elements referring to pk's of indices,
+    convert pks to 0-index values corresponding to order of queryset
+    :param pk_tuples: list of tuples [(row_pk, col_pk), ... ]
+    :param indices: list of querysets
+    :return: list of tuples [(row_idx, col_idx), ... ]
+    """
+    output_tuples = []
+    maps = [pk_index_map(idx) for idx in indices]
+    for pk_tuple in pk_tuples:
+        try:
+            idxs = tuple(maps[axis][pk] for axis, pk in enumerate(pk_tuple))
+            output_tuples.append(idxs)
+        except KeyError:
+            # pk may not be in index scope which is fine
+            pass
+
+    return output_tuples
