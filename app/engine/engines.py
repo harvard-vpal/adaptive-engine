@@ -71,7 +71,7 @@ def recommendation_score_R(guess, slip, learner_mastery, L_star):
 def recommendation_score(guess, slip, learner_mastery, prereqs, r_star, L_star, difficulty, W_p, W_r, W_d, W_c,
                          last_attempted_guess=None, last_attempted_slip=None):
     """
-    Add logging to activity scores
+    Modify base recommendation_score method to convert np.nan's to 0's in subscores
     :param args:
     :param kwargs:
     :return:
