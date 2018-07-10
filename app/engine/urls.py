@@ -13,4 +13,5 @@ router_v2.register('knowledge_component', api_v2.KnowledgeComponentViewSet)
 
 urlpatterns = [
     path('api/v2/', include(router_v2.urls)),
+    path('engine/api/', include(router_v2.urls)),  # included for backcompatibility through sep 2018
 ]
