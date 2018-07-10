@@ -1,21 +1,16 @@
 from django.urls import include, path
 from rest_framework import routers
-from . import views
 from . import api_v2
 
 app_name = 'engine'
 
-router = routers.DefaultRouter(trailing_slash=False)
-router.register('activity', views.ActivityViewSet)
-router.register('collection', views.CollectionViewSet)
-router.register('score', views.ScoreViewSet)
-router.register('mastery', views.MasteryViewSet)
-router.register('knowledge_component', views.KnowledgeComponentViewSet)
-
 router_v2 = routers.DefaultRouter(trailing_slash=False)
 router_v2.register('activity', api_v2.ActivityViewSet)
+router_v2.register('collection', api_v2.CollectionViewSet)
+router_v2.register('score', api_v2.ScoreViewSet)
+router_v2.register('mastery', api_v2.MasteryViewSet)
+router_v2.register('knowledge_component', api_v2.KnowledgeComponentViewSet)
 
 urlpatterns = [
-    path('engine/api/', include(router.urls)),
     path('api/v2/', include(router_v2.urls)),
 ]

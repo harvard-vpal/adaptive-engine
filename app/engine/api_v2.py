@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -5,6 +6,9 @@ from rest_framework import status
 from .serializers import *
 from .models import *
 from .engines import get_engine
+
+
+log = logging.getLogger(__name__)
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
@@ -29,25 +33,25 @@ class ActivityViewSet(viewsets.ModelViewSet):
     def recommend(self, request):
         """
         Recommends an activity
+        TODO add "context" argument that includes sequence data
 
         POST /activity/recommend
         Request Body:
             {
                 learner: {
-                    'tool_consumer_instance_guid': str,
-                    'user_id': str
+                    'tool_consumer_instance_guid': <str>,
+                    'user_id': <str>
                 }
-                collection: {
-                    'collection_id': str
-                }
+                collection: <str>
                 sequence: [
                     {
-                        activity: <source_launch_url>,
-                        score: <score>,
-                        is_problem: Bool,
+                        activity: <str: url>,
+                        score: <float>,
+                        is_problem: <bool>,
                     },
                     ...
                 ]
+
             }
         """
         # validate request serializer
@@ -61,7 +65,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         learner, created = Learner.objects.get_or_create(**serializer.data['learner'])
 
         # get collection
-        collection = Collection.objects.get(**serializer.data['collection'])
+        collection = serializer.validated_data['collection']
 
         # get sequence
         sequence = serializer.data['sequence']
@@ -103,9 +107,10 @@ class CollectionViewSet(viewsets.ModelViewSet):
     """
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
+    lookup_field = 'collection_id'  # lookup based on collection_id slug field
 
     @action(methods=['get', 'post'], detail=True)
-    def activities(self, request, pk=None):
+    def activities(self, request, collection_id=None):
         """
         Handles two API endpoints:
 
@@ -141,8 +146,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             - Any activities that existed in the collection previously but are not included in the new request data will
             be removed from the collection (but not deleted from the engine).
         """
-        # TODO create collection based on string id
-        collection, created = Collection.objects.get_or_create(pk=pk)
+        collection, created = Collection.objects.get_or_create(collection_id=collection_id)
         activities = collection.activity_set.all()
         if request.method == 'POST':
             serializer = CollectionActivitySerializer(
@@ -164,28 +168,110 @@ class CollectionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(methods=['post'], detail=True)
-    def grade(self, request):
+    def grade(self, request, collection_id=None):
         """
         Returns a grade between 0.0 and 1.0 for the specified learner and collection.
 
-        POST /collection/grade
+        POST /collection/{collection_id}/grade
         Request Body:
             {
                 learner: {
                     'tool_consumer_instance_guid': str,
                     'user_id': str
                 }
-                collection: {
-                    'collection_id': str
-                }
             }
         """
         collection = self.get_object()
-        try:
-            # TODO this should be a serializer
-            learner_id = int(request.data.get('learner', None))
-        except:
-            msg = "Learner id not provided, or not valid"
-            return Response({'message': msg}, status=status.HTTP_400_BAD_REQUEST)
-        grade = collection.grade(learner_id)
-        return Response({'grade': grade, 'learner': learner_id})
+        # get learner
+        serializer = LearnerSerializer(data=request.data['learner'])
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # get or create learner
+        learner, created = Learner.objects.get_or_create(**serializer.data)
+
+        grade = collection.grade(learner)
+        return Response({'learner': serializer.data, 'grade': grade})
+
+
+class MasteryViewSet(viewsets.ModelViewSet):
+    """
+    Mastery-related API endpoints.
+
+    Standard CRUD endpoints:
+        GET /mastery - list
+        POST /mastery - create
+        GET /mastery/{id} - retrieve
+        PUT /mastery/{id} - update
+        PATCH /mastery/{id} - partial update
+        DELETE /mastery/{id} - destroy
+
+    Additional endpoints:
+        PUT /mastery/bulk_update - bulk update
+    """
+    queryset = Mastery.objects.all()
+    serializer_class = MasterySerializer
+
+    @action(methods=['put'], detail=False)
+    def bulk_update(self, request):
+        """
+        Receive and create list of mastery objects
+        Update mastery value if value has changed
+        """
+        serializer = MasterySerializer(
+            data=request.data,
+            many=True,
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class KnowledgeComponentViewSet(viewsets.ModelViewSet):
+    """
+    Collection-related API endpoints
+
+    Standard CRUD endpoints:
+        GET /knowledge_component - list
+        POST /knowledge_component - create
+        GET /knowledge_component/{kc_id} - retrieve
+        PUT /knowledge_component/{kc_id} - update
+        PATCH /knowledge_component/{kc_id} - partial update
+        DELETE /knowledge_component/{kc_id} - destroy
+    """
+    queryset = KnowledgeComponent.objects.all()
+    serializer_class = KnowledgeComponentSerializer
+    lookup_field = 'kc_id'  # lookup based on kc_id slug field
+
+
+class ScoreViewSet(viewsets.ModelViewSet):
+    """
+    Standard CRUD endpoints:
+        GET /grade - list
+        GET /grade/{id} - retrieve
+        PUT /grade/{id} - update
+        PATCH /grade/{id} - partial update
+        DELETE /grade/{id} - destroy
+
+    Modified CRUD endpoints:
+        POST /grade - create, also supports auto creation of related learners
+    """
+    queryset = Score.objects.all()
+    serializer_class = ScoreSerializer
+
+    def perform_create(self, serializer):
+        """
+        Extend the saving method for the serialized object to include additional
+        engine actions afterwards
+        :param serializer: serializer representing model object to save
+        :return: None
+        """
+        # required for perform_create()
+        score = serializer.save()
+
+        # trigger update function for engine (bayes update if adaptive)
+        log.debug("Triggering engine update from score")
+        engine = get_engine()
+        engine.update_from_score(score.learner, score.activity, score.score)
