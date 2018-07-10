@@ -1,10 +1,13 @@
 import logging
+import random
+from django.http import Http404
+from django.db.models import Model
 import numpy as np
-from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
-from .models import *
 from alosi.engine import BaseAdaptiveEngine, recommendation_score, odds, EPSILON, \
     recommendation_score_P, recommendation_score_R, recommendation_score_D, recommendation_score_C, \
     calculate_relevance
+from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
+from .models import *
 
 
 log = logging.getLogger(__name__)
@@ -32,12 +35,18 @@ def inverse_odds(x):
 def get_tagging_matrix(activities=None, knowledge_components=None):
     """
     Create Q x K matrix, where element is 1 if item q is tagged with KC k, else 0
+    TODO could be revised - any way to utilize matrix/vector data structures?
     :param activities:
     :param knowledge_components:
-    :return: QxK matrix
+    :return: QxK matrix if Q and K both > 1, or vector if either Q or K = 1 TODO
     """
     if activities is None:
         activities = Activity.objects.order_by('pk')
+    # case: single model - replace idx args with querysets of len=1
+    if isinstance(activities, Model):
+        activities = Activity.objects.filter(pk=activities.pk)
+    if isinstance(knowledge_components, Model):
+        knowledge_components = KnowledgeComponent.objects.filter(pk=knowledge_components.pk)
     if knowledge_components is None:
         knowledge_components = KnowledgeComponent.objects.order_by('pk')
     pk_tuples = activities.values_list('pk', 'knowledge_components')
@@ -291,14 +300,18 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         Action to take when new score information is received
         Doesn't add anything new to base class method, except new
         Also expects different input types for some args; see docstring
+        TODO verify correctness of implementation
         :param learner: Learner object instance
         :param activity: Activity object instance
         :param score: float
         :return:
         """
         # subset to relevant knowledge components from activity
-        # TODO verify that this is valid
         knowledge_components = activity.knowledge_components.all().order_by('pk')
+        # ensure that there are knowledge components for the activity, otherwise mastery update is not relevant
+        if not knowledge_components.exists():
+            log.debug("Skipping engine update from score; no tagged knowledge components found for activity.")
+            return
         mastery = self.get_learner_mastery(learner, knowledge_components)
         guess = self.get_guess(activity, knowledge_components)
         slip = self.get_slip(activity, knowledge_components)
@@ -402,6 +415,16 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         # recommendation activity scores will only be computed for valid activities
         valid_activities = collection.activity_set.all().order_by('pk')
         valid_kcs = get_kcs_in_activity_set(valid_activities).order_by('pk')
+
+        # skip calculations for base cases
+        if not valid_activities.exists():
+            log.error("No activities found in collection: {}".format(collection))
+            raise Http404("No activities found in collection")
+        if len(valid_activities) == 1:
+            return valid_activities
+        if not valid_kcs.exists():
+            log.warning("No knowledge components detected for collection activities; returning random activity")
+            return random.choice(valid_activities)
 
         # get relevant model parameters (limited to valid activities where applicable)
         params = self.get_recommend_params(learner, valid_activities, valid_kcs)
