@@ -1,19 +1,27 @@
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from .models import *
 
 
-class LearnerFieldSerializer(serializers.ModelSerializer):
+class LearnerSerializer(serializers.ModelSerializer):
     """
     Used as a nested serializer for learner foreign key field
     Acts as a "compound lookup field"
+    Supports lookups from creation-like request methods to related objects
     """
     class Meta:
         model = Learner
-        # TODO remove id field
-        fields = ('id', 'user_id', 'tool_consumer_instance_guid')
-        # don't enforce unique_together validator on learner user_id/tool_consumer_instance_guid
-        # this is so that mastery updates can specify an existing user_id/consumer_id pair
-        validators = []
+        fields = ('user_id', 'tool_consumer_instance_guid')
+
+    def run_validators(self, value):
+        """
+        Modify base run_validators() to not enforce unique_together validator on user_id/tool_consumer_instance_guid
+        field combination. This is so that creation-like methods (e.g. put/post) on related objects (e.g. mastery)
+        can reference an existing learner (using the user_id/consumer_id pair).
+        """
+        for validator in self.validators:
+            if isinstance(validator, validators.UniqueTogetherValidator):
+                self.validators.remove(validator)
+        super().run_validators(value)
 
 
 class KnowledgeComponentFieldSerializer(serializers.ModelSerializer):
@@ -29,6 +37,11 @@ class KnowledgeComponentFieldSerializer(serializers.ModelSerializer):
         fields = ('kc_id',)
 
     def validate_kc_id(self, value):
+        """
+        Custom validation on kc_id field, that verifies that a KnowledgeComponent with the given kc_id exists.
+        :param value:
+        :return:
+        """
         if KnowledgeComponent.objects.filter(kc_id=value).exists():
             return value
         else:
@@ -63,12 +76,10 @@ class CollectionSerializer(serializers.ModelSerializer):
     """
     Collection model serializer
     """
-    # TODO remove ability to create based on pk
-    id = serializers.IntegerField(read_only=False)
-
     class Meta:
         model = Collection
         fields = '__all__'
+        lookup_field = 'collection_id'  # lookup based on collection_id slug field
 
 
 class ActivitySerializer(serializers.ModelSerializer):
@@ -96,7 +107,7 @@ class MasterySerializer(serializers.ModelSerializer):
     """
     Mastery model serializer
     """
-    learner = LearnerFieldSerializer()
+    learner = LearnerSerializer()
     knowledge_component = KnowledgeComponentFieldSerializer()
 
     class Meta:
@@ -104,6 +115,14 @@ class MasterySerializer(serializers.ModelSerializer):
         fields = ('learner', 'knowledge_component', 'value')
 
     def create(self, validated_data):
+        """
+        Defines write behavior for nested serializers
+        Supports auto creation of related learner if they do not exist yet
+        Does not support auto creation of new knowledge components if they do not exist yet
+        TODO does it make sense to move related object auto creation to view perform_create() instead?
+        :param validated_data: validated incoming data (serializer.validated_data)
+        :return:
+        """
         # create referenced learner if it doesn't exist already
         learner_data = validated_data.pop('learner')
         learner, created = Learner.objects.get_or_create(**learner_data)
@@ -123,19 +142,11 @@ class MasterySerializer(serializers.ModelSerializer):
         return mastery
 
 
-class KnowledgeComponentSerializer(serializers.ModelSerializer):
-    """
-    KnowledgeComponent model serializer
-    """
-    class Meta:
-        model = KnowledgeComponent
-        fields = ('id', 'kc_id', 'name', 'mastery_prior')
-
-
 class ScoreSerializer(serializers.ModelSerializer):
     """
     Score model serializer
     """
+    learner = LearnerSerializer()
     activity = serializers.SlugRelatedField(
         slug_field='url',
         queryset=Activity.objects.all()
@@ -143,7 +154,38 @@ class ScoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Score
-        fields = ('id', 'learner', 'activity', 'score')
+        fields = ('learner', 'activity', 'score')
+
+    def create(self, validated_data):
+        """
+        Defines write behavior for nested serializer
+        Supports auto creation of related learner if doesn't exist yet
+
+        :param validated_data: validated incoming data (serializer.validated_data)
+        :return: Score model instance
+        """
+        # create related learner if it doesn't exist already
+        learner_data = validated_data.pop('learner')
+        learner, created = Learner.objects.get_or_create(**learner_data)
+        # get related activity
+        activity = validated_data.pop('activity')
+        # create the score object
+        score = Score.objects.create(
+            learner=learner,
+            activity=activity,
+            score=validated_data.pop('score')
+        )
+        return score
+
+
+class KnowledgeComponentSerializer(serializers.ModelSerializer):
+    """
+    KnowledgeComponent model serializer
+    """
+    class Meta:
+        model = KnowledgeComponent
+        fields = ('kc_id', 'name', 'mastery_prior')
+        lookup_field = 'kc_id'  # lookup based on kc_id slug field
 
 
 class SequenceActivitySerializer(serializers.Serializer):
@@ -169,8 +211,11 @@ class ActivityRecommendationRequestSerializer(serializers.Serializer):
     """
     Serializer for incoming activity recommendation request data
     """
-    learner = LearnerFieldSerializer()
-    collection = CollectionFieldSerializer()
+    learner = LearnerSerializer()
+    collection = serializers.SlugRelatedField(
+            slug_field='collection_id',
+            queryset=Collection.objects.all()
+        )
     sequence = serializers.CharField(required=False)  # TODO this could be handled with serializer
 
 
@@ -178,7 +223,7 @@ class CollectionActivityListSerializer(serializers.ListSerializer):
 
     def update(self, instance, validated_data):
         """
-        Assumes collection instance or id is passed into serializer context at initializtion,
+        Assumes collection instance or id is passed into serializer context at initialization,
         and is available at self.instance.context
         Adds activities to the collection if they are not already in collection,
         and create new activities or updates fields of existing activities if needed.
