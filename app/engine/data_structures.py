@@ -2,7 +2,6 @@ from django.db.models.query import QuerySet
 from django.db.models.base import ModelBase
 from django.db.models import Model
 import numpy as np
-from django.db import transaction
 from collections import namedtuple
 
 
