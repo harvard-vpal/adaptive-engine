@@ -19,7 +19,7 @@ class Collection(models.Model):
         """
         Generate learner grade based on masteries that bridge can query
         as a grading policy option.
-        Just uses a placeholder value for now
+        TODO Just uses a placeholder value for now - update this
         """
         return 0.5
 
