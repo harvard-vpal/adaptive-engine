@@ -67,8 +67,14 @@ class ActivityViewSet(viewsets.ModelViewSet):
         # get collection
         collection = serializer.validated_data['collection']
 
-        # get sequence
-        sequence = serializer.data['sequence']
+        # parse sequence data
+        sequence_data = serializer.validated_data['sequence']
+        sequence = []
+        for activity_data in sequence_data:
+            try:
+                sequence.append(Activity.objects.get(url=activity_data['url']))
+            except Activity.DoesNotExist:
+                log.error("Unknown activity found in sequence data: {}".format(activity_data))
 
         # get recommendation from engine
         recommended_activity = get_engine().recommend(learner, collection, sequence)
@@ -217,6 +223,7 @@ class MasteryViewSet(viewsets.ModelViewSet):
         """
         Receive and create list of mastery objects
         Update mastery value if value has changed
+        TODO would like to revert kc dict representation back to string (but keep backcompatibility through sept 2018)
         """
         serializer = MasterySerializer(
             data=request.data,

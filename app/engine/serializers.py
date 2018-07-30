@@ -188,14 +188,6 @@ class KnowledgeComponentSerializer(serializers.ModelSerializer):
         lookup_field = 'kc_id'  # lookup based on kc_id slug field
 
 
-class SequenceActivitySerializer(serializers.Serializer):
-    """
-    Single activity in a activity sequence (provided with recommendation)
-    TODO implement this
-    """
-    pass
-
-
 class ActivityRecommendationSerializer(serializers.ModelSerializer):
     """
     Serializer for recommendation response data
@@ -207,6 +199,20 @@ class ActivityRecommendationSerializer(serializers.ModelSerializer):
         fields = ('source_launch_url',)
 
 
+class SequenceActivitySerializer(serializers.Serializer):
+    """
+    Serializer for activity in a sequence list
+    (used for parsing sequence list in recommendation request)
+    """
+    activity = serializers.CharField(source='url')
+    score = serializers.FloatField(allow_null=True)
+    is_problem = serializers.BooleanField()
+
+    class Meta:
+        model = Activity
+        fields = ('activity', 'score', 'is_problem')
+
+
 class ActivityRecommendationRequestSerializer(serializers.Serializer):
     """
     Serializer for incoming activity recommendation request data
@@ -216,7 +222,7 @@ class ActivityRecommendationRequestSerializer(serializers.Serializer):
             slug_field='collection_id',
             queryset=Collection.objects.all()
         )
-    sequence = serializers.CharField(required=False)  # TODO this could be handled with serializer
+    sequence = SequenceActivitySerializer(many=True)
 
 
 class CollectionActivityListSerializer(serializers.ListSerializer):
