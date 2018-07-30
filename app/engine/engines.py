@@ -5,7 +5,7 @@ from django.db.models import Model
 import numpy as np
 from alosi.engine import BaseAdaptiveEngine, recommendation_score, odds, EPSILON, \
     recommendation_score_P, recommendation_score_R, recommendation_score_D, recommendation_score_C, \
-    calculate_relevance
+    calculate_relevance, calculate_mastery_update
 from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
 from .models import *
 
@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 
 GUESS_DEFAULT = odds(0.1)
 SLIP_DEFAULT = odds(0.15)
+TRANSIT_DEFAULT = odds(0.1)
 
 
 def replace_nan(x, fill_value=0.0, copy=False):
@@ -152,51 +153,60 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         self.engine_settings = engine_settings
 
     @staticmethod
-    def get_guess(activities=None, knowledge_components=None):
+    def get_tagging_parameter_values(model, activities=None, knowledge_components=None, default_value=0.1):
+        """
+        Base method for retrieving parameters associated with a activity-kc relationship
+        e.g. guess, slip, transit
+        :param model: Model, django model representing parameter (either Guess, Slip, Transit)
+        :param activities: queryset of Activity model instances (convert model to qset before using this method)
+        :param knowledge_components: queryset of KnowledgeComponent model instances
+        :param default_value: float, default value to use for parameter if value missing
+        :return: np.ndarray of size [len(activities) x len(knowledge_components)]
+        """
+        # default to entire set of objects if queryset not specified
+        if activities is None:
+            activities = Activity.objects.order_by('pk')
+        if knowledge_components is None:
+            knowledge_components = KnowledgeComponent.objects.order_by('pk')
+
+        # retrieve parameter values
+        output = Matrix(model)[activities, knowledge_components].values()
+
+        # tagging matrix is the same size as the output (activity x kcs)
+        # where element = 1 if activity-kc relation exists, else 0
+        tagging_matrix = get_tagging_matrix(activities, knowledge_components)
+
+        # for activity-kc relationships with no parameter provided, replace with default value
+        output[np.where(tagging_matrix == 1)] = default_value
+
+        return output
+
+    def get_guess(self, activities=None, knowledge_components=None):
         """
         Get guess matrix, or row(s) of guess matrix if activity specified
         :param activities: Activity model instance or queryset
         :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return:
+        :return: np.ndarray of size [len(activities) x len(knowledge_components)]
         """
-        tagging_matrix = get_tagging_matrix(activities, knowledge_components)
-        if activities is not None:
-            output = Matrix(Guess)[activities, knowledge_components].values()
-        else:
-            output = Matrix(Guess).values()
-        # ensure item-kc relations have a default value
-        output[np.where(tagging_matrix == 1)] = GUESS_DEFAULT
-        return output
+        return self.get_tagging_parameter_values(Guess, activities, knowledge_components, default_value=GUESS_DEFAULT)
 
-    @staticmethod
-    def get_slip(activities=None, knowledge_components=None):
+    def get_slip(self, activities=None, knowledge_components=None):
         """
         Get slip matrix, or row(s) of slip matrix if activity specified
         :param activities: Activity model instance or queryset
         :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return:
+        :return: np.ndarray of size [len(activities) x len(knowledge_components)]
         """
-        tagging_matrix = get_tagging_matrix(activities, knowledge_components)
-        if activities is not None:
-            output = Matrix(Slip)[activities, knowledge_components].values()
-        else:
-            output = Matrix(Slip).values()
-        # ensure item-kc relations have a default value
-        output[np.where(tagging_matrix == 1)] = GUESS_DEFAULT
-        return output
+        return self.get_tagging_parameter_values(Slip, activities, knowledge_components, default_value=SLIP_DEFAULT)
 
-    @staticmethod
-    def get_transit(activities=None, knowledge_components=None):
+    def get_transit(self, activities=None, knowledge_components=None):
         """
         Get transit matrix, or row(s) of transit matrix if activity specified
         :param activities: Activity model instance or queryset
         :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: len(activity) x (# LOs) np.array
+        :return: np.ndarray of size [len(activities) x len(knowledge_components)]
         """
-        if activities is not None:
-            return Matrix(Transit)[activities, knowledge_components].values()
-        else:
-            return Matrix(Transit).values()
+        return self.get_tagging_parameter_values(Transit, activities, knowledge_components, default_value=TRANSIT_DEFAULT)
 
     @staticmethod
     def get_difficulty(activities=None):
@@ -204,7 +214,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         Get activity difficulty values
         If activities not specified, defaults to getting difficulty for all existing Activity instances
         :param activities: Activity queryset
-        :return: 1 x len(activity) np.array vector
+        :return: np.array of size [len(activity) x 0]
         """
         if activities is not None:
             output = activities.values_list('difficulty', flat=True)
@@ -313,9 +323,15 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             log.debug("Skipping engine update from score; no tagged knowledge components found for activity.")
             return
         mastery = self.get_learner_mastery(learner, knowledge_components)
-        guess = self.get_guess(activity, knowledge_components)
-        slip = self.get_slip(activity, knowledge_components)
-        transit = self.get_transit(activity, knowledge_components)
+
+        # convert activity into queryset with single element
+        activity_qset = Activity.objects.filter(pk=activity.pk)
+
+        # flatten from ndarray to vector before passing to calculation methods
+        guess = self.get_guess(activity_qset, knowledge_components).flatten()
+        slip = self.get_slip(activity_qset, knowledge_components).flatten()
+        transit = self.get_transit(activity_qset, knowledge_components).flatten()
+
         new_mastery = calculate_mastery_update(mastery, score, guess, slip, transit, EPSILON)
         # save new mastery values in mastery data store
         self.update_learner_mastery(learner, new_mastery, knowledge_components)
