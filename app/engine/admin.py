@@ -5,7 +5,17 @@ from django.contrib import admin
 from .models import *
 
 
-admin.site.register(Collection)
+class ActivityInline(admin.TabularInline):
+    model = Collection.activity_set.through
+
+
+@admin.register(Collection)
+class CollectionAdmin(admin.ModelAdmin):
+    inlines = [
+        ActivityInline
+    ]
+
+
 admin.site.register(Activity)
 admin.site.register(Learner)
 admin.site.register(Score)
