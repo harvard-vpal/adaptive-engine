@@ -5,7 +5,7 @@ from django.db.models import Model
 import numpy as np
 from alosi.engine import BaseAdaptiveEngine, recommendation_score, odds, EPSILON, \
     recommendation_score_P, recommendation_score_R, recommendation_score_D, recommendation_score_C, \
-    calculate_relevance, calculate_mastery_update
+    calculate_relevance, calculate_mastery_update, fillna
 from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
 from .models import *
 
@@ -15,20 +15,6 @@ log = logging.getLogger(__name__)
 GUESS_DEFAULT = odds(0.1)
 SLIP_DEFAULT = odds(0.15)
 TRANSIT_DEFAULT = odds(0.1)
-
-
-def replace_nan(x, fill_value=0.0, copy=False):
-    """
-    Replace np.nan values inplace with fill_value
-    :param x: np.array
-    :param fill_value: fill value to use to fill spots with nan's
-    :param copy: False if replacing inplace, True if making a copy
-    :return: 
-    """
-    a = x.copy() if copy else x
-    a[np.where(np.isnan(a))] = fill_value
-    if copy:
-        return a
 
 
 def inverse_odds(x):
@@ -60,30 +46,10 @@ def get_tagging_matrix(activities=None, knowledge_components=None):
     return output_matrix
 
 
-def recommendation_score_R(guess, slip, learner_mastery, L_star):
-    """
-    Computes a recommendation score for each activity according to substrategy R
-    :param guess: (# activities) x (# LOs) np.array of guess parameter values for activities
-    :param slip: (# activities) x (# LOs) np.array of slip parameter values for activities
-    :param learner_mastery:
-    :param L_star:
-    :return: 1 x (# activities) vector of recommendation score values
-    """
-    L = learner_mastery
-    relevance = calculate_relevance(guess, slip)
-
-    # replace np.nan's with 0.0
-    replace_nan(L)
-    replace_nan(relevance)
-
-    R = np.dot(relevance, np.maximum((L_star - L), 0))
-    return R
-
-
 def recommendation_score(guess, slip, learner_mastery, prereqs, r_star, L_star, difficulty, W_p, W_r, W_d, W_c,
                          last_attempted_guess=None, last_attempted_slip=None):
     """
-    Modify base recommendation_score method to convert np.nan's to 0's in subscores
+    Modifys base recommendation_score method to convert np.nan's to 0's in subscores
     :param args:
     :param kwargs:
     :return:
@@ -94,9 +60,13 @@ def recommendation_score(guess, slip, learner_mastery, prereqs, r_star, L_star, 
     D = recommendation_score_D(guess, slip, learner_mastery, difficulty)
 
     subscores = np.array([P, R, C, D])
-    for x in subscores:
-        replace_nan(x)
-        log.debug('subscore: {}'.format(x))
+
+    # for debugging
+    subscore_labels = ['P', 'R', 'C', 'D']
+    for subscore, label in zip(subscores, subscore_labels):
+        log.debug('Subscore {}: {}'.format(label, subscore))
+
+    # compute weighted average of subscores
     weights = np.array([W_p, W_r, W_d, W_c])
     scores = np.dot(weights, subscores)
     log.debug("Combined activity scores: {}".format(scores))
