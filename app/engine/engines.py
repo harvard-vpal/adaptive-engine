@@ -19,8 +19,10 @@ TRANSIT_DEFAULT = odds(0.1)
 
 def replace_nan(x, fill_value=0.0, copy=False):
     """
-    Replace np.nan values inplace
+    Replace np.nan values inplace with fill_value
     :param x: np.array
+    :param fill_value: fill value to use to fill spots with nan's
+    :param copy: False if replacing inplace, True if making a copy
     :return: 
     """
     a = x.copy() if copy else x
