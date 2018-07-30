@@ -4,6 +4,26 @@ from __future__ import unicode_literals
 from django.db import models
 
 
+def first_and_last_n_chars(s, n1=30, n2=30):
+    """
+    Utility function to display first n1 characters and last n2 characters of a long string
+    (Adjusts display if string is less than n1+n2 char long)
+    :param s: string
+    :return: string for display
+    """
+    first_len = min(len(s), n1)
+    first = s[:first_len]
+    last_len = min(len(s) - len(first), n2)
+    last = s[-last_len:] if last_len > 0 else ''
+
+    if first_len == len(s):
+        return first
+    elif first_len + last_len == len(s):
+        return "{}{}".format(first, last)
+    else:
+        return "{}...{}".format(first, last)
+
+
 class Collection(models.Model):
     """
     Collection consists of multiple activities
@@ -13,7 +33,7 @@ class Collection(models.Model):
     max_problems = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
-        return "{} - {}".format(self.pk, self.name)
+        return "Collection: {} ({})".format(self.collection_id, self.name)
 
     def grade(self, learner):
         """
@@ -30,7 +50,7 @@ class KnowledgeComponent(models.Model):
     mastery_prior = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return "{} - {}".format(self.pk, self.name)
+        return "KC: {} ({})".format(self.kc_id, self.name)
 
 
 class PrerequisiteRelation(models.Model):
@@ -43,9 +63,9 @@ class PrerequisiteRelation(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "KC {} -> KC {} = {}".format(
-            self.prerequisite.pk,
-            self.knowledge_component.pk,
+        return "PrerequisiteRelation: {} (prereq) -> {} = {}".format(
+            self.prerequisite.kc_id,
+            self.knowledge_component.kc_id,
             self.value
         )
 
@@ -56,7 +76,7 @@ class Activity(models.Model):
     """
     url = models.CharField(max_length=500, default='')
     name = models.CharField(max_length=200, default='')
-    collections = models.ManyToManyField(Collection,blank=True)
+    collections = models.ManyToManyField(Collection, blank=True)
     knowledge_components = models.ManyToManyField(KnowledgeComponent, blank=True)
     difficulty = models.FloatField(null=True,blank=True)
     tags = models.TextField(default='', blank=True)
@@ -69,7 +89,7 @@ class Activity(models.Model):
     preadaptive_order = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
-        return "{} - {}".format(self.pk, self.name)
+        return "Activity: {} ({})".format(first_and_last_n_chars(self.url, 40, 10), self.name)
 
 
 class EngineSettings(models.Model):
@@ -82,7 +102,7 @@ class EngineSettings(models.Model):
     W_d = models.FloatField()  # Importance of appropriate difficulty in recommending the next item
 
     def __str__(self):
-        return "{} - {}".format(self.pk, self.name)
+        return "EngineSettings: {}".format(self.name if self.name else self.pk)
 
 
 class ExperimentalGroup(models.Model):
@@ -96,7 +116,7 @@ class ExperimentalGroup(models.Model):
     )
 
     def __str__(self):
-        return "{} - {}".format(self.pk, self.name)
+        return "Experimental Group {}".format(self.name if self.name else self.pk)
 
 
 class Learner(models.Model):
@@ -116,7 +136,10 @@ class Learner(models.Model):
         unique_together = (('user_id', 'tool_consumer_instance_guid'),)
 
     def __str__(self):
-        return "{}".format(self.pk)
+        return "Learner: {}/{}".format(
+            self.user_id or "<user_id>",
+            self.tool_consumer_instance_guid or "<tool_consumer_instance_guid>"
+        )
 
 
 class Score(models.Model):
@@ -131,8 +154,8 @@ class Score(models.Model):
     timestamp = models.DateTimeField(null=True, auto_now_add=True)
 
     def __str__(self):
-        return "Learner {} - Activity {} = {}".format(
-            self.learner.pk, self.activity.pk, self.score)
+        return "Score: {} [{} - {}]".format(
+            self.score, self.learner, self.activity)
 
 
 class Transit(models.Model):
@@ -141,8 +164,8 @@ class Transit(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "Activity {} - KC {} = {}".format(
-            self.activity.pk, self.knowledge_component.pk, self.value)
+        return "Transit: {} [{} - {}]".format(
+            self.value, self.activity, self.knowledge_component)
 
 
 class Guess(models.Model):
@@ -151,8 +174,8 @@ class Guess(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "Activity {} - KC {} = {}".format(
-            self.activity.pk, self.knowledge_component.pk, self.value)
+        return "Guess: {} [{} - {}]".format(
+            self.value, self.activity, self.knowledge_component)
 
 
 class Slip(models.Model):
@@ -161,8 +184,8 @@ class Slip(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "Activity {} - KC {} = {}".format(
-            self.activity.pk, self.knowledge_component.pk, self.value)
+        return "Slip: {} [{} - {}]".format(
+            self.value, self.activity, self.knowledge_component)
 
 
 class Mastery(models.Model):
@@ -171,8 +194,8 @@ class Mastery(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "Learner {} - KC {} = {}".format(
-            self.learner.pk, self.knowledge_component.pk, self.value)
+        return "Mastery: {} [{} - {}]".format(
+            self.value, self.learner, self.knowledge_component)
 
 
 class Exposure(models.Model):
@@ -181,8 +204,8 @@ class Exposure(models.Model):
     value = models.IntegerField()
 
     def __str__(self):
-        return "Learner {} - KC {} = {}".format(
-            self.learner.pk, self.knowledge_component.pk, self.value)
+        return "Exposure: {} [{} - {}]".format(
+            self.value, self.learner, self.knowledge_component)
 
 
 class Confidence(models.Model):
@@ -191,6 +214,6 @@ class Confidence(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return "Learner {} - KC {} = {}".format(
-            self.learner.pk, self.knowledge_component.pk, self.value)
+        return "Confidence: {} [{} - {}]".format(
+            self.value, self.learner, self.knowledge_component)
 
