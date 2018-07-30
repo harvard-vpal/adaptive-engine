@@ -258,7 +258,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         """
         user_scores = Score.objects.filter(learner=learner)
         if user_scores:
-            last_attempted = user_scores.latest('timestamp').activity
+            last_attempted_activity = user_scores.latest('timestamp').activity
             return Matrix(Slip)[last_attempted_activity, knowledge_components].values()
         else:
             return None
