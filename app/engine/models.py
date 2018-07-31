@@ -87,6 +87,8 @@ class Activity(models.Model):
     nonadaptive_order = models.PositiveIntegerField(null=True, blank=True)
     # order for pre-adaptive problems
     preadaptive_order = models.PositiveIntegerField(null=True, blank=True)
+    # prerequisite activities - used to designate activities that should be served before
+    prerequisite_activities = models.ManyToManyField('self', blank=True, symmetrical=False)
 
     def __str__(self):
         return "Activity: {} ({})".format(first_and_last_n_chars(self.url, 40, 10), self.name)

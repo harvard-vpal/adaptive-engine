@@ -399,14 +399,19 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         :param sequence: list of activity objects, learner's sequence history
         :return: Activity model instance
         """
-        # determine valid activities that recommendation can output
+        # Determine valid activities that recommendation can output
+
         # recommendation activity scores will only be computed for valid activities
         valid_activities = collection.activity_set.all().order_by('pk')
         # exclude activities already completed
         learner_scores = Score.objects.filter(learner=learner)
         valid_activities = valid_activities.exclude(score__in=learner_scores)
         # Can also exclude based on activities in provided sequence
+        # somewhat redundant but this addresses non-problem activities that don't have associated grades
+        # TODO would need to adjust this if we want to support activity repetition
         valid_activities = valid_activities.exclude(pk__in=[activity.pk for activity in sequence])
+        # remove activities whose prerequisites are not satisfied yet (this should be the last filter)
+        valid_activities = valid_activities.exclude(prerequisite_activities__in=valid_activities)
 
         # KC set associated with the remaining valid activities
         valid_kcs = get_kcs_in_activity_set(valid_activities).order_by('pk')
