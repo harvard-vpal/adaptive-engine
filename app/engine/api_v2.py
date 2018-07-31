@@ -54,6 +54,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
             }
         """
+        log.debug("Received recommendation request data (request.data): {}".format(request.data))
         # validate request serializer
         serializer = ActivityRecommendationRequestSerializer(
             data=request.data,
@@ -75,7 +76,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
                 sequence.append(Activity.objects.get(url=activity_data['url']))
             except Activity.DoesNotExist:
                 log.error("Unknown activity found in sequence data: {}".format(activity_data))
-
+        log.debug("Parsed sequence: {}".format(sequence))
         # get recommendation from engine
         recommended_activity = get_engine().recommend(learner, collection, sequence)
 
@@ -86,7 +87,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
         else:
             # Indicate that learner is done with sequence
             recommendation_data = dict(
-                collection=collection,
+                collection=collection.collection_id,
                 url=None,
                 complete=True,
             )

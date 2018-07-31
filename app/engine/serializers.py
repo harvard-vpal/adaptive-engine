@@ -206,7 +206,7 @@ class SequenceActivitySerializer(serializers.Serializer):
     """
     activity = serializers.CharField(source='url')
     score = serializers.FloatField(allow_null=True)
-    is_problem = serializers.BooleanField()
+    is_problem = serializers.BooleanField(required=False)
 
     class Meta:
         model = Activity

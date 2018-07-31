@@ -396,25 +396,32 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             return top item by computed recommendation score
         :param learner: Learner model instance
         :param collection: Collection model instance
-        :param sequence: list of activity dicts, learner's sequence history
+        :param sequence: list of activity objects, learner's sequence history
         :return: Activity model instance
         """
         # determine valid activities that recommendation can output
         # recommendation activity scores will only be computed for valid activities
         valid_activities = collection.activity_set.all().order_by('pk')
+        # exclude activities already completed
+        learner_scores = Score.objects.filter(learner=learner)
+        valid_activities = valid_activities.exclude(score__in=learner_scores)
+        # Can also exclude based on activities in provided sequence
+        valid_activities = valid_activities.exclude(pk__in=[activity.pk for activity in sequence])
+
+        # KC set associated with the remaining valid activities
         valid_kcs = get_kcs_in_activity_set(valid_activities).order_by('pk')
 
-        # skip calculations for base cases
+        # skip score calculation for base cases
         if not valid_activities.exists():
-            log.error("No activities found in collection: {}".format(collection))
-            raise Http404("No activities found in collection")
+            log.debug("No valid activities left: {}".format(collection))
+            return None
         if len(valid_activities) == 1:
-            return valid_activities
+            return valid_activities.first()
         if not valid_kcs.exists():
             log.warning("No knowledge components detected for collection activities; returning random activity")
             return random.choice(valid_activities)
 
-        # get relevant model parameters (limited to valid activities where applicable)
+        # get relevant model parameters
         params = self.get_recommend_params(learner, valid_activities, valid_kcs)
 
         # compute recommendation scores for activities
