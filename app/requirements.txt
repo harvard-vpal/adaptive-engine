@@ -8,3 +8,5 @@ alosi==1.0.0
 django_extensions==1.9.9
 pandas==0.22.0
 ipykernel==4.8.2
+pytest
+pytest-django
