@@ -46,7 +46,7 @@ def get_tagging_matrix(activities=None, knowledge_components=None):
     return output_matrix
 
 
-def recommendation_score(guess, slip, learner_mastery, prereqs, r_star, L_star, difficulty, W_p, W_r, W_d, W_c,
+def recommendation_score(relevance, learner_mastery, prereqs, r_star, L_star, difficulty, W_p, W_r, W_d, W_c,
                          last_attempted_guess=None, last_attempted_slip=None):
     """
     Modifys base recommendation_score method to convert np.nan's to 0's in subscores
@@ -54,7 +54,7 @@ def recommendation_score(guess, slip, learner_mastery, prereqs, r_star, L_star, 
     :param kwargs:
     :return:
     """
-    P = recommendation_score_P(guess, slip, learner_mastery, prereqs, r_star, L_star)
+    P = recommendation_score_P(relevance, learner_mastery, prereqs, r_star, L_star)
     R = recommendation_score_R(guess, slip, learner_mastery, L_star)
     C = recommendation_score_C(guess, slip, last_attempted_guess, last_attempted_slip)
     D = recommendation_score_D(guess, slip, learner_mastery, difficulty)
@@ -351,6 +351,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
         """
         Retrieve features/params needed for doing recommendation
         Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
+        Does shared calculations before passing derived features to subscore calculators
         TODO: consider QuerySet.select_related() for optimization https://docs.djangoproject.com/en/2.0/ref/models/querysets/#select-related
         :param learner: Learner model instance
         :param valid_activities: Queryset of Activity objects
@@ -370,15 +371,28 @@ class AdaptiveEngine(BaseAdaptiveEngine):
             last_attempted_slip: 1xK vector of slip parameters for activity
             learner_mastery: 1xK vector of learner mastery values
         """
-        # multiply qxk matrices by tagging matrix
+        # retrieve or calculate features
+        guess = self.get_guess(valid_activities, valid_kcs)
+        slip = self.get_slip(valid_activities, valid_kcs)
+        relevance = calculate_relevance(guess, slip)
+        last_attempted_relevance = calculate_relevance(
+            self.get_last_attempted_guess(learner, valid_kcs),
+            self.get_last_attempted_slip(learner, valid_kcs)
+        )
+        learner_mastery_odds = odds(get_learner_mastery(learner, valid_kcs))
+
+        # fill missing values with 0.0
+        fillna(relevance)
+        fillna(last_attempted_relevance)
+        fillna(learner_mastery_odds)
+
+        # construct param dict
         return {
-            'guess': self.get_guess(valid_activities, valid_kcs),
-            'slip': self.get_slip(valid_activities, valid_kcs),
+            'relevance': relevance,
             'difficulty': self.get_difficulty(valid_activities),
             'prereqs': self.get_prereqs(valid_kcs),
-            'last_attempted_guess': self.get_last_attempted_guess(learner, valid_kcs),
-            'last_attempted_slip': self.get_last_attempted_slip(learner, valid_kcs),
-            'learner_mastery': self.get_learner_mastery(learner, valid_kcs),
+            'last_attempted_relevance': last_attempted_relevance,
+            'learner_mastery_odds': learner_mastery_odds,
             'r_star': self.engine_settings.r_star,
             'L_star': self.engine_settings.L_star,
             'W_p': self.engine_settings.W_p,
@@ -431,8 +445,7 @@ class AdaptiveEngine(BaseAdaptiveEngine):
 
         # compute recommendation scores for activities
         scores = recommendation_score(
-            params['guess'],
-            params['slip'],
+            params['relevance'],
             params['learner_mastery'],
             params['prereqs'],
             params['r_star'],
