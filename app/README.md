@@ -48,9 +48,8 @@ python manage.py createsuperuser
 
 
 ## Running tests
-[Django unit tests](https://docs.djangoproject.com/en/1.11/topics/testing/overview/) in `app/tests` can be run using
 ```
-python manage.py test
+docker-compose run web pytest
 ```
 
 ## Running model update
