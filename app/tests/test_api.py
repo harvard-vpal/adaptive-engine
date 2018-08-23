@@ -3,7 +3,7 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from alosi.engine_api import EngineApi
-from engine.models import Collection
+from engine.models import Collection, KnowledgeComponent, Mastery, Learner
 
 
 log = logging.getLogger(__name__)
@@ -34,9 +34,19 @@ def test_collection(db):
     return collection
 
 
+@pytest.fixture
+def knowledge_component(db):
+    """
+    Create knowledge component
+    :param db:
+    :return: queryset
+    """
+    return KnowledgeComponent.objects.create(kc_id='kc_id',name='kc name',mastery_prior=0.5)
+
+
 def test_recommend(engine_api, test_collection):
     """
-    Test recommendation api endpoint
+    Recommend activity via api
     :param engine_api: alosi.EngineApi instance
     :param test_collection: Collection model instance
     """
@@ -49,4 +59,71 @@ def test_recommend(engine_api, test_collection):
         sequence=[]
     )
     log.warning("response text: {}".format(r.text))
-    assert r.status_code == 200
+    assert r.ok
+
+
+def test_create_knowledge_component(engine_api, test_collection):
+    """
+    Creates KC via api
+    :param engine_api:
+    :param test_collection:
+    :return:
+    """
+    KC_ID = 'kc_id'
+    KC_NAME = 'kc name'
+    KC_MASTERY_PRIOR = 0.5
+    r = engine_api.create_knowledge_component(
+        kc_id = KC_ID,
+        name = KC_NAME,
+        mastery_prior = KC_MASTERY_PRIOR
+    )
+    assert r.ok
+
+
+def test_knowledge_component_id_field(engine_api, knowledge_component):
+    """
+    Tests that 'id' field is available in knowledge component list endpoint data
+    :param engine_api:
+    :param knowledge_component:
+    :return:
+    """
+    r = engine_api.request('GET', 'knowledge_component')  # kc list endpoint
+    assert 'id' in r.json()[0]
+
+
+@pytest.mark.django_db
+def test_bulk_update_mastery(engine_api, knowledge_component):
+    """
+    Update mastery for a new learner via api
+    Tests that learner is created, mastery object is created, and mastery value is updated (checks db)
+    :param engine_api:
+    :param knowledge_component:
+    :return:
+    """
+    NEW_VALUE = 0.6
+    LEARNER = {
+        'user_id': 'user_id',
+        'tool_consumer_instance_guid': 'tool_consumer_instance_guid'
+    }
+    data = [
+        {
+            'learner': LEARNER,
+            'knowledge_component': {
+                'kc_id': knowledge_component.kc_id
+            },
+            'value': NEW_VALUE
+        }
+    ]
+    r = engine_api.bulk_update_mastery(data)
+    assert r.ok
+
+    learner = Learner.objects.get(
+        user_id=LEARNER['user_id'],
+        tool_consumer_instance_guid=LEARNER['tool_consumer_instance_guid']
+    )
+
+    mastery = Mastery.objects.get(
+        learner=learner,
+        knowledge_component=knowledge_component
+    )
+    assert mastery.value == NEW_VALUE
