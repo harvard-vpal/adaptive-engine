@@ -184,7 +184,7 @@ class KnowledgeComponentSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = KnowledgeComponent
-        fields = ('kc_id', 'name', 'mastery_prior')
+        fields = ('id', 'kc_id', 'name', 'mastery_prior')
         lookup_field = 'kc_id'  # lookup based on kc_id slug field
 
 
