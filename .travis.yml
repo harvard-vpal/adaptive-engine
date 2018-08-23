@@ -1,0 +1,11 @@
+sudo: required
+
+services:
+- docker
+
+before_install:
+- cd app
+- docker-compose build
+
+script:
+- docker-compose run web pytest
