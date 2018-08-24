@@ -5,7 +5,7 @@ language: generic
 services:
 - docker
 
-install:
+before_install:
 - cd app
 - docker-compose build
 
