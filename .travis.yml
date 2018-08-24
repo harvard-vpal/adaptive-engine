@@ -1,0 +1,14 @@
+sudo: required
+
+language: generic
+
+services:
+- docker
+
+install:
+- cd app
+- docker-compose build
+- docker-compose up -d postgres
+
+script:
+- docker-compose run web pytest
