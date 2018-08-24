@@ -1,5 +1,8 @@
 # adaptive-engine
 
+![travis ci status](https://travis-ci.org/harvard-vpal/adaptive-engine.svg?branch=master)
+
+## About
 The ALOSI adaptive engine is a web application that powers the recommendation of learning resources to learners based on real-time activity. This application is designed to be used with the [Bridge for Adaptivity](https://github.com/harvard-vpal/bridge-adaptivity), which handles the serving of activities recommended by the engine.
 
 ## Contents
