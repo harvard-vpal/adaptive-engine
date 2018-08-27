@@ -283,3 +283,19 @@ class ScoreViewSet(viewsets.ModelViewSet):
         log.debug("Triggering engine update from score")
         engine = get_engine()
         engine.update_from_score(score.learner, score.activity, score.score)
+
+
+class PrerequisiteActivityViewSet(viewsets.ModelViewSet):
+    """
+    Prerequisite Activity -related API endpoints
+
+    Standard CRUD endpoints:
+        GET /prerequisite_activity - list
+        POST /prerequisite_activity - create
+        GET /prerequisite_activity/{pk} - retrieve
+        PUT /prerequisite_activity/{pk} - update
+        PATCH /prerequisite_activity/{pk} - partial update
+        DELETE /prerequisite_activity/{pk} - destroy
+    """
+    queryset = Activity.prerequisite_activities.through.objects.all()
+    serializer_class = PrerequisiteActivitySerializer

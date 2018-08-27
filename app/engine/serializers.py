@@ -279,3 +279,16 @@ class CollectionActivitySerializer(serializers.ModelSerializer):
         model = Activity
         fields = ('source_launch_url', 'name', 'difficulty', 'tags')
         list_serializer_class = CollectionActivityListSerializer
+
+
+class PrerequisiteActivitySerializer(serializers.ModelSerializer):
+    """
+    Model serializer for Activity.prerequisite_activities.through
+    """
+    class Meta:
+        model = Activity.prerequisite_activities.through
+        # from_activity: dependent activity
+        # to_activity: prerequisite activity
+        fields = ('from_activity','to_activity')
+
+# Activity.prerequisite_activities.through.
