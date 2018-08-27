@@ -290,5 +290,3 @@ class PrerequisiteActivitySerializer(serializers.ModelSerializer):
         # from_activity: dependent activity
         # to_activity: prerequisite activity
         fields = ('id','from_activity','to_activity')
-
-# Activity.prerequisite_activities.through.
