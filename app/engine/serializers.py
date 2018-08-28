@@ -100,7 +100,8 @@ class ActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Activity
-        fields = ('id', 'collections', 'source_launch_url', 'name', 'difficulty', 'tags', 'knowledge_components')
+        fields = ('id', 'collections', 'source_launch_url', 'name', 'difficulty', 'tags', 'knowledge_components',
+                  'prerequisite_activities')
 
 
 class MasterySerializer(serializers.ModelSerializer):
