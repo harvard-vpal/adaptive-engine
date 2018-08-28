@@ -45,13 +45,36 @@ def knowledge_component(db):
 
 
 @pytest.fixture
+def knowledge_components(db):
+    """
+    Create knowledge components
+    :param db:
+    :return: queryset
+    """
+    objects = [
+        KnowledgeComponent(
+            kc_id='kc1',
+            name='kc 1',
+            mastery_prior=0.5
+        ),
+        KnowledgeComponent(
+            kc_id='kc2',
+            name='kc 2',
+            mastery_prior=0.6
+        ),
+    ]
+    KnowledgeComponent.objects.bulk_create(objects)
+    return KnowledgeComponent.objects.filter(kc_id__in=['kc1','kc2'])
+
+
+@pytest.fixture
 def activities(db):
     """
     Create two activities
     :param db:
     :return: queryset of knowledge components
     """
-    kcs = [
+    objects = [
         Activity(
             url='http://example.com/1',
             name='activity 1',
@@ -61,7 +84,7 @@ def activities(db):
             name='activity 2',
         ),
     ]
-    Activity.objects.bulk_create(kcs)
+    Activity.objects.bulk_create(objects)
     return Activity.objects.filter(url__in=['http://example.com/1','http://example.com/2'])
 
 
@@ -165,7 +188,7 @@ def test_api_create_prerequisite_activity(engine_api, activities):
     r = engine_api.request('POST', 'prerequisite_activity', json=data)
     assert r.ok
 
-@pytest.mark.django_db
+
 def test_api_create_prerequisite_activity_via_field(engine_api, activities):
     """
     Modify prerequisite activity relation via activity field
@@ -175,4 +198,20 @@ def test_api_create_prerequisite_activity_via_field(engine_api, activities):
     """
     data = dict(prerequisite_activities=[activities[0].pk])
     r = engine_api.request('PATCH', 'activity/{}'.format(activities[1].pk), json=data)
+    assert r.ok
+
+
+def test_api_create_prerequisite_ka(engine_api, knowledge_components):
+    """
+    Create prereq relation between two kcs via api
+    :param engine_api: engine api client
+    :param knowledge_components: kc queryset
+    :return:
+    """
+    data = dict(
+        prerequisite=knowledge_components[0].pk,
+        knowledge_component=knowledge_components[1].pk,
+        value=1.0
+    )
+    r = engine_api.request('POST', 'prerequisite_knowledge_component', json=data)
     assert r.ok

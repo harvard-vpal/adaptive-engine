@@ -299,3 +299,19 @@ class PrerequisiteActivityViewSet(viewsets.ModelViewSet):
     """
     queryset = Activity.prerequisite_activities.through.objects.all()
     serializer_class = PrerequisiteActivitySerializer
+
+
+class PrerequisiteKnowledgeComponentViewSet(viewsets.ModelViewSet):
+    """
+    Prerequisite [knowledge component] related API endpoints
+
+        Standard CRUD endpoints:
+        GET /prerequisite_knowledge_component - list
+        POST /prerequisite_knowledge_component - create
+        GET /prerequisite_knowledge_component/{pk} - retrieve
+        PUT /prerequisite_knowledge_component/{pk} - update
+        PATCH /prerequisite_knowledge_component/{pk} - partial update
+        DELETE /prerequisite_knowledge_component/{pk} - destroy
+    """
+    queryset = PrerequisiteRelation.objects.all()
+    serializer_class = PrerequisiteRelationSerializer
