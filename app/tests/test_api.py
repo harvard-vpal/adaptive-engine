@@ -164,3 +164,15 @@ def test_api_create_prerequisite_activity(engine_api, activities):
     )
     r = engine_api.request('POST', 'prerequisite_activity', json=data)
     assert r.ok
+
+@pytest.mark.django_db
+def test_api_create_prerequisite_activity_via_field(engine_api, activities):
+    """
+    Modify prerequisite activity relation via activity field
+    :param engine_api: engine api client
+    :param activities: activity queryset
+    :return:
+    """
+    data = dict(prerequisite_activities=[activities[0].pk])
+    r = engine_api.request('PATCH', 'activity/{}'.format(activities[1].pk), json=data)
+    assert r.ok
