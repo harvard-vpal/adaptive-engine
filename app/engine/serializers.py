@@ -291,3 +291,12 @@ class PrerequisiteActivitySerializer(serializers.ModelSerializer):
         # from_activity: dependent activity
         # to_activity: prerequisite activity
         fields = ('id','from_activity','to_activity')
+
+
+class PrerequisiteRelationSerializer(serializers.ModelSerializer):
+    """
+    Model serializer for PrerequisiteRelation
+    """
+    class Meta:
+        model = PrerequisiteRelation
+        fields = ('prerequisite','knowledge_component','value')
