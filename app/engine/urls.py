@@ -10,6 +10,8 @@ router_v2.register('collection', api_v2.CollectionViewSet)
 router_v2.register('score', api_v2.ScoreViewSet)
 router_v2.register('mastery', api_v2.MasteryViewSet)
 router_v2.register('knowledge_component', api_v2.KnowledgeComponentViewSet)
+router_v2.register('prerequisite_activity', api_v2.PrerequisiteActivityViewSet)
+
 
 urlpatterns = [
     path('api/v2/', include(router_v2.urls)),

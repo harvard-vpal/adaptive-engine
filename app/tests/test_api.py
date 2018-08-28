@@ -3,7 +3,7 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from alosi.engine_api import EngineApi
-from engine.models import Collection, KnowledgeComponent, Mastery, Learner
+from engine.models import Collection, KnowledgeComponent, Mastery, Learner, Activity
 
 
 log = logging.getLogger(__name__)
@@ -39,9 +39,30 @@ def knowledge_component(db):
     """
     Create knowledge component
     :param db:
-    :return: queryset
+    :return: knowledge component model instance
     """
     return KnowledgeComponent.objects.create(kc_id='kc_id',name='kc name',mastery_prior=0.5)
+
+
+@pytest.fixture
+def activities(db):
+    """
+    Create two activities
+    :param db:
+    :return: queryset of knowledge components
+    """
+    kcs = [
+        Activity(
+            url='http://example.com/1',
+            name='activity 1',
+        ),
+        Activity(
+            url='http://example.com/2',
+            name='activity 2',
+        ),
+    ]
+    Activity.objects.bulk_create(kcs)
+    return Activity.objects.filter(url__in=['http://example.com/1','http://example.com/2'])
 
 
 def test_recommend(engine_api, test_collection):
@@ -127,3 +148,19 @@ def test_bulk_update_mastery(engine_api, knowledge_component):
         knowledge_component=knowledge_component
     )
     assert mastery.value == NEW_VALUE
+
+
+@pytest.mark.django_db
+def test_api_create_prerequisite_activity(engine_api, activities):
+    """
+    Create prerequisite activity relation via api
+    :param engine_api:
+    :param knowledge_components:
+    :return:
+    """
+    data = dict(
+        from_activity=activities[1].pk,
+        to_activity=activities[0].pk
+    )
+    r = engine_api.request('POST', 'prerequisite_activity', json=data)
+    assert r.ok
