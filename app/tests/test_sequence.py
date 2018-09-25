@@ -77,7 +77,6 @@ def sequence_test_collection(db):
     return collection
 
 
-
 def test_sequence(engine_api, sequence_test_collection):
     collection = sequence_test_collection
     activities = collection.activity_set.all()
@@ -118,23 +117,3 @@ def test_sequence(engine_api, sequence_test_collection):
             )
             assert r.ok
             sleep(0.1)
-
-    assert False
-
-
-# def test_recommend(engine_api, test_collection):
-#     """
-#     Recommend activity via api
-#     :param engine_api: alosi.EngineApi instance
-#     :param test_collection: Collection model instance
-#     """
-#     r = engine_api.recommend(
-#         learner=dict(
-#             user_id='my_user_id',
-#             tool_consumer_instance_guid='default'
-#         ),
-#         collection=test_collection.collection_id,
-#         sequence=[]
-#     )
-#     log.warning("response text: {}".format(r.text))
-#     assert r.ok
