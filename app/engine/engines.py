@@ -3,7 +3,7 @@ import random
 from django.http import Http404
 from django.db.models import Model
 import numpy as np
-from alosi.engine import BaseAdaptiveEngine, recommendation_score, odds, EPSILON, \
+from alosi.engine import BaseAlosiAdaptiveEngine, recommendation_score, odds, EPSILON, \
     recommendation_score_P, recommendation_score_R, recommendation_score_D, recommendation_score_C, \
     calculate_relevance, calculate_mastery_update, fillna
 from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
@@ -119,7 +119,10 @@ class NonAdaptiveEngine(object):
         return candidate_activities.first()
 
 
-class AdaptiveEngine(BaseAdaptiveEngine):
+class AdaptiveEngine(BaseAlosiAdaptiveEngine):
+    """
+    Specific implementation of adaptive engine for django context
+    """
 
     def __init__(self, engine_settings):
         self.engine_settings = engine_settings
