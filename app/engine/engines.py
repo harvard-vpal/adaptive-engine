@@ -132,7 +132,9 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         """
         Base method for retrieving parameters associated with a activity-kc relationship
         e.g. guess, slip, transit
-        :param model: Model, django model representing parameter (either Guess, Slip, Transit)
+        If activity is tagged with a kc, but there is no guess/slip values initialized for that pair,
+            this method fills the output with default values
+        :param model: Model, django model class representing parameter (either Guess, Slip, Transit)
         :param activities: queryset of Activity model instances (convert model to qset before using this method)
         :param knowledge_components: queryset of KnowledgeComponent model instances
         :param default_value: float, default value to use for parameter if value missing
