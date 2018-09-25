@@ -1,10 +1,8 @@
 import logging
 import random
-from django.http import Http404
 from django.db.models import Model
 import numpy as np
 from alosi.engine import BaseAlosiAdaptiveEngine, recommendation_score, odds, EPSILON, \
-    recommendation_score_P, recommendation_score_R, recommendation_score_D, recommendation_score_C, \
     calculate_relevance, calculate_mastery_update, fillna
 from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
 from .models import *
@@ -18,6 +16,11 @@ TRANSIT_DEFAULT = odds(0.1)
 
 
 def inverse_odds(x):
+    """
+    Calculate probability from odds
+    :param x: odds value
+    :return:
+    """
     return np.exp(x)/(1+np.exp(x))
 
 
@@ -44,33 +47,6 @@ def get_tagging_matrix(activities=None, knowledge_components=None):
     # list(zip(*idx)) converts list of tuples to np-formatted array index
     output_matrix[list(zip(*idx))] = 1.0
     return output_matrix
-
-
-def recommendation_score(relevance, learner_mastery, prereqs, r_star, L_star, difficulty, W_p, W_r, W_d, W_c,
-                         last_attempted_guess=None, last_attempted_slip=None):
-    """
-    Modifys base recommendation_score method to convert np.nan's to 0's in subscores
-    :param args:
-    :param kwargs:
-    :return:
-    """
-    P = recommendation_score_P(relevance, learner_mastery, prereqs, r_star, L_star)
-    R = recommendation_score_R(guess, slip, learner_mastery, L_star)
-    C = recommendation_score_C(guess, slip, last_attempted_guess, last_attempted_slip)
-    D = recommendation_score_D(guess, slip, learner_mastery, difficulty)
-
-    subscores = np.array([P, R, C, D])
-
-    # for debugging
-    subscore_labels = ['P', 'R', 'C', 'D']
-    for subscore, label in zip(subscores, subscore_labels):
-        log.debug('Subscore {}: {}'.format(label, subscore))
-
-    # compute weighted average of subscores
-    weights = np.array([W_p, W_r, W_d, W_c])
-    scores = np.dot(weights, subscores)
-    log.debug("Combined activity scores: {}".format(scores))
-    return scores
 
 
 def get_engine(engine_settings=None):
@@ -211,32 +187,22 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         return Matrix(PrerequisiteRelation)[knowledge_components, knowledge_components].values()
 
     @staticmethod
-    def get_last_attempted_guess(learner, knowledge_components):
+    def get_last_attempted_relevance(learner, knowledge_components):
         """
         :param learner: Learner object instance
         :param knowledge_components: KnowledgeComponent model instance or queryset
         :return: 1 x (# LOs) np.array vector
         """
         user_scores = Score.objects.filter(learner=learner)
-        if user_scores:
-            last_attempted_activity = user_scores.latest('timestamp').activity
-            return Matrix(Guess)[last_attempted_activity, knowledge_components].values()
-        else:
+
+        if not user_scores.exists():
             return None
 
-    @staticmethod
-    def get_last_attempted_slip(learner, knowledge_components):
-        """
-        :param learner: Learner object instance
-        :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: 1 x (# LOs) np.array vector
-        """
-        user_scores = Score.objects.filter(learner=learner)
-        if user_scores:
-            last_attempted_activity = user_scores.latest('timestamp').activity
-            return Matrix(Slip)[last_attempted_activity, knowledge_components].values()
-        else:
-            return None
+        last_attempted_activity = user_scores.latest('timestamp').activity
+        guess = Matrix(Guess)[last_attempted_activity, knowledge_components].values()
+        slip = Matrix(Slip)[last_attempted_activity, knowledge_components].values()
+        relevance = calculate_relevance(guess, slip)
+        return relevance
 
     @staticmethod
     def get_learner_mastery(learner, knowledge_components=None):
@@ -248,7 +214,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         output vector represents mastery values of KCs in knowledge_components arg; defines the vector "axis"
         :param learner: Learner model instance
         :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: 1 x (# LOs) np.array vector
+        :return: 1 x (# LOs) np.array vector of mastery odds values
         """
         matrix = Matrix(Mastery)[learner, knowledge_components]
         # fill unpopulated values with appropriate kc prior values, from mastery_prior field on KC object
@@ -257,10 +223,9 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         return odds(matrix_values)
 
     @staticmethod
-    def get_mastery_prior(knowledge_components=None):
+    def get_mastery_prior():
         """
-        Get mastery prior values for learning objectives
-        :param knowledge_components: KnowledgeComponent model instance or queryset
+        Get mastery prior values for all learning objectives (used in model training / recalibration)
         :return: 1 x (#LOs) np.array vector
         """
         knowledge_components = KnowledgeComponent.objects.all()
@@ -299,7 +264,9 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         if not knowledge_components.exists():
             log.debug("Skipping engine update from score; no tagged knowledge components found for activity.")
             return
-        mastery = self.get_learner_mastery(learner, knowledge_components)
+
+        # current mastery odds for learner
+        mastery_odds = self.get_learner_mastery(learner, knowledge_components)
 
         # convert activity into queryset with single element
         activity_qset = Activity.objects.filter(pk=activity.pk)
@@ -309,9 +276,9 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         slip = self.get_slip(activity_qset, knowledge_components).flatten()
         transit = self.get_transit(activity_qset, knowledge_components).flatten()
 
-        new_mastery = calculate_mastery_update(mastery, score, guess, slip, transit, EPSILON)
+        new_mastery_odds = calculate_mastery_update(mastery_odds, score, guess, slip, transit, EPSILON)
         # save new mastery values in mastery data store
-        self.update_learner_mastery(learner, new_mastery, knowledge_components)
+        self.update_learner_mastery(learner, new_mastery_odds, knowledge_components)
         # save the new score in score data store
         self.save_score(learner, activity, score)
 
@@ -325,15 +292,15 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         Score.objects.create(learner=learner, activity=activity, score=score)
 
     @staticmethod
-    def update_learner_mastery(learner, new_mastery, knowledge_components=None):
+    def update_learner_mastery(learner, new_mastery_odds, knowledge_components=None):
         """
         Saves updated mastery values in database
-        Converts odds to normal probability
+        Mastery is saved as probability values; converts odds to normal probability
         :param learner: learner model instance
-        :param new_mastery: 1 x (# LOs) np.array vector of new odds mastery values
+        :param new_mastery_odds: 1 x (# LOs) np.array vector of new odds mastery values
         :param knowledge_components: KnowledgeComponent queryset - KC's to update values for
         """
-        Matrix(Mastery)[learner, knowledge_components].update(inverse_odds(new_mastery))
+        Matrix(Mastery)[learner, knowledge_components].update(inverse_odds(new_mastery_odds))
 
     @staticmethod
     def initialize_learner(learner):
@@ -374,22 +341,21 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             W_c: (float), weight on substrategy C
             last_attempted_guess: 1xK vector of guess parameters for activity
             last_attempted_slip: 1xK vector of slip parameters for activity
-            learner_mastery: 1xK vector of learner mastery values
+            learner_mastery_odds: 1xK vector of learner mastery odds values
         """
         # retrieve or calculate features
         guess = self.get_guess(valid_activities, valid_kcs)
         slip = self.get_slip(valid_activities, valid_kcs)
         relevance = calculate_relevance(guess, slip)
-        last_attempted_relevance = calculate_relevance(
-            self.get_last_attempted_guess(learner, valid_kcs),
-            self.get_last_attempted_slip(learner, valid_kcs)
-        )
-        learner_mastery_odds = odds(get_learner_mastery(learner, valid_kcs))
+        last_attempted_relevance = self.get_last_attempted_relevance(learner, valid_kcs)
+        learner_mastery_odds = odds(self.get_learner_mastery(learner, valid_kcs))
 
         # fill missing values with 0.0
         fillna(relevance)
-        fillna(last_attempted_relevance)
         fillna(learner_mastery_odds)
+        # last_attempted_relevance may be None if no prior score history
+        if last_attempted_relevance is not None:
+            fillna(last_attempted_relevance)
 
         # construct param dict
         return {
@@ -446,23 +412,10 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             return random.choice(valid_activities)
 
         # get relevant model parameters
-        params = self.get_recommend_params(learner, valid_activities, valid_kcs)
+        recommendation_params = self.get_recommend_params(learner, valid_activities, valid_kcs)
 
         # compute recommendation scores for activities
-        scores = recommendation_score(
-            params['relevance'],
-            params['learner_mastery'],
-            params['prereqs'],
-            params['r_star'],
-            params['L_star'],
-            params['difficulty'],
-            params['W_p'],
-            params['W_r'],
-            params['W_d'],
-            params['W_c'],
-            params['last_attempted_guess'],
-            params['last_attempted_slip']
-        )
+        scores = recommendation_score(**recommendation_params)
         # get the index corresponding to the activity with the highest computed score
         activity_idx = np.argmax(scores)
 
