@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 def sequence_test_collection(db):
     """
     Collection with realistic data structure for testing sequence
+    Creates collection, 12 activities, 2 KCs,
     :param db:
     :return: Collection model instance
     """
@@ -77,8 +78,13 @@ def sequence_test_collection(db):
     return collection
 
 
-
 def test_sequence(engine_api, sequence_test_collection):
+    """
+    Simulates a student doing questions in the collection returned by sequence_test_collection fixture
+    :param engine_api: fixture returning api client
+    :param sequence_test_collection: fixture returning collection
+    :return:
+    """
     collection = sequence_test_collection
     activities = collection.activity_set.all()
     collection_id = collection.collection_id
@@ -97,7 +103,7 @@ def test_sequence(engine_api, sequence_test_collection):
             sequence=sequence,
         )
         assert r.ok
-        sleep(0.1)
+        sleep(0.1)  # pytest-django local live server doesn't like requests too close to each other
         print("Engine recommendation response: {}".format(r.json()))
         recommended_activity = r.json()['source_launch_url']
 
@@ -111,6 +117,7 @@ def test_sequence(engine_api, sequence_test_collection):
         }
         sequence.append(sequence_item)
         if sequence_item['is_problem']:
+            # submit score to api
             r = engine_api.submit_score(
                 learner=LEARNER,
                 activity=sequence_item['activity'],

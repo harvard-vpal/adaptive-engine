@@ -7,3 +7,9 @@ __pycache__/
 
 # Python package files
 *.egg-info/
+
+# ide
+.idea/
+
+# pytest
+.pytest_cache/
