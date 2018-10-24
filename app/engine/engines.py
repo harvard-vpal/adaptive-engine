@@ -371,17 +371,18 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             'W_c': self.engine_settings.W_c,
         }
 
-    def recommend(self, learner, collection, sequence):
+    def recommendation_score(self, learner, collection, sequence=[]):
         """
         Workflow:
             get valid activities (i.e. activities in collection)
             retrieve parameters (relevant to valid activities where applicable)
             compute scores for valid activities using parameters
-            return top item by computed recommendation score
+
         :param learner: Learner model instance
         :param collection: Collection model instance
-        :param sequence: list of activity objects, learner's sequence history  # TODO provide default=[]?
-        :return: Activity model instance
+        :param sequence: list of activity objects, learner's sequence history
+        :return: dict of Activity instances and scores, e.g. {activity: 0.5, activity2: 0.2, ...}
+        :rtype: dict
         """
         # Determine valid activities that recommendation can output
 
@@ -403,24 +404,36 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         # skip score calculation for base cases
         if not valid_activities.exists():
             log.debug("No valid activities left: {}".format(collection))
-            return None
+            return {}
         if len(valid_activities) == 1:
-            return valid_activities.first()
+            return {valid_activities.first(): 1.0}
         if not valid_kcs.exists():
             log.warning("No knowledge components detected for collection activities; returning random activity")
-            return random.choice(valid_activities)
+            # return random.choice(valid_activities)
+            return {activity: random.random() for activity in valid_activities}
 
         # get relevant model parameters
         recommendation_params = self.get_recommend_params(learner, valid_activities, valid_kcs)
 
         # compute recommendation scores for activities
         scores = recommendation_score(**recommendation_params)
-        # get the index corresponding to the activity with the highest computed score
-        activity_idx = np.argmax(scores)
 
-        # convert matrix 0-idx to activity.pk / activity
-        pks = list(valid_activities.values_list('pk', flat=True))
-        return Activity.objects.get(pk=pks[activity_idx])
+        return {activity: score for activity, score in zip(valid_activities, scores)}
+
+    def recommend(self, learner, collection, sequence=[]):
+        """
+        Return top item by computed recommendation score
+        :param learner:
+        :param collection:
+        :param sequence:
+        :return: Activity instance
+        """
+        activity_scores = self.recommendation_score(learner, collection, sequence)
+        # case: no valid activities left to recommend (activity_scores will be an empty dict)
+        if not activity_scores:
+            return None
+        # return the activity with the highest score
+        return max(activity_scores, key=activity_scores.get)
 
 
 def get_kcs_in_activity_set(activities):
