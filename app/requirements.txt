@@ -10,3 +10,4 @@ pandas==0.22.0
 ipykernel==4.8.2
 pytest
 pytest-django
+boto3==1.9.29
