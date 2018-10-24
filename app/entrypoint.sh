@@ -51,6 +51,6 @@ elif [ "$1" = "runserver" ]; then
     echo "Starting web container with python manage.py runserver ..."
     python manage.py runserver 0.0.0.0:8000
 else
-    echo "Command type not recognized"
-    exit 1
+    # run arbitrary command
+    $@
 fi
