@@ -329,8 +329,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         :param valid_activities: Queryset of Activity objects
         :param valid_kcs: Queryset of KnowledgeComponent objects
         :return: dictionary with following keys:
-            guess: QxK np.array, guess parameter values for activities
-            slip: QxK np.array, slip parameter values for activities
+            relevance: QxK np.array, calculated relevance values for activities
             difficulty: 1xQ np.array, difficulty values for activities
             prereqs: KxK np.array, prerequisite matrix
             r_star: float, Threshold for forgiving lower odds of mastering pre-requisite LOs.
@@ -381,7 +380,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             return top item by computed recommendation score
         :param learner: Learner model instance
         :param collection: Collection model instance
-        :param sequence: list of activity objects, learner's sequence history
+        :param sequence: list of activity objects, learner's sequence history  # TODO provide default=[]?
         :return: Activity model instance
         """
         # Determine valid activities that recommendation can output
