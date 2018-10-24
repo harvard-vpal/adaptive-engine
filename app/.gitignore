@@ -22,3 +22,6 @@ config/settings/prod.py
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+# local config
+.env
