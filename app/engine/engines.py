@@ -433,9 +433,9 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     def recommend(self, learner, collection, sequence=[]):
         """
         Return top item by computed recommendation score
-        :param learner:
-        :param collection:
-        :param sequence:
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity objects, learner's sequence history
         :return: Activity instance
         """
         activity_scores = self.recommendation_score(learner, collection, sequence)
