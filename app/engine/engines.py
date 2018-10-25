@@ -100,8 +100,13 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     Specific implementation of adaptive engine for django context
     """
 
-    def __init__(self, engine_settings):
+    def __init__(self, engine_settings, recommendation_score_function=recommendation_score):
+        """
+        :param engine_settings: EngineSettings model instance
+        :param recommendation_score_function: function that returns a list of scores (e.g. alosi.engine.recommendation_score)
+        """
         self.engine_settings = engine_settings
+        self.recommendation_score_function = recommendation_score_function
 
     @staticmethod
     def get_tagging_parameter_values(model, activities=None, knowledge_components=None, default_value=0.1):
@@ -426,7 +431,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         recommendation_params = self.get_recommend_params(learner, valid_activities, valid_kcs)
 
         # compute recommendation scores for activities
-        scores = recommendation_score(**recommendation_params)
+        scores = self.recommendation_score_function(**recommendation_params)
 
         return {activity: score for activity, score in zip(valid_activities, scores)}
 
