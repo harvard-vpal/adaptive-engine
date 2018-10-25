@@ -371,6 +371,28 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             'W_c': self.engine_settings.W_c,
         }
 
+    @staticmethod
+    def get_valid_activities(learner, collection, sequence=[]):
+        """
+        Determine valid activities that recommendation can output
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity objects, learner's sequence history
+        :return: Activity queryset
+        """
+        # recommendation activity scores will only be computed for valid activities
+        valid_activities = collection.activity_set.all().order_by('pk')
+        # exclude activities already completed
+        learner_scores = Score.objects.filter(learner=learner)
+        valid_activities = valid_activities.exclude(score__in=learner_scores)
+        # Can also exclude based on activities in provided sequence
+        # somewhat redundant but this addresses non-problem activities that don't have associated grades
+        # TODO would need to adjust this if we want to support activity repetition
+        valid_activities = valid_activities.exclude(pk__in=[activity.pk for activity in sequence])
+        # remove activities whose prerequisites are not satisfied yet (this should be the last filter)
+        valid_activities = valid_activities.exclude(prerequisite_activities__in=valid_activities)
+        return valid_activities
+
     def recommendation_score(self, learner, collection, sequence=[]):
         """
         Workflow:
@@ -384,20 +406,8 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         :return: dict of Activity instances and scores, e.g. {activity: 0.5, activity2: 0.2, ...}
         :rtype: dict
         """
-        # Determine valid activities that recommendation can output
-
-        # recommendation activity scores will only be computed for valid activities
-        valid_activities = collection.activity_set.all().order_by('pk')
-        # exclude activities already completed
-        learner_scores = Score.objects.filter(learner=learner)
-        valid_activities = valid_activities.exclude(score__in=learner_scores)
-        # Can also exclude based on activities in provided sequence
-        # somewhat redundant but this addresses non-problem activities that don't have associated grades
-        # TODO would need to adjust this if we want to support activity repetition
-        valid_activities = valid_activities.exclude(pk__in=[activity.pk for activity in sequence])
-        # remove activities whose prerequisites are not satisfied yet (this should be the last filter)
-        valid_activities = valid_activities.exclude(prerequisite_activities__in=valid_activities)
-
+        # get valid activities that can be recommended
+        valid_activities = self.get_valid_activities(learner, collection, sequence)
         # KC set associated with the remaining valid activities
         valid_kcs = get_kcs_in_activity_set(valid_activities).order_by('pk')
 
