@@ -56,7 +56,7 @@ def get_engine(engine_settings=None):
     """
     if engine_settings is None:
         engine_settings = EngineSettings(
-            L_star=0.9,
+            L_star=np.log(odds(0.9)),
             r_star=0.0,
             W_r=2.0,  # demand
             W_c=1.0,  # continuity
