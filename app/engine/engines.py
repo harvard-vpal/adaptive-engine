@@ -212,20 +212,20 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     @staticmethod
     def get_learner_mastery(learner, knowledge_components=None):
         """
-        Constructs a 1 x (# LOs) vector of mastery odds values for learner
+        Constructs a 1 x (# LOs) vector of mastery values for learner
         Optionally, subset and order can be defined using knowledge_components argument
         If mastery value for a KC does not exist, populates the corresponding array element with the prior mastery
         value of the KC
         output vector represents mastery values of KCs in knowledge_components arg; defines the vector "axis"
         :param learner: Learner model instance
         :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: 1 x (# LOs) np.array vector of mastery odds values
+        :return: 1 x (# LOs) np.array vector of mastery values
         """
         matrix = Matrix(Mastery)[learner, knowledge_components]
         # fill unpopulated values with appropriate kc prior values, from mastery_prior field on KC object
         matrix_values = fill_nan_from_index_field(matrix, 'mastery_prior')
         # convert to odds
-        return odds(matrix_values)
+        return matrix_values
 
     @staticmethod
     def get_mastery_prior():
@@ -271,7 +271,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             return
 
         # current mastery odds for learner
-        mastery_odds = self.get_learner_mastery(learner, knowledge_components)
+        mastery_odds = odds(self.get_learner_mastery(learner, knowledge_components))
 
         # convert activity into queryset with single element
         activity_qset = Activity.objects.filter(pk=activity.pk)
@@ -345,18 +345,16 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             W_c: (float), weight on substrategy C
             last_attempted_guess: 1xK vector of guess parameters for activity
             last_attempted_slip: 1xK vector of slip parameters for activity
-            learner_mastery_odds: 1xK vector of learner mastery odds values
+            L: 1xK vector of learner mastery odds values
         """
         # retrieve or calculate features
         guess = self.get_guess(valid_activities, valid_kcs)
         slip = self.get_slip(valid_activities, valid_kcs)
         relevance = calculate_relevance(guess, slip)
         last_attempted_relevance = self.get_last_attempted_relevance(learner, valid_kcs)
-        learner_mastery_odds = odds(self.get_learner_mastery(learner, valid_kcs))
-
-        # fill missing values with 0.0
+        learner_mastery = self.get_learner_mastery(learner, valid_kcs)
         fillna(relevance)
-        fillna(learner_mastery_odds)
+        # fill missing values with 0.0
         # last_attempted_relevance may be None if no prior score history
         if last_attempted_relevance is not None:
             fillna(last_attempted_relevance)
@@ -367,7 +365,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             'difficulty': self.get_difficulty(valid_activities),
             'prereqs': self.get_prereqs(valid_kcs),
             'last_attempted_relevance': last_attempted_relevance,
-            'learner_mastery_odds': learner_mastery_odds,
+            'learner_mastery': learner_mastery,
             'r_star': self.engine_settings.r_star,
             'L_star': self.engine_settings.L_star,
             'W_p': self.engine_settings.W_p,
