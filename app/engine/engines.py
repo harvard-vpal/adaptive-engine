@@ -100,8 +100,13 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     Specific implementation of adaptive engine for django context
     """
 
-    def __init__(self, engine_settings):
+    def __init__(self, engine_settings, recommendation_score_function=recommendation_score):
+        """
+        :param engine_settings: EngineSettings model instance
+        :param recommendation_score_function: function that returns a list of scores (e.g. alosi.engine.recommendation_score)
+        """
         self.engine_settings = engine_settings
+        self.recommendation_score_function = recommendation_score_function
 
     @staticmethod
     def get_tagging_parameter_values(model, activities=None, knowledge_components=None, default_value=0.1):
@@ -371,20 +376,15 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             'W_c': self.engine_settings.W_c,
         }
 
-    def recommend(self, learner, collection, sequence):
+    @staticmethod
+    def get_valid_activities(learner, collection, sequence=[]):
         """
-        Workflow:
-            get valid activities (i.e. activities in collection)
-            retrieve parameters (relevant to valid activities where applicable)
-            compute scores for valid activities using parameters
-            return top item by computed recommendation score
+        Determine valid activities that recommendation can output
         :param learner: Learner model instance
         :param collection: Collection model instance
-        :param sequence: list of activity objects, learner's sequence history  # TODO provide default=[]?
-        :return: Activity model instance
+        :param sequence: list of activity objects, learner's sequence history
+        :return: Activity queryset
         """
-        # Determine valid activities that recommendation can output
-
         # recommendation activity scores will only be computed for valid activities
         valid_activities = collection.activity_set.all().order_by('pk')
         # exclude activities already completed
@@ -396,31 +396,59 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         valid_activities = valid_activities.exclude(pk__in=[activity.pk for activity in sequence])
         # remove activities whose prerequisites are not satisfied yet (this should be the last filter)
         valid_activities = valid_activities.exclude(prerequisite_activities__in=valid_activities)
+        return valid_activities
 
+    def recommendation_score(self, learner, collection, sequence=[]):
+        """
+        Workflow:
+            get valid activities (i.e. activities in collection)
+            retrieve parameters (relevant to valid activities where applicable)
+            compute scores for valid activities using parameters
+
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity objects, learner's sequence history
+        :return: dict of Activity instances and scores, e.g. {activity: 0.5, activity2: 0.2, ...}
+        :rtype: dict
+        """
+        # get valid activities that can be recommended
+        valid_activities = self.get_valid_activities(learner, collection, sequence)
         # KC set associated with the remaining valid activities
         valid_kcs = get_kcs_in_activity_set(valid_activities).order_by('pk')
 
         # skip score calculation for base cases
         if not valid_activities.exists():
             log.debug("No valid activities left: {}".format(collection))
-            return None
+            return {}
         if len(valid_activities) == 1:
-            return valid_activities.first()
+            return {valid_activities.first(): 1.0}
         if not valid_kcs.exists():
             log.warning("No knowledge components detected for collection activities; returning random activity")
-            return random.choice(valid_activities)
+            # return random.choice(valid_activities)
+            return {activity: random.random() for activity in valid_activities}
 
         # get relevant model parameters
         recommendation_params = self.get_recommend_params(learner, valid_activities, valid_kcs)
 
         # compute recommendation scores for activities
-        scores = recommendation_score(**recommendation_params)
-        # get the index corresponding to the activity with the highest computed score
-        activity_idx = np.argmax(scores)
+        scores = self.recommendation_score_function(**recommendation_params)
 
-        # convert matrix 0-idx to activity.pk / activity
-        pks = list(valid_activities.values_list('pk', flat=True))
-        return Activity.objects.get(pk=pks[activity_idx])
+        return {activity: score for activity, score in zip(valid_activities, scores)}
+
+    def recommend(self, learner, collection, sequence=[]):
+        """
+        Return top item by computed recommendation score
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity objects, learner's sequence history
+        :return: Activity instance
+        """
+        activity_scores = self.recommendation_score(learner, collection, sequence)
+        # case: no valid activities left to recommend (activity_scores will be an empty dict)
+        if not activity_scores:
+            return None
+        # return the activity with the highest score
+        return max(activity_scores, key=activity_scores.get)
 
 
 def get_kcs_in_activity_set(activities):
