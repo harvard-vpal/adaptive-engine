@@ -327,8 +327,8 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     def get_recommend_params(self, learner, valid_activities, valid_kcs):
         """
         Retrieve features/params needed for doing recommendation
-        Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
-        Does shared calculations before passing derived features to subscore calculators
+        Overrides base get_recommend_params and adds 'valid_activities' and 'valid_kcs' argument,
+            to minimize unnecessary data retrieval/query; these determine size of matrix/vector outputs
         TODO: consider QuerySet.select_related() for optimization https://docs.djangoproject.com/en/2.0/ref/models/querysets/#select-related
         :param learner: Learner model instance
         :param valid_activities: Queryset of Activity objects
