@@ -355,6 +355,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         learner_mastery = self.get_learner_mastery(learner, valid_kcs)
         fillna(relevance)
         # fill missing values with 0.0
+        difficulty = fillna(self.get_difficulty(valid_activities), value=0.5)
         # last_attempted_relevance may be None if no prior score history
         if last_attempted_relevance is not None:
             fillna(last_attempted_relevance)
@@ -362,7 +363,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         # construct param dict
         return {
             'relevance': relevance,
-            'difficulty': self.get_difficulty(valid_activities),
+            'difficulty': difficulty,
             'prereqs': self.get_prereqs(valid_kcs),
             'last_attempted_relevance': last_attempted_relevance,
             'learner_mastery': learner_mastery,
