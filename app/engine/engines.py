@@ -192,22 +192,17 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         return Matrix(PrerequisiteRelation)[knowledge_components, knowledge_components].values()
 
     @staticmethod
-    def get_last_attempted_relevance(learner, knowledge_components):
+    def get_last_attempted_activity(learner):
         """
-        :param learner: Learner object instance
-        :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: 1 x (# LOs) np.array vector
+        Get last attempted activity for a given learner
+        :param learner: Learner model instance
+        :return: Activity model instance, or None if no activity attempted yet
         """
         user_scores = Score.objects.filter(learner=learner)
-
         if not user_scores.exists():
             return None
-
-        last_attempted_activity = user_scores.latest('timestamp').activity
-        guess = Matrix(Guess)[last_attempted_activity, knowledge_components].values()
-        slip = Matrix(Slip)[last_attempted_activity, knowledge_components].values()
-        relevance = calculate_relevance(guess, slip)
-        return relevance
+        else:
+            return user_scores.latest('timestamp').activity
 
     @staticmethod
     def get_learner_mastery(learner, knowledge_components=None):
@@ -348,25 +343,17 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             L: 1xK vector of learner mastery odds values
         """
         # retrieve or calculate features
-        guess = self.get_guess(valid_activities, valid_kcs)
-        slip = self.get_slip(valid_activities, valid_kcs)
-        relevance = calculate_relevance(guess, slip)
-        last_attempted_relevance = self.get_last_attempted_relevance(learner, valid_kcs)
-        learner_mastery = self.get_learner_mastery(learner, valid_kcs)
-        fillna(relevance)
-        # fill missing values with 0.0
-        difficulty = fillna(self.get_difficulty(valid_activities), value=0.5)
-        # last_attempted_relevance may be None if no prior score history
-        if last_attempted_relevance is not None:
-            fillna(last_attempted_relevance)
+        last_attempted_activity = self.get_last_attempted_activity(learner)
 
         # construct param dict
         return {
-            'relevance': relevance,
-            'difficulty': difficulty,
+            'guess': self.get_guess(valid_activities, valid_kcs),
+            'slip': self.get_slip(valid_activities, valid_kcs),
+            'difficulty': self.get_difficulty(valid_activities),
             'prereqs': self.get_prereqs(valid_kcs),
-            'last_attempted_relevance': last_attempted_relevance,
-            'learner_mastery': learner_mastery,
+            'last_attempted_guess': self.get_guess(last_attempted_activity, valid_kcs),
+            'last_attempted_slip': self.get_slip(last_attempted_activity, valid_kcs),
+            'learner_mastery': self.get_learner_mastery(learner, valid_kcs),
             'r_star': self.engine_settings.r_star,
             'L_star': self.engine_settings.L_star,
             'W_p': self.engine_settings.W_p,
