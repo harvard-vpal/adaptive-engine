@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# shortcut for running "docker-compose run web ..." using docker-compose.alosi-mount.yml as override
+# usage: ./run pytest
+
+docker-compose -f docker-compose.yml -f docker-compose.alosi-mount.yml run web "$@"
