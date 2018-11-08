@@ -1,0 +1,13 @@
+# docker-compose override for local development with alosi lib
+#
+# specify path to local alosi library in .env file:
+# e.g. "ALOSI_LOCAL_LIBRARY=/Users/me/github/alosi/alosi"
+#
+# usage: docker-compose -f docker-compose.yml -f docker-compose.alosi-mount.yml
+
+
+version: '2'
+services:
+  web:
+    volumes:
+      - ${ALOSI_LOCAL_LIBRARY}:/usr/local/lib/python3.6/site-packages/alosi

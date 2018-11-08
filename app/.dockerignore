@@ -1,0 +1,8 @@
+**/__pycache__
+*.py[cod]
+.idea/
+.git/
+**/.DS_Store
+.env
+.pytest_cache/
+static/

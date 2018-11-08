@@ -39,6 +39,10 @@ LOGGING = {
         'engine': {
             'handlers': ['console'],
             'level': 'DEBUG',
+        },
+        'alosi.engine': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
         }
     },
 }

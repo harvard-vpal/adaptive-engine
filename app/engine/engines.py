@@ -56,7 +56,7 @@ def get_engine(engine_settings=None):
     """
     if engine_settings is None:
         engine_settings = EngineSettings(
-            L_star=0.9,
+            L_star=np.log(odds(0.9)),
             r_star=0.0,
             W_r=2.0,  # demand
             W_c=1.0,  # continuity
@@ -100,8 +100,13 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     Specific implementation of adaptive engine for django context
     """
 
-    def __init__(self, engine_settings):
+    def __init__(self, engine_settings, recommendation_score_function=recommendation_score):
+        """
+        :param engine_settings: EngineSettings model instance
+        :param recommendation_score_function: function that returns a list of scores (e.g. alosi.engine.recommendation_score)
+        """
         self.engine_settings = engine_settings
+        self.recommendation_score_function = recommendation_score_function
 
     @staticmethod
     def get_tagging_parameter_values(model, activities=None, knowledge_components=None, default_value=0.1):
@@ -187,40 +192,35 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         return Matrix(PrerequisiteRelation)[knowledge_components, knowledge_components].values()
 
     @staticmethod
-    def get_last_attempted_relevance(learner, knowledge_components):
+    def get_last_attempted_activity(learner):
         """
-        :param learner: Learner object instance
-        :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: 1 x (# LOs) np.array vector
+        Get last attempted activity for a given learner
+        :param learner: Learner model instance
+        :return: Activity model instance, or None if no activity attempted yet
         """
         user_scores = Score.objects.filter(learner=learner)
-
         if not user_scores.exists():
             return None
-
-        last_attempted_activity = user_scores.latest('timestamp').activity
-        guess = Matrix(Guess)[last_attempted_activity, knowledge_components].values()
-        slip = Matrix(Slip)[last_attempted_activity, knowledge_components].values()
-        relevance = calculate_relevance(guess, slip)
-        return relevance
+        else:
+            return user_scores.latest('timestamp').activity
 
     @staticmethod
     def get_learner_mastery(learner, knowledge_components=None):
         """
-        Constructs a 1 x (# LOs) vector of mastery odds values for learner
+        Constructs a 1 x (# LOs) vector of mastery values for learner
         Optionally, subset and order can be defined using knowledge_components argument
         If mastery value for a KC does not exist, populates the corresponding array element with the prior mastery
         value of the KC
         output vector represents mastery values of KCs in knowledge_components arg; defines the vector "axis"
         :param learner: Learner model instance
         :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: 1 x (# LOs) np.array vector of mastery odds values
+        :return: 1 x (# LOs) np.array vector of mastery values
         """
         matrix = Matrix(Mastery)[learner, knowledge_components]
         # fill unpopulated values with appropriate kc prior values, from mastery_prior field on KC object
         matrix_values = fill_nan_from_index_field(matrix, 'mastery_prior')
         # convert to odds
-        return odds(matrix_values)
+        return matrix_values
 
     @staticmethod
     def get_mastery_prior():
@@ -266,7 +266,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             return
 
         # current mastery odds for learner
-        mastery_odds = self.get_learner_mastery(learner, knowledge_components)
+        mastery_odds = odds(self.get_learner_mastery(learner, knowledge_components))
 
         # convert activity into queryset with single element
         activity_qset = Activity.objects.filter(pk=activity.pk)
@@ -322,15 +322,14 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     def get_recommend_params(self, learner, valid_activities, valid_kcs):
         """
         Retrieve features/params needed for doing recommendation
-        Calls data/param retrieval functions that may be implementation(prod vs. prototype)-specific
-        Does shared calculations before passing derived features to subscore calculators
+        Overrides base get_recommend_params and adds 'valid_activities' and 'valid_kcs' argument,
+            to minimize unnecessary data retrieval/query; these determine size of matrix/vector outputs
         TODO: consider QuerySet.select_related() for optimization https://docs.djangoproject.com/en/2.0/ref/models/querysets/#select-related
         :param learner: Learner model instance
         :param valid_activities: Queryset of Activity objects
         :param valid_kcs: Queryset of KnowledgeComponent objects
         :return: dictionary with following keys:
-            guess: QxK np.array, guess parameter values for activities
-            slip: QxK np.array, slip parameter values for activities
+            relevance: QxK np.array, calculated relevance values for activities
             difficulty: 1xQ np.array, difficulty values for activities
             prereqs: KxK np.array, prerequisite matrix
             r_star: float, Threshold for forgiving lower odds of mastering pre-requisite LOs.
@@ -341,29 +340,20 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             W_c: (float), weight on substrategy C
             last_attempted_guess: 1xK vector of guess parameters for activity
             last_attempted_slip: 1xK vector of slip parameters for activity
-            learner_mastery_odds: 1xK vector of learner mastery odds values
+            L: 1xK vector of learner mastery odds values
         """
         # retrieve or calculate features
-        guess = self.get_guess(valid_activities, valid_kcs)
-        slip = self.get_slip(valid_activities, valid_kcs)
-        relevance = calculate_relevance(guess, slip)
-        last_attempted_relevance = self.get_last_attempted_relevance(learner, valid_kcs)
-        learner_mastery_odds = odds(self.get_learner_mastery(learner, valid_kcs))
-
-        # fill missing values with 0.0
-        fillna(relevance)
-        fillna(learner_mastery_odds)
-        # last_attempted_relevance may be None if no prior score history
-        if last_attempted_relevance is not None:
-            fillna(last_attempted_relevance)
+        last_attempted_activity = self.get_last_attempted_activity(learner)
 
         # construct param dict
         return {
-            'relevance': relevance,
+            'guess': self.get_guess(valid_activities, valid_kcs),
+            'slip': self.get_slip(valid_activities, valid_kcs),
             'difficulty': self.get_difficulty(valid_activities),
             'prereqs': self.get_prereqs(valid_kcs),
-            'last_attempted_relevance': last_attempted_relevance,
-            'learner_mastery_odds': learner_mastery_odds,
+            'last_attempted_guess': self.get_guess(last_attempted_activity, valid_kcs) if last_attempted_activity else None,
+            'last_attempted_slip': self.get_slip(last_attempted_activity, valid_kcs) if last_attempted_activity else None,
+            'learner_mastery': self.get_learner_mastery(learner, valid_kcs),
             'r_star': self.engine_settings.r_star,
             'L_star': self.engine_settings.L_star,
             'W_p': self.engine_settings.W_p,
@@ -372,20 +362,15 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             'W_c': self.engine_settings.W_c,
         }
 
-    def recommend(self, learner, collection, sequence):
+    @staticmethod
+    def get_valid_activities(learner, collection, sequence=[]):
         """
-        Workflow:
-            get valid activities (i.e. activities in collection)
-            retrieve parameters (relevant to valid activities where applicable)
-            compute scores for valid activities using parameters
-            return top item by computed recommendation score
+        Determine valid activities that recommendation can output
         :param learner: Learner model instance
         :param collection: Collection model instance
         :param sequence: list of activity objects, learner's sequence history
-        :return: Activity model instance
+        :return: Activity queryset
         """
-        # Determine valid activities that recommendation can output
-
         # recommendation activity scores will only be computed for valid activities
         valid_activities = collection.activity_set.all().order_by('pk')
         # exclude activities already completed
@@ -397,31 +382,59 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         valid_activities = valid_activities.exclude(pk__in=[activity.pk for activity in sequence])
         # remove activities whose prerequisites are not satisfied yet (this should be the last filter)
         valid_activities = valid_activities.exclude(prerequisite_activities__in=valid_activities)
+        return valid_activities
 
+    def recommendation_score(self, learner, collection, sequence=[]):
+        """
+        Workflow:
+            get valid activities (i.e. activities in collection)
+            retrieve parameters (relevant to valid activities where applicable)
+            compute scores for valid activities using parameters
+
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity objects, learner's sequence history
+        :return: dict of Activity instances and scores, e.g. {activity: 0.5, activity2: 0.2, ...}
+        :rtype: dict
+        """
+        # get valid activities that can be recommended
+        valid_activities = self.get_valid_activities(learner, collection, sequence)
         # KC set associated with the remaining valid activities
         valid_kcs = get_kcs_in_activity_set(valid_activities).order_by('pk')
 
         # skip score calculation for base cases
         if not valid_activities.exists():
             log.debug("No valid activities left: {}".format(collection))
-            return None
+            return {}
         if len(valid_activities) == 1:
-            return valid_activities.first()
+            return {valid_activities.first(): 1.0}
         if not valid_kcs.exists():
             log.warning("No knowledge components detected for collection activities; returning random activity")
-            return random.choice(valid_activities)
+            # return random.choice(valid_activities)
+            return {activity: random.random() for activity in valid_activities}
 
         # get relevant model parameters
         recommendation_params = self.get_recommend_params(learner, valid_activities, valid_kcs)
 
         # compute recommendation scores for activities
-        scores = recommendation_score(**recommendation_params)
-        # get the index corresponding to the activity with the highest computed score
-        activity_idx = np.argmax(scores)
+        scores = self.recommendation_score_function(**recommendation_params)
 
-        # convert matrix 0-idx to activity.pk / activity
-        pks = list(valid_activities.values_list('pk', flat=True))
-        return Activity.objects.get(pk=pks[activity_idx])
+        return {activity: score for activity, score in zip(valid_activities, scores)}
+
+    def recommend(self, learner, collection, sequence=[]):
+        """
+        Return top item by computed recommendation score
+        :param learner: Learner model instance
+        :param collection: Collection model instance
+        :param sequence: list of activity objects, learner's sequence history
+        :return: Activity instance
+        """
+        activity_scores = self.recommendation_score(learner, collection, sequence)
+        # case: no valid activities left to recommend (activity_scores will be an empty dict)
+        if not activity_scores:
+            return None
+        # return the activity with the highest score
+        return max(activity_scores, key=activity_scores.get)
 
 
 def get_kcs_in_activity_set(activities):

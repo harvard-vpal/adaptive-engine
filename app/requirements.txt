@@ -1,12 +1,13 @@
-Django==2.0.5
+Django==2.0.8
 djangorestframework==3.8.2
 numpy==1.14.0
-requests==2.18.4
+requests==2.20.0
 gunicorn==19.7.1
 psycopg2==2.7.4
-alosi==1.2.1
+alosi==2.0.0
 django_extensions==1.9.9
 pandas==0.22.0
 ipykernel==4.8.2
 pytest
 pytest-django
+boto3==1.9.29
