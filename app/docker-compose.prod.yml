@@ -14,8 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    entrypoint: ./entrypoint.sh
-    command: gunicorn
+    command: /usr/local/bin/gunicorn config.wsgi:application -w 2 -b :8000 --log-level=info --log-file - --access-logfile -
     volumes:
       - .:/app
     ports:
