@@ -115,6 +115,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         e.g. guess, slip, transit
         If activity is tagged with a kc, but there is no guess/slip values initialized for that pair,
             this method fills the output with default values
+        # TODO consider handling activity (model instance) input in addition to queryset
         :param model: Model, django model class representing parameter (either Guess, Slip, Transit)
         :param activities: queryset of Activity model instances (convert model to qset before using this method)
         :param knowledge_components: queryset of KnowledgeComponent model instances
@@ -344,6 +345,9 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         """
         # retrieve or calculate features
         last_attempted_activity = self.get_last_attempted_activity(learner)
+        if last_attempted_activity:
+            # convert to queryset to avoid dimension mismatch between output and tagging matrix in get_tagging_parameter_values()
+            last_attempted_activity_qs = Activity.objects.filter(pk=last_attempted_activity.pk)
 
         # construct param dict
         return {
@@ -351,8 +355,8 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
             'slip': self.get_slip(valid_activities, valid_kcs),
             'difficulty': self.get_difficulty(valid_activities),
             'prereqs': self.get_prereqs(valid_kcs),
-            'last_attempted_guess': self.get_guess(last_attempted_activity, valid_kcs) if last_attempted_activity else None,
-            'last_attempted_slip': self.get_slip(last_attempted_activity, valid_kcs) if last_attempted_activity else None,
+            'last_attempted_guess': self.get_guess(last_attempted_activity_qs, valid_kcs)[0] if last_attempted_activity else None,
+            'last_attempted_slip': self.get_slip(last_attempted_activity_qs, valid_kcs)[0] if last_attempted_activity else None,
             'learner_mastery': self.get_learner_mastery(learner, valid_kcs),
             'r_star': self.engine_settings.r_star,
             'L_star': self.engine_settings.L_star,
