@@ -68,13 +68,12 @@ def sequence_test_collection(db):
         value=0.9
     )
 
-    # tag activites with knowledge components
+    # tag activities with knowledge components
     for i in range(8):
-        activity.knowledge_components.add(kcs[0])
+        activities[i].knowledge_components.add(kcs[0])
     for i in range(4, 12):
-        activity.knowledge_components.add(kcs[1])
+        activities[i].knowledge_components.add(kcs[1])
 
-    # return collection
     return collection
 
 
