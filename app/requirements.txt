@@ -11,3 +11,4 @@ ipykernel==4.8.2
 pytest
 pytest-django
 boto3==1.9.29
+django-filter==2.0.0
