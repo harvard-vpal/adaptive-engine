@@ -218,6 +218,7 @@ class MasteryViewSet(viewsets.ModelViewSet):
     """
     queryset = Mastery.objects.all()
     serializer_class = MasterySerializer
+    filter_fields = ('learner',)
 
     @action(methods=['put'], detail=False)
     def bulk_update(self, request):
