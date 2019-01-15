@@ -254,6 +254,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         Doesn't add anything new to base class method, except new
         Also expects different input types for some args; see docstring
         TODO verify correctness of implementation
+        Assumes creation of score object in database is done outside this method (i.e. handled in api view)
         :param learner: Learner object instance
         :param activity: Activity object instance
         :param score: float
@@ -280,17 +281,6 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         new_mastery_odds = calculate_mastery_update(mastery_odds, score, guess, slip, transit, EPSILON)
         # save new mastery values in mastery data store
         self.update_learner_mastery(learner, new_mastery_odds, knowledge_components)
-        # save the new score in score data store
-        self.save_score(learner, activity, score)
-
-    @staticmethod
-    def save_score(learner, activity, score):
-        """
-        :param learner: Learner model instance
-        :param activity: Activity model instance
-        :param score: float, score value
-        """
-        Score.objects.create(learner=learner, activity=activity, score=score)
 
     @staticmethod
     def update_learner_mastery(learner, new_mastery_odds, knowledge_components=None):
