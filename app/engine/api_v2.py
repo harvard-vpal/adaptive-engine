@@ -277,7 +277,7 @@ class ScoreViewSet(viewsets.ModelViewSet):
         :param serializer: serializer representing model object to save
         :return: None
         """
-        # required for perform_create()
+        # required for perform_create(); creates the score object in database
         score = serializer.save()
 
         # trigger update function for engine (bayes update if adaptive)
