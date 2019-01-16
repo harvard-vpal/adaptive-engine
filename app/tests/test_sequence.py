@@ -4,7 +4,7 @@ from time import sleep
 import pytest
 from engine.models import Collection, KnowledgeComponent, Mastery, Learner, Activity, PrerequisiteRelation
 from .fixtures import engine_api
-
+from alosi.engine import EPSILON
 log = logging.getLogger(__name__)
 
 
@@ -124,3 +124,8 @@ def test_sequence(engine_api, sequence_test_collection):
             )
             assert r.ok
             sleep(0.1)
+
+            learner = Learner.objects.get(**LEARNER)
+            mastery = Mastery.objects.filter(learner=learner).values_list('value', flat=True)
+            # test that learner mastery values are between epsilon and (1-epsilon)
+            assert all([EPSILON <= x <= (1-EPSILON) for x in mastery])
