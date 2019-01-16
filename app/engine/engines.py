@@ -2,8 +2,7 @@ import logging
 import random
 from django.db.models import Model
 import numpy as np
-from alosi.engine import BaseAlosiAdaptiveEngine, recommendation_score, odds, EPSILON, \
-    calculate_relevance, calculate_mastery_update, fillna
+from alosi.engine import BaseAlosiAdaptiveEngine, recommendation_score, odds, EPSILON, calculate_mastery_update
 from .data_structures import Matrix, Vector, pk_index_map, convert_pk_to_index
 from .models import *
 
@@ -15,13 +14,15 @@ SLIP_DEFAULT = odds(0.15)
 TRANSIT_DEFAULT = odds(0.1)
 
 
-def inverse_odds(x):
+def inverse_odds(x, epsilon=EPSILON):
     """
-    Calculate probability from odds
+    Calculate probability from odds, and regularize returned probability to range [epsilon, 1-epsilon]
     :param x: odds value
-    :return:
+    :return: probability value
     """
-    return np.exp(x)/(1+np.exp(x))
+    p = x/(1+x)
+    p = np.minimum(np.maximum(p, epsilon), 1 - epsilon)
+    return p
 
 
 def get_tagging_matrix(activities=None, knowledge_components=None):
@@ -215,7 +216,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         output vector represents mastery values of KCs in knowledge_components arg; defines the vector "axis"
         :param learner: Learner model instance
         :param knowledge_components: KnowledgeComponent model instance or queryset
-        :return: 1 x (# LOs) np.array vector of mastery values
+        :return: 1 x (# LOs) np.array vector of mastery (probability) values
         """
         matrix = Matrix(Mastery)[learner, knowledge_components]
         # fill unpopulated values with appropriate kc prior values, from mastery_prior field on KC object
@@ -286,7 +287,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     def update_learner_mastery(learner, new_mastery_odds, knowledge_components=None):
         """
         Saves updated mastery values in database
-        Mastery is saved as probability values; converts odds to normal probability
+        Mastery values in database are probability values between 0 and 1; converts odds to probability before saving
         :param learner: learner model instance
         :param new_mastery_odds: 1 x (# LOs) np.array vector of new odds mastery values
         :param knowledge_components: KnowledgeComponent queryset - KC's to update values for

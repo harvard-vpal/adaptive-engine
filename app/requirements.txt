@@ -4,7 +4,7 @@ numpy==1.14.0
 requests==2.20.0
 gunicorn==19.7.1
 psycopg2==2.7.4
-alosi==2.0.0
+alosi==2.1.1
 django_extensions==1.9.9
 pandas==0.22.0
 ipykernel==4.8.2

@@ -1,9 +1,9 @@
 import logging
+import random
+from time import sleep
 import pytest
 from engine.models import Collection, KnowledgeComponent, Mastery, Learner, Activity, PrerequisiteRelation
 from .fixtures import engine_api
-from time import sleep
-import random
 
 log = logging.getLogger(__name__)
 
@@ -57,14 +57,14 @@ def sequence_test_collection(db):
         kc = KnowledgeComponent(
             kc_id=i,
             name='kc {}'.format(i),
-            mastery_prior = 0.2,
+            mastery_prior=0.2,
         )
         kc.save()
         kcs.append(kc)
 
     PrerequisiteRelation.objects.create(
-        prerequisite = kcs[0],
-        knowledge_component = kcs[1],
+        prerequisite=kcs[0],
+        knowledge_component=kcs[1],
         value=0.9
     )
 
