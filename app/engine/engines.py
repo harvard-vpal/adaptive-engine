@@ -15,13 +15,15 @@ SLIP_DEFAULT = odds(0.15)
 TRANSIT_DEFAULT = odds(0.1)
 
 
-def inverse_odds(x):
+def inverse_odds(x, epsilon=EPSILON):
     """
-    Calculate probability from odds
+    Calculate probability from odds, and regularize returned probability to range [epsilon, 1-epsilon]
     :param x: odds value
-    :return:
+    :return: probability value
     """
-    return np.exp(x)/(1+np.exp(x))
+    p = x/(1+x)
+    p = np.minimum(np.maximum(p, epsilon), 1 - epsilon)
+    return p
 
 
 def get_tagging_matrix(activities=None, knowledge_components=None):
