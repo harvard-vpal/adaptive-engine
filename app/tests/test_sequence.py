@@ -129,3 +129,6 @@ def test_sequence(engine_api, sequence_test_collection):
             mastery = Mastery.objects.filter(learner=learner).values_list('value', flat=True)
             # test that learner mastery values are between epsilon and (1-epsilon)
             assert all([EPSILON <= x <= (1-EPSILON) for x in mastery])
+    print("Final sequence:")
+    for a in sequence:
+        print(a)
