@@ -424,12 +424,17 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         :param sequence: list of activity objects, learner's sequence history
         :return: Activity instance
         """
+        # activity_scores is a dict of activity object keys with corresponding score values
         activity_scores = self.recommendation_score(learner, collection, sequence)
         # case: no valid activities left to recommend (activity_scores will be an empty dict)
         if not activity_scores:
             return None
-        # return the activity with the highest score
-        return max(activity_scores, key=activity_scores.get)
+        # find highest score
+        max_score = max(activity_scores.values())
+        # get activity (or activities) with highest score
+        max_activities = [activity for activity, score in activity_scores.items() if score == max_score]
+        # break tie with random selection
+        return random.choice(max_activities)
 
 
 def get_kcs_in_activity_set(activities):
