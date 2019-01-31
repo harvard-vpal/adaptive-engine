@@ -137,7 +137,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         tagging_matrix = get_tagging_matrix(activities, knowledge_components)
 
         # for activity-kc relationships with no parameter provided, replace with default value
-        output[np.where(tagging_matrix == 1)] = default_value
+        output[np.where(tagging_matrix == 1 & np.isnan(output))] = default_value
 
         return output
 
