@@ -12,6 +12,7 @@ router_v2.register('mastery', api_v2.MasteryViewSet)
 router_v2.register('knowledge_component', api_v2.KnowledgeComponentViewSet)
 router_v2.register('prerequisite_activity', api_v2.PrerequisiteActivityViewSet)
 router_v2.register('prerequisite_knowledge_component', api_v2.PrerequisiteKnowledgeComponentViewSet)
+router_v2.register('collection_activity', api_v2.CollectionActivityMemberViewSet)
 
 
 urlpatterns = [

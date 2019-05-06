@@ -300,3 +300,12 @@ class PrerequisiteRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrerequisiteRelation
         fields = ('prerequisite','knowledge_component','value')
+
+
+class CollectionActivityMemberSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Collection-Activity membership relation
+    """
+    class Meta:
+        model = Activity.collections.through
+        fields = ['id', 'activity', 'collection']
