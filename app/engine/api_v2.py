@@ -28,6 +28,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
     """
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
+    filter_fields = ['url', 'name']
 
     @action(methods=['post'], detail=False)
     def recommend(self, request):
