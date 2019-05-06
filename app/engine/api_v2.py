@@ -333,3 +333,4 @@ class CollectionActivityMemberViewSet(viewsets.ModelViewSet):
     """
     queryset = Activity.collections.through.objects.all()
     serializer_class = CollectionActivityMemberSerializer
+    filter_fields = ['collection', 'activity']
