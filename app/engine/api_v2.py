@@ -317,3 +317,19 @@ class PrerequisiteKnowledgeComponentViewSet(viewsets.ModelViewSet):
     """
     queryset = PrerequisiteRelation.objects.all()
     serializer_class = PrerequisiteRelationSerializer
+
+
+class CollectionActivityMemberViewSet(viewsets.ModelViewSet):
+    """
+    Collection <-> Activity membership relation API endpoints
+
+    Standard CRUD endpoints:
+        GET /collection_activity - list
+        POST /collection_activity - create
+        GET /collection_activity/{pk} - retrieve
+        PUT /collection_activity/{pk} - update
+        PATCH /collection_activity/{pk} - partial update
+        DELETE /collection_activity/{pk} - destroy
+    """
+    queryset = Activity.collections.through.objects.all()
+    serializer_class = CollectionActivityMemberSerializer
