@@ -115,7 +115,7 @@ def test_knowledge_component_id_field(engine_api, knowledge_component):
     :return:
     """
     r = engine_api.request('GET', 'knowledge_component')  # kc list endpoint
-    assert 'id' in r.json()[0]
+    assert 'id' in r.json()['results'][0]
 
 
 @pytest.mark.django_db
