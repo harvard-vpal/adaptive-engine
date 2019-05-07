@@ -116,6 +116,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     lookup_field = 'collection_id'  # lookup based on collection_id slug field
+    filter_fields = ['collection_id', 'name']
 
     @action(methods=['get', 'post'], detail=True)
     def activities(self, request, collection_id=None):
@@ -254,7 +255,7 @@ class KnowledgeComponentViewSet(viewsets.ModelViewSet):
     queryset = KnowledgeComponent.objects.all()
     serializer_class = KnowledgeComponentSerializer
     lookup_field = 'kc_id'  # lookup based on kc_id slug field
-
+    filter_fields = ['kc_id', 'name']
 
 class ScoreViewSet(viewsets.ModelViewSet):
     """
@@ -334,3 +335,4 @@ class CollectionActivityMemberViewSet(viewsets.ModelViewSet):
     queryset = Activity.collections.through.objects.all()
     serializer_class = CollectionActivityMemberSerializer
     filter_fields = ['collection', 'activity']
+
