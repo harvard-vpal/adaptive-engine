@@ -116,6 +116,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     lookup_field = 'collection_id'  # lookup based on collection_id slug field
+    filter_fields = ['collection_id', 'name']
 
     @action(methods=['get', 'post'], detail=True)
     def activities(self, request, collection_id=None):
