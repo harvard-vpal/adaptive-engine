@@ -35,14 +35,6 @@ class Collection(models.Model):
     def __str__(self):
         return "Collection: {} ({})".format(self.collection_id, self.name)
 
-    def grade(self, learner):
-        """
-        Generate learner grade based on masteries that bridge can query
-        as a grading policy option.
-        TODO Just uses a placeholder value for now - update this
-        """
-        return 0.5
-
 
 class KnowledgeComponent(models.Model):
     kc_id = models.CharField(max_length=200, unique=True)
