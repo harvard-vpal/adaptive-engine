@@ -1,7 +1,7 @@
 import logging
 import pytest
 from engine.models import Collection, KnowledgeComponent, Mastery, Learner, Activity
-from .fixtures import engine_api
+from .fixtures import engine_api, sequence_test_collection
 
 log = logging.getLogger(__name__)
 
@@ -197,4 +197,21 @@ def test_api_create_prerequisite_ka(engine_api, knowledge_components):
         value=1.0
     )
     r = engine_api.request('POST', 'prerequisite_knowledge_component', json=data)
+    assert r.ok
+
+
+def test_api_grade(engine_api, sequence_test_collection):
+    """
+    Test that mastery-based grade generator is working
+    
+    :param engine_api: engine api fixture
+    :param knowledge_components
+    """
+    data = {
+        'learner': {
+            'user_id': 'user_id',
+            'tool_consumer_instance_guid': 'tool_consumer_instance_guid'
+        }
+    }
+    r = engine_api.request('POST', f'collection/{sequence_test_collection.collection_id}/grade', json=data)
     assert r.ok

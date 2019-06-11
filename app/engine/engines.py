@@ -57,7 +57,7 @@ def get_engine(engine_settings=None):
     """
     if engine_settings is None:
         engine_settings = EngineSettings(
-            L_star=np.log(odds(0.9)),
+            L_star=np.log(odds(0.9)),  # TODO initialize from constant
             r_star=0.0,
             W_r=2.0,  # demand
             W_c=1.0,  # continuity
@@ -100,6 +100,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
     """
     Specific implementation of adaptive engine for django context
     """
+    
 
     def __init__(self, engine_settings, recommendation_score_function=recommendation_score):
         """
@@ -107,6 +108,7 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         :param recommendation_score_function: function that returns a list of scores (e.g. alosi.engine.recommendation_score)
         """
         self.engine_settings = engine_settings
+        self.mastery_threshold = 0.9  # probability threshold
         self.recommendation_score_function = recommendation_score_function
 
     @staticmethod
@@ -436,6 +438,29 @@ class AdaptiveEngine(BaseAlosiAdaptiveEngine):
         # break tie with random selection
         return random.choice(max_activities)
 
+    def grade(self, learner, collection):
+        """
+        Generate learner grade based on masteries that bridge can query
+        as a grading policy option.
+
+        Formula: For each knowledge component associated with the collection's activity set,
+        calculate (current mastery - prior) / (mastery threshold - prior). The overall score is the
+        average of the subscores for each knowledge component.
+        
+        :param learner: learner model instance
+        :param collection: collection model instance
+        :return: calculated student grade for collection
+        :rtype: float
+        """
+        # get relevant kcs
+        kcs = get_kcs_in_activity_set(collection.activity_set)
+        # get student masteries for kcs (current value or prior if no value)
+        learner_mastery = self.get_learner_mastery(learner, kcs)
+        priors = np.array([kc.mastery_prior for kc in kcs])
+        # TODO may want to guard against situation where we divide by zero, by checking mastery_threshold > prior
+        score = ((np.maximum(learner_mastery, priors) - priors)/(self.mastery_threshold - priors)).mean()
+        score = min(max(score, 0.), 1.)
+        return score
 
 def get_kcs_in_activity_set(activities):
     """

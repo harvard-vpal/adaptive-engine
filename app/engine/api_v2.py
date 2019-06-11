@@ -199,7 +199,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         # get or create learner
         learner, created = Learner.objects.get_or_create(**serializer.data)
 
-        grade = collection.grade(learner)
+        grade = get_engine().grade(learner, collection)
         return Response({'learner': serializer.data, 'grade': grade})
 
 
