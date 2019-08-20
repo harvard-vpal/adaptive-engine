@@ -18,7 +18,6 @@ Folder contents:
 * `writeup/` - Writeup and LaTeX files to generate the document
 
 ## Getting started
-* [Python engine library folder and documentation](https://github.com/harvard-vpal/adaptive-engine/tree/master/alosi)
 * [Web application folder and documentation](https://github.com/harvard-vpal/adaptive-engine/tree/master/app)
 * [Theoretical overview of the recommendation engine algorithm](https://github.com/harvard-vpal/adaptive-engine/blob/master/writeup/writeup.pdf)
 
