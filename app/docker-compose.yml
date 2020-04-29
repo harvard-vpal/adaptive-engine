@@ -6,6 +6,7 @@ services:
     image: postgres
     environment:
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: engine
     volumes:
       - pgdata:/var/lib/postgresql/data/
     ports:
