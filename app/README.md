@@ -19,7 +19,7 @@ cd app
 docker-compose up -d
 
 # apply database migrations
-docker-compose run engine python manage.py migrate
+docker-compose run web python manage.py migrate
 ```
 
 The engine should now be available at localhost:8000. Try opening localhost:8000/engine/api in a web browser.
@@ -29,7 +29,7 @@ The engine should now be available at localhost:8000. Try opening localhost:8000
 To access the Django admin panel, a superuser needs to be created.
 ```
 # Open an interactive shell in engine docker container
-docker-compose run engine bash
+docker-compose run web bash
 
 # Create super user account
 python manage.py createsuperuser
